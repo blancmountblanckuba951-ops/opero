@@ -1,0 +1,645 @@
+OPERO 3.3.0 — SPRAWDZONE NA ŻYWO: REJESTR CEN, GEOPORTAL, EKW, ODCZYT PISMA
+========================================================================
+
+Silnik obliczeń i generator raportu bez zmian (te same sumy kontrolne).
+Po raz pierwszy wszystko, co program pobiera z sieci, zostało uruchomione
+na prawdziwych usługach (18.11.2026). Testy „na żywo" są w test/na_zywo/.
+
+REJESTR CEN NIERUCHOMOŚCI (GUGiK) — POPRAWKI Z PRAWDZIWYCH DANYCH
+------------------------------------------------------------------
+  - Adresy w rejestrze mają postać „MSC:Gdańsk;UL:Kadetów;NR_PORZ:9" —
+    program je teraz rozkłada (wcześniej ulica i miasto były puste).
+  - Kondygnacja jest w polu LOK_NR_KOND — czytana (wcześniej zawsze pusta).
+  - Odsiewane są transakcje nieporównywalne: sprzedaż bezprzetargowa,
+    z bonifikatą, na cel publiczny, udziały (np. 2/213 garażu), garaże
+    i lokale użytkowe przy wycenie mieszkania. Na próbie z Gdańska ceny
+    po 12 zł/m² brały się właśnie z udziałów w garażach.
+  - Filtr daty po stronie rejestru (od daty wyceny minus okres badania) —
+    zamiast tysięcy transakcji z lat 2005–2015 przychodzą te z okresu.
+  - Słownik rejestru po polsku: rynek pierwotny/wtórny, rodzaj transakcji,
+    prawo, sprzedający; przy transakcji zostaje nr aktu, id lokalu
+    i id transakcji z rejestru.
+  - Budynki: odróżniane domy (nieruchomość gruntowa zabudowana) od
+    budynków, w których sprzedano tylko lokal.
+
+AGENT OCEN TRANSAKCJI (część Agenta Obliczeń)
+---------------------------------------------
+Macierz ocen cech (każda transakcja × każda cecha) uzupełnia się sama,
+z uzasadnieniem przy każdej ocenie: rynek pierwotny → stan deweloperski
+(standard do wykończenia) i nowy budynek; odległość od przedmiotu;
+powierzchnia względem wycenianej; kondygnacja (parter). Cechy, których
+rejestr nie opisuje — „przeciętna" z adnotacją „brak danych w źródle".
+Ocen wpisanych ręcznie nie zmienia.
+
+AGENT GEOPORTALU — PO SPRAWDZENIU
+---------------------------------
+  - Warstwy dobrane dokładnie jak w geoportalu (działki, numery, budynki,
+    kontury; plan: raster i wektor; uzbrojenie: przewody wg rodzaju).
+  - Identyfikator działki z księgi bywa nieaktualny (Ikara: 1172 nie
+    istnieje — dziś 743) — agent bierze wtedy działkę spod adresu i mówi
+    o tym wprost.
+  - Gmina poza krajową integracją planów („brak serwisu", np. Gdańsk):
+    program już nie udaje, że plan jest — wskazuje gminny serwis.
+  - Mapy: ortofotomapa, ewidencja, uzbrojenie — sprawdzone, obrys działki
+    trafia we właściwe miejsce.
+
+KSIĘGA Z EKW
+------------
+Przycisk „⚖ Księga z EKW": program otwiera przeglądarkę ksiąg Ministerstwa
+Sprawiedliwości, numer księgi jest w schowku (i w formularzu, jeśli go
+rozpozna). Ty wyszukujesz i otwierasz działy — program przepisuje każdy
+wyświetlony dział do operatu, bez kopiowania i bez zrzutów. Portal ma
+zabezpieczenia przed automatami i regulamin; program ich nie omija
+i nie pobiera ksiąg sam — dlatego działy otwierasz Ty.
+
+ODCZYT PISMA OFFLINE — DRUGI SILNIK
+-----------------------------------
+Do programu dołączony jest Tesseract (Apache-2.0) z modelem języka
+polskiego (ok. 10 MB). Gdy silnik Windows nie zadziała, zrzuty czyta
+Tesseract — w programie, bez internetu i bez PowerShella.
+
+DEWELOPERUCH.PL
+---------------
+Sprawdziłem: Deweloperuch pokazuje transakcje z Rejestru Cen (RCN) i ceny
+ofertowe deweloperów z dane.gov.pl. OPERO pobiera dokładnie te dwa źródła
+u źródła (rejestr GUGiK i dane.gov.pl) — bez pośrednika i bez kopiowania
+jego strony. Na żywo: dane.gov.pl zwrócił 136 ofert dla Gdańska.
+
+PRZYKŁAD IKARA 97/2 NA PRAWDZIWYCH DANYCH
+-----------------------------------------
+Rejestr: 2628 transakcji lokali w 4 km od 2021 r.; Agent Rynku po dwóch
+rundach przyjął 23 (m.in. ul. Ikara 83–97, 113–114 m²). Wartość z rachunku
+programu: 1 201 000 zł (10 560 zł/m²). To wynik programu do Twojej
+weryfikacji, nie opinia rzeczoznawcy.
+
+CZEGO NIE SPRAWDZIŁEM
+---------------------
+  - Overpass (odległości z OpenStreetMap) — serwer nie odpowiadał z mojego
+    środowiska; program ma teraz dwa serwery zapasowe.
+  - Okno EKW i okno geoportalu — to okna w programie na Windows.
+  - Odczyt pisma silnikiem Windows (TextDetector) — Tesseract sprawdzony.
+
+
+OPERO 3.2.0 — BEZ POWERSHELLA, TYLKO AGENCI, ZESPÓŁ NADZORU, BAZA RYNKU SAMA SIĘ BUDUJE
+====================================================================================
+
+Silnik obliczeń i generator raportu bez zmian (te same sumy kontrolne).
+
+ANTYWIRUS (Norton: IDP.HELU.PSE96) — USUNIĘTE U ŹRÓDŁA
+------------------------------------------------------
+Norton blokował powershell.exe uruchamiany przez OPERO z zakodowanym
+poleceniem (-EncodedCommand, -ExecutionPolicy Bypass). Tak program czytał
+zrzuty księgi (OCR), stare pliki .xls i rozpakowywał silnik PER.
+Od 3.2.0 PROGRAM NIE URUCHAMIA POWERSHELLA W OGÓLE:
+  - OCR: silnik pisma Windows wołany wewnątrz programu przez Chromium
+    (TextDetector) w ukrytym, odizolowanym oknie. Gdy go brak, a masz
+    włączony model w chmurze — obraz czyta model. Inaczej: wklej treść
+    księgi tekstem.
+  - Arkusze: tylko własny czytnik .xlsx/.csv (stary .xls: zapisz jako .xlsx).
+  - Silnik PER: rozpakowywany własnym kodem (z ochroną przed ścieżkami
+    wychodzącymi poza folder).
+Test „bez_powershell_test.js" pilnuje, żeby to nie wróciło.
+Uwaga: skrypt BUDOWY instalatora (ZBUDUJ OPERO.cmd → buduj.ps1) nadal
+używa PowerShella na Twoim komputerze przy budowie. To nie jest program
+klienta. Jeśli Norton przerwie budowę, dodaj folder z paczką do wyjątków
+na czas budowy.
+
+TYLKO AGENCI — BEZ ETAPÓW
+-------------------------
+Menu: Nowy operat · Wynik · Express · Baza rynku · Klienci · Historia ·
+Ustawienia. „Edycja ręczna" i osobne „Księgi wieczyste" zniknęły z menu;
+każde przejście do etapu kończy się w zakładce Wynik.
+Nowy operat: Zlecenie (jedyne dane ręczne) → wrzuć dokumenty → Uruchom.
+Wynik: cały operat w podglądzie + „Pobierz Word (.docx)" + „Pobierz PDF"
++ werdykt zespołu. Obliczenia i audyt są schowane w „dla dociekliwych".
+Agent Rynku przy niedoborze sam dobiera z zapasu kryteriów najbliższe
+transakcje (oznaczone w tabeli) — nic nie czeka na Twoją decyzję.
+
+ZESPÓŁ NADZORU (16 agentów)
+---------------------------
+Po Rzeczoznawcy-weryfikatorze pracują:
+  Agent Korektor   — sam wprowadza poprawki weryfikatora (bez nowych
+                     liczb i faktów; każdą możesz cofnąć w raporcie),
+  Kierownik zespołu — do 3 narad: wskazuje agentów, których praca ma
+                     błędy (np. tabele → Rynek/Analityk/Obliczenia,
+                     tekst → Redaktor, formalne → Formalny), każe im
+                     poprawić, zleca ponowną weryfikację i Korektę,
+                     a na końcu wydaje WERDYKT: „zatwierdzam do Twojej
+                     weryfikacji" albo „zostało N błędów, których nie
+                     usunę bez danych od Ciebie" (z listą).
+
+BAZA RYNKU, KTÓRA BUDUJE SIĘ SAMA
+---------------------------------
+  - Każda transakcja pobrana z RCN przez agentów zostaje w Bazie rynku
+    (ze źródłem i datą).
+  - Każdy adres wyceny staje się „obszarem zbierania" (do 25 obszarów).
+  - Co 6 godzin, gdy program jest otwarty — także bez robienia operatu —
+    zbieracz pyta RCN o te obszary (promień 5 km; lokale, budynki,
+    działki; wszystkie strony wyników) i dokłada nowe transakcje.
+  - Zakładka Baza rynku: stan, „Zbierz teraz", wyłącznik.
+Źródło: tylko publiczny Rejestr Cen Nieruchomości (GUGiK). Portali
+z ogłoszeniami (Otodom, OLX itd.) program nie przeszukuje — ich
+regulaminy tego zabraniają, a ceny ofertowe to nie transakcje.
+
+CZEGO NIE SPRAWDZIŁEM NA ŻYWO
+-----------------------------
+Moje środowisko to Linux bez dostępu do serwerów GUGiK. Nie sprawdziłem:
+  - OCR przez TextDetector na Windows (funkcja Chromium, w Windows oparta
+    na Windows.Media.Ocr) — przy pierwszym zrzucie księgi sprawdź odczyt,
+  - zapytań RCN / geoportalu i zbieracza na prawdziwych danych.
+Logika, przebieg zespołu i interfejs przeszły testy na atrapach usług.
+
+
+OPERO 3.1.0 — TRANSAKCJE ZA WSZELKĄ CENĘ, AGENT GEOPORTALU, ZLECENIE
+===================================================================
+
+Silnik obliczeń i generator raportu bez zmian (te same sumy kontrolne).
+
+CO PODAJESZ SAM: TYLKO ZLECENIE
+-------------------------------
+Pierwszy krok na ekranie „Nowy operat" to „Zlecenie": zleceniodawca,
+nr zlecenia/umowy, data, cel wyceny (lista podpowiedzi). Agent Zlecenia
+układa z tego podstawę formalną. AUTORA bierze sam z Ustawień → Profil
+rzeczoznawcy (imię i nazwisko, nr uprawnień, firma, telefon, e-mail,
+adres) — wpisuje tylko puste pola, niczego, co wpisałeś ręcznie, nie
+nadpisuje. Na ekranie widać, kto będzie autorem; kliknięcie prowadzi do
+Ustawień. Opis tekstem jest teraz opcjonalny — wystarczą dokumenty.
+
+TRANSAKCJE — AGENT RYNKU SZUKA RUNDAMI
+--------------------------------------
+Cel: ok. 12 transakcji dla KCM (wg podręcznika), 6 dla porównywania
+parami. Agent szuka od najlepszego porównania do najszerszego:
+  runda 1: najbliższe otoczenie   1 km,  24 mies., metraż ±20%
+  runda 2: dzielnica              2 km,  36 mies., ±30%
+  runda 3: część miasta           4 km,  60 mies., ±40%
+  runda 4: rynek lokalny          8 km, 120 mies. (10 lat), ±50%
+Kończy na pierwszej rundzie, która daje wymaganą liczbę. Nigdy nie
+szuka węziej, niż sam ustawiłeś. Po każdej rundzie raport: ile doszło,
+ile razem, co odpowiedziało każde źródło.
+Rejestr Cen Nieruchomości (GUGiK, WFS) pytany jest teraz o WSZYSTKIE
+strony wyników (po 1000, do 6000 obiektów na rodzaj) — wcześniej tylko
+o pierwszą. Powtórzenia (ten sam akt, adres, data, cena) są usuwane.
+Do tego Twoja baza rynku (wyciągi z RCN ze starostwa, XLSX/CSV)
+i cenniki deweloperów (tylko jako oferty, do Twojej decyzji).
+Definicję rynku lokalnego agent wpisuje z FAKTYCZNEGO zakresu, na
+którym skończył (promień, okres, metraż, liczba transakcji).
+
+Ważne o „liście transakcji z czatu": model językowy bez dostępu do
+rejestru potrafi wypisać listę, która wygląda wiarygodnie, a jest
+zmyślona (adresy, daty i ceny bez pokrycia). Do operatu wolno wziąć
+tylko transakcję z identyfikatorem źródła (akt notarialny / RCN).
+Dlatego OPERO pobiera je z rejestru i z Twoich wyciągów, a każda
+pozycja ma w tabeli oznaczenie źródła. Najpełniejszy materiał to
+wyciąg z RCN ze starostwa (art. 155 ugn) — wrzuć go do „Bazy rynku".
+
+AGENT GEOPORTALU (nowy, czternasty)
+-----------------------------------
+Robi to, co Ty robisz na geoportalu, tylko przez te same publiczne
+usługi GUGiK, z których korzysta sam geoportal:
+  1. Działka: ULDK (identyfikator z księgi albo z adresu) — numer,
+     obręb, gmina, powiat, obrys.
+  2. Mapy 1200×1200 px wokół działki, z czerwonym obrysem działki:
+       ortofotomapa,
+       ewidencja gruntów i budynków (KIEG) na ortofotomapie,
+       plan miejscowy (KIMPZP) na ortofotomapie,
+       uzbrojenie terenu (KIUT) na ortofotomapie.
+     Warstwy program czyta z opisu usługi (GetCapabilities), nie zgaduje.
+  3. Legendy (GetLegendGraphic / LegendURL) — jako obrazy i odczytane
+     skanerem pisma (OCR) na tekst.
+  4. Opis szczegółowy działki (GetFeatureInfo) z ewidencji i z planu —
+     przeczytany i dołączony; wpisane w PUSTE pola: powierzchnia działki,
+     użytki, nr KW z ewidencji (gdy powiat go podaje), symbol
+     i przeznaczenie terenu, nazwa planu, uchwała.
+  5. Okno geoportalu (opcja „okno geoportalu", domyślnie włączona):
+     agent otwiera widoczne okno Geoportal.gov.pl ustawione na działce,
+     czeka aż mapa się narysuje i robi zrzut ekranu jako załącznik.
+     Okno jest odcięte od programu (bez dostępu do plików i danych
+     operatu), nie wychodzi poza geoportal.gov.pl i zamyka się samo.
+Wszystko trafia do zdjęć w kategorii „Mapy" z podpisem: co to jest,
+która działka, z jakiej usługi i kiedy pobrano. Mapy nie są brane jako
+okładka ani do oglądu wnętrz.
+
+CZEGO NIE SPRAWDZIŁEM NA ŻYWO
+-----------------------------
+Moje środowisko nie ma dostępu do gugik.gov.pl ani geoportal.gov.pl
+(blokada sieci). Ani jedno zapytanie do RCN, ULDK, KIEG, KIMPZP, KIUT,
+ortofotomapy ani do okna geoportalu nie zostało przeze mnie wykonane.
+Przetestowane są: budowa zapytań, czytanie odpowiedzi (na przykładowych
+odpowiedziach w formacie usług), składanie map, wpisywanie pól, rundy
+szukania i cały przebieg zespołu na atrapach usług. Przy pierwszym
+uruchomieniu u Ciebie sprawdź:
+  - czy mapy mają obrys działki we właściwym miejscu (kolejność osi),
+  - jakie warstwy dobrał program (dziennik: Pomoc → Dziennik),
+  - czy okno geoportalu ustawia się na działce (parametr
+    identifyParcel — jeśli nie, zrzut pokaże ogólny widok; mapy z
+    usług i tak są w załącznikach),
+  - czy powiat wypełnia opis szczegółowy (różne powiaty — różne pola).
+
+
+OPERO 3.0.0 — JEDNO OKNO: OPISZ, WRZUĆ, AGENCI ROBIĄ OPERAT
+==========================================================
+
+Silnik obliczeń i generator raportu bez zmian (te same sumy kontrolne).
+
+JAK TO DZIAŁA TERAZ
+-------------------
+Ekran „Nowy operat" działa jak czat:
+  1. Piszesz, co wiesz (adres, rodzaj, cel, cena ofertowa, data oględzin).
+  2. Przeciągasz WSZYSTKIE pliki naraz w pole „Przeciągnij tutaj pliki"
+     (albo „Wybierz pliki"): zrzuty księgi, rzut, zdjęcia, PDF-y, Word,
+     Excel, podręcznik. Program sam rozpoznaje, co jest czym.
+  3. „Uruchom zespół agentów". Trzynastu agentów robi operat do końca.
+  4. Na końcu na tym samym ekranie: raport, tok rozumowania, uwagi
+     weryfikatora i CAŁY OPERAT w podglądzie, z przyciskiem „Zapisz PDF".
+Etapów nie trzeba przechodzić. Są dostępne jako „Edycja ręczna" — do
+poprawek.
+
+ROZPOZNAWANIE PLIKÓW
+--------------------
+  obraz z tekstem księgi  → odczyt pisma (dwa przebiegi: obraz powiększony
+                            i obraz z wyczyszczonym szarym tłem) → Agent KW
+  obraz z nazwami pomieszczeń i wymiarami → rzut (dokumentacja + załącznik)
+  pozostałe obrazy        → zdjęcia (okładką zostaje zdjęcie, nie zrzut)
+  PDF z tekstem           → tekst od razu (pdf.js, Apache-2.0)
+  PDF ze skanem           → odczyt pisma strona po stronie
+      … podręcznik         → „Podręcznik — wzór każdego operatu"
+      … operat             → pamięć wzorców (styl)
+      … wydruk księgi      → Agent KW
+      … inny dokument      → załącznik
+  Word (.docx)            → wzór operatu albo załącznik
+  Excel/CSV               → wyciąg z rejestru cen → Baza rynku
+  Tekst                   → księga albo dopisek do opisu
+Stary .doc/.xls: program prosi o zapis w nowym formacie.
+
+KSIĘGA ZE ZRZUTÓW — DOKŁADNIEJ
+------------------------------
+Sprawdzone na Twoich pięciu zrzutach Ikara 97/2 (odczyt Tesseractem
+w moim środowisku; u Ciebie czyta silnik Windows):
+  - numer księgi, sąd, data stanu — z białego nagłówka na szarym pasku,
+  - wszystkie 5 działów, położenie, powierzchnia 113,73 m², pełny opis
+    izb (8 rodzajów, także zawinięty na dwa wiersze), 4 pokoje,
+  - udział 11373/22745, księga macierzysta GD1G/00374430/8,
+  - działka 1172 w obrębie 0003 — wyciągnięta z identyfikatora lokalu,
+  - właściciel: tylko imię i nazwisko (nowy układ EKW „IMIĘ NAZWISKO,
+    imię ojca, imię matki, PESEL" — wcześniej do nazwiska trafiały
+    imiona rodziców; poprawione),
+  - działy III i IV „brak wpisów".
+Śmieci z odczytu (ramki tabel, cyfry z tła) nie wchodzą do operatu:
+wartość, która nie wygląda na swoje pole, zostaje pusta. W moim teście
+pogrubione „IKARA 97 2" Tesseract zgubił — adres przyszedł z opisu.
+Liczby ze zrzutu wchodzą, gdy przejdą kontrolę postaci, i są oznaczone
+„ze zrzutu — porównaj z księgą".
+
+PODRĘCZNIK — WZÓR KAŻDEGO OPERATU
+---------------------------------
+Wrzucasz PDF podręcznika (także skan z telefonu). Program czyta go
+stronami i trzyma tylko na Twoim komputerze. Przed pisaniem każdego
+rozdziału agenci szukają w nim zasad (np. procedura korygowania ceny
+średniej, wagi cech, klauzule) i dostają je z poleceniem „stosuj, nie
+przepisuj". W toku rozumowania widzisz, na które strony się powołali.
+Tekst podręcznika nie trafia do operatu ani do instalatora programu.
+Twoje 6 plików (434 strony) przeczytałem u siebie, żeby sprawdzić, że
+wyszukiwanie trafia we właściwe strony — w paczce ich nie ma; wgrasz je
+w programie.
+
+AGENT OGLĘDZIN (nowy, 13. w zespole)
+-----------------------------------
+Ogląda zdjęcia i rzut: standard wykończenia, stan, elewacja, dach,
+kuchnia, łazienki, podłogi, ściany, stolarka, instalacje — i ustawia
+oceny cech „standard", „stan budynku", „garaż". Działa z modelem
+w chmurze (model lokalny nie widzi obrazów; wtedy agent mówi to wprost).
+Zdjęcia są zmniejszane do 1024 px, zanim wyjdą z komputera.
+
+ZESTAW CECH DLA ZABUDOWY BLIŹNIACZEJ I SZEREGOWEJ
+-------------------------------------------------
+Lokal w bliźniaku to nadal lokal (korygowanie ceny średniej), ale cechy
+są inne niż dla mieszkania w bloku: lokalizacja, standard, stan i wiek
+budynku, powierzchnia, garaż, ogródek, otoczenie — bez „kondygnacji
+i windy". Program rozpoznaje to z opisu („w zabudowie bliźniaczej").
+
+POPRAWKI
+--------
+  - audyt szukał numeru księgi i stanu technicznego w polach o starych
+    nazwach — zgłaszał braki, których nie było,
+  - opis „parter i piętro" nie ustawia już piętra „parter",
+  - data oględzin z opisu zastępuje domyślną dzisiejszą,
+  - plik podręcznika z 2.x („podrecznik.js", wymogi dokumentów) zostaje
+    bez zmian; nowa wiedza z podręcznika ma osobny moduł.
+
+PRZYKŁAD: IKARA 97/2 (osobno, w Twoim folderze „ikara")
+-------------------------------------------------------
+  przyklad-Ikara-97-2.opero.json  — operat po pracy zespołu; otwórz go
+                                    w OPERO („Otwórz projekt")
+  przyklad-Ikara-97-2.pdf         — ten operat wydrukowany generatorem OPERO
+Nie ma w nim wartości: w moim środowisku nie ma dostępu do Rejestru Cen
+Nieruchomości. Na Twoim komputerze otwórz projekt i kliknij „Uruchom
+zespół ponownie" — Agent Rynku pobierze transakcje, a Agent Obliczeń
+policzy wartość. Teksty opisów i oględziny ze zdjęć w przykładzie
+napisałem ja (w roli modelu); u Ciebie napisze je PER albo model
+w chmurze.
+
+CZEGO NIE SPRAWDZIŁEM NA ŻYWO
+-----------------------------
+  - odczyt pisma silnikiem Windows (sprawdzony Tesseractem na tych samych
+    obrazach — wyniki Windows mogą być lepsze albo inne),
+  - pdf.js w procesie głównym Electrona (sprawdzony w Node 22 tym samym
+    kodem; gdy moduł nie wczyta się z archiwum programu, program kopiuje
+    go do folderu danych),
+  - przeciąganie plików na okno (ścieżka pliku przez webUtils),
+  - oględziny ze zdjęć modelem w chmurze, WhatsApp, usługi publiczne.
+
+TESTY
+-----
+jedno_okno_test.js (36), jedno_okno_widok_test.js (19) — na Twoich
+zrzutach księgi (dane właściciela zanonimizowane w danych testowych).
+
+
+------------------------------------------------------------------------
+POPRZEDNIE WYDANIA
+------------------------------------------------------------------------
+
+OPERO 2.1.0 — TOK ROZUMOWANIA, DWUNASTU AGENTÓW, PAMIĘĆ NA SETKI OPERATÓW
+========================================================================
+
+Silnik obliczeń i generator raportu bez zmian (te same sumy kontrolne).
+
+
+A. TOK ROZUMOWANIA
+------------------
+Operat to łańcuch decyzji. Program przechodzi go krok po kroku i przy
+każdej decyzji zapisuje: pytanie, dane (liczby z operatu), rozważone
+możliwości z powodem odrzucenia pozostałych, rozstrzygnięcie, jego
+pewność, zastrzeżenia i to, co by tę decyzję zmieniło.
+
+  1. Cel wyceny i rodzaj wartości
+  2. Przedmiot wyceny i stan prawny
+  3. Rynek i zbiór transakcji (liczba, zakres, średnia, mediana,
+     zmienność, okres, ceny odstające, zakres powierzchni)
+  4. Podejście i metoda (z alternatywami: korygowanie ceny średniej,
+     porównywanie parami, podejście dochodowe)
+  5. Cechy rynkowe, wagi i oceny
+  6. Wynik: czy mieści się w zakresie cen, jak leży względem mediany
+     i ceny ofertowej, czy zgadza się z ocenami
+
+Na końcu Agent Krytyk szuka sprzeczności między decyzjami — np. „jest
+wynik, choć metoda nie ma podstawy w danych" albo „wartość policzono
+przy ocenach wyjściowych, to cena typowej nieruchomości, a nie tej".
+
+Cały tok jest w raporcie na ekranie Start (sekcja „Tok rozumowania").
+Słabe decyzje są od razu rozwinięte.
+
+Z tych decyzji program pisze trzy uzasadnienia — charakterystykę rynku,
+uzasadnienie metody i uzasadnienie wyniku. Każde zdanie opiera się na
+liczbie z operatu. Wchodzą tylko do pustych rubryk i są oznaczone jako
+automatyczne. Gdy decyzja jest słaba (za mało transakcji, wynik poza
+zakresem cen), program NIE pisze jej uzasadnienia — mówi, czego brakuje.
+
+Progi, które przyjąłem, są regułami praktyki, nie przepisami: kilkanaście
+transakcji (12) dla korygowania ceny średniej, trzy dla porównywania
+parami, zmienność powyżej 25% i rozpiętość cen powyżej 2 jako sygnał
+niejednorodnego zbioru, reguła 1,5 rozstępu ćwiartkowego dla cen
+odstających. Program niczego nie usuwa ze zbioru — tylko wskazuje.
+
+
+B. DWUNASTU AGENTÓW
+-------------------
+Do ośmiu z wersji 2.0 doszli:
+  Agent Analityk Rynku – statystyka zbioru i ceny odstające
+  Agent Metodyk        – tok rozumowania i uzasadnienia z danych
+  Agent Formalny       – daty, podstawy prawne, źródła, załączniki,
+                         klauzule, autor
+  Agent Krytyk         – sprzeczności między decyzjami
+Kolejność: Zlecenie → Księga → Lokalizacja → Rynek → Analityk →
+Obliczenia → Metodyk → Formalny → Redaktor → Kontroler → Krytyk →
+Rzeczoznawca-weryfikator.
+
+Ocena stanu prawnego jest ostrożniejsza: „księga bez obciążeń" pada
+tylko wtedy, gdy oba działy (III i IV) wprost mówią o braku wpisów.
+
+
+C. PAMIĘĆ WZORCÓW NA SETKI OPERATÓW
+-----------------------------------
+  - „Wgraj cały folder operatów": wskazujesz folder, program czyta
+    wszystkie pliki Word i tekstowe z podfolderów (do 3000 plików,
+    do 1000 operatów w pamięci), pokazuje postęp i na końcu mówi, ile
+    zapamiętał, a ile pominął i dlaczego.
+  - „Ucz się na operatach, które zatwierdzam": każdy operat zatwierdzony
+    w etapie końcowym trafia do pamięci jako wzór stylu. Z każdym
+    zatwierdzonym operatem program pisze bardziej po Twojemu.
+  - Pamięć leży w osobnym pliku, nie spowalnia programu.
+Jak dotąd: zapamiętywany jest styl, nie fakty — liczby są zastępowane
+znakiem ‹…›, dane kontaktowe i numery ksiąg usuwane, stan prawny
+pomijany.
+
+
+D. CZEGO NIE ZROBIŁEM I DLACZEGO — „tysiące operatów z internetu"
+-----------------------------------------------------------------
+Nie pobrałem operatów z internetu i program tego nie robi. Powody:
+  - operat szacunkowy jest utworem autora i dokumentem sporządzonym dla
+    konkretnego zleceniodawcy; zawiera dane osobowe właścicieli, numery
+    ksiąg i adresy. Operaty, które krążą w sieci (akta przetargów,
+    licytacji komorniczych, BIP), nie są udostępnione do budowania
+    komercyjnego programu;
+  - program sprzedawany rzeczoznawcom nie może mieć w środku cudzych
+    opracowań z danymi osobowymi — to ryzyko prawne dla Ciebie jako
+    wydawcy, nie dla mnie;
+  - jakość: wzorem ma być Twój warsztat, a nie przypadkowe operaty
+    o nieznanej jakości.
+Zamiast tego: import całych folderów Twoich operatów (i operatów,
+do których masz prawa — np. współpracowników, za ich zgodą) oraz nauka
+na każdym zatwierdzonym operacie. Wiedza merytoryczna pochodzi
+z podręczników wgranych do Biblii OPERO, z której korzysta asystent PER.
+
+
+E. POZOSTAŁE ZMIANY
+-------------------
+  - Jedna szata dla całego programu: nagłówki działów, wejście ekranu,
+    karty, Historia (stan operatu, pusty ekran z przejściem do Startu),
+    Ustawienia (mózg agentów obok modelu lokalnego).
+  - Ekran Wynik: „droga operatu" w siedmiu krokach — Dane, Transakcje,
+    Rachunek, Opisy, Weryfikacja, Zatwierdzenie, PDF. Kliknięcie
+    prowadzi do właściwego miejsca; weryfikację operatu robionego
+    ręcznie uruchamia się stąd.
+  - Poprawka: w podsumowaniu szybkiej ścieżki cena jednostkowa była
+    zawsze pusta (zła nazwa pola wyniku).
+  - Poprawka testów: jeden test zostawiał po sobie ok. 340 MB plików
+    tymczasowych przy każdym uruchomieniu.
+
+
+F. CZEGO NIE SPRAWDZIŁEM NA ŻYWO
+--------------------------------
+Bez zmian wobec 2.0: WhatsApp Business, model w chmurze, usługi
+publiczne, rozpoznawanie pisma i okno portali są sprawdzone tylko na
+podstawionych odpowiedziach. Import folderu jest sprawdzony na logice
+i w oknie testowym, nie na Twoim dysku i nie na prawdziwych plikach
+Word — jeśli program nie rozpozna rozdziałów w Twoich operatach,
+przyślij jeden przykład (bez danych osobowych), dopasuję rozpoznawanie
+tytułów.
+
+To nie jest jeszcze „produkt skończony" w sensie handlowym. Przed
+sprzedażą zostają: sprawdzenie całości na prawdziwych danych (Twoje
+uruchomienia), certyfikat podpisu kodu, hasło panelu i przebudowa
+ekranów Express i Klienci, które dostały nową szatę, ale nie nową
+logikę.
+
+
+TESTY
+-----
+agenci_test.js (144), studio_widok_test.js (74).
+
+
+------------------------------------------------------------------------
+POPRZEDNIE WYDANIE
+------------------------------------------------------------------------
+
+OPERO 2.0.0 — STUDIO OPERATU I ZESPÓŁ AGENTÓW
+==============================================
+
+Nowy ekran Start. Zamiast wybierać rodzaj wyceny i przechodzić etapy,
+piszesz własnymi słowami, co wiesz o zleceniu, dokładasz dokumenty
+i uruchamiasz zespół. Dostajesz gotowy operat do weryfikacji i raport:
+co zostało zrobione, czego zabrakło.
+
+Silnik obliczeń i generator raportu NIE zostały ruszone (te same pliki,
+te same sumy kontrolne co w 1.46.1).
+
+
+1. OPISZ OPERAT
+---------------
+Okno „Opisz operat" czyta opis na bieżąco i pokazuje, co z niego
+zrozumiało: rodzaj nieruchomości, adres, numer księgi, działkę i obręb,
+powierzchnię, pokoje, piętro, rok budowy, cenę ofertową, cel wyceny,
+zleceniodawcę. Najedź na żeton — zobaczysz fragment zdania, z którego to
+wziął. Czego w opisie nie ma, stoi obok jako „brakuje".
+Niczego nie zgaduje. Nazwę miejscowości odczytaną z odmienionej formy
+(„w Sopocie") oznacza jako do potwierdzenia.
+
+Dokumenty: treść księgi (wklejona z EKW), zrzuty księgi, zdjęcia, rzut
+i pozostałe pliki — cztery kafle pod opisem.
+
+
+2. ZESPÓŁ: OŚMIU AGENTÓW
+------------------------
+  Agent Zlecenia            – rodzaj operatu i dane podstawowe z opisu
+  Agent Ksiąg Wieczystych   – czyta księgę, sprawdza cyfrę kontrolną,
+                              wpisuje działy, ocenia stan prawny
+                              (hipoteki, służebności, roszczenia,
+                              ostrzeżenia, egzekucja – z cytatem wpisu)
+  Agent Lokalizacji         – ewidencja, mapa, otoczenie z odległościami,
+                              plan miejscowy, kod QR
+  Agent Rynku               – transakcje z rejestru cen i z Twojej bazy
+  Agent Obliczeń            – cechy, wagi, wartość, kontrola rachunku
+  Agent Redaktor            – opisy z zebranych danych
+  Agent Kontroler           – wraca do tego, co się nie udało
+  Rzeczoznawca-weryfikator  – czyta gotowy operat punkt po punkcie
+
+„Dokładność" (1–3 przebiegi) mówi, ile razy Kontroler ma wracać do
+agentów, którym coś nie wyszło (brak sieci, brak transakcji, model nie
+odpowiedział). Po powtórce przelicza wartość i pisze opisy, które
+odblokowały nowe dane.
+
+Zasady, których agenci nie łamią:
+  - wpisują tylko do pustych rubryk; co wpisałeś ręcznie, zostaje,
+  - każdy wpis jest oznaczony jako automatyczny (jak w 1.45),
+  - ceny ofertowe i liczby ze zrzutów nie wchodzą do operatu same,
+  - program nie pobiera ksiąg wieczystych – treść kopiujesz z EKW,
+  - operatu nie zatwierdza nikt poza Tobą.
+
+CZAS PRACY. Program nie udaje, że pracuje dłużej niż musi. Najdłużej
+trwa pisanie opisów modelem lokalnym (kilkanaście–kilkadziesiąt minut
+przy pełnym operacie, zależnie od komputera) i odpowiedzi usług
+publicznych. Zegar pokazuje faktyczny czas.
+
+
+3. RAPORT I WERYFIKATOR
+-----------------------
+Po pracy na ekranie Start jest raport: „Co zrobiłem" / „Czego zabrakło",
+po agentach, z przyciskiem do właściwego etapu.
+
+Rzeczoznawca-weryfikator sprawdza m.in.:
+  - zapis liczb i jednostek (650000 zł → 650 000 zł, 54.3 m2 → 54,3 m²),
+  - miejsca [DO UZUPEŁNIENIA] i zdania, w których model mówi o sobie,
+  - sumę wag, wagi zerowe, oceny bez uzasadnienia, same „przeciętne",
+  - tabelę transakcji: puste komórki, powtórzenia, ceny odstające,
+  - zaokrąglenie wartości, różnicę wobec ceny ofertowej, powierzchnię
+    inną niż w księdze,
+  - autora, zdjęcia, nagłówek, wielkość pisma, marginesy, znak wodny,
+  - wszystko, co zgłasza dotychczasowy audyt formalny.
+Model (lokalny albo w chmurze) dodatkowo czyta opisy okiem weryfikatora.
+
+NICZEGO NIE ZMIENIA SAM. Przy uwagach z gotową poprawką jest pole wyboru.
+„Wprowadź zaznaczone poprawki" zmienia tylko to, co zaznaczyłeś; „Cofnij
+wprowadzone" przywraca operat co do znaku. Poprawka redakcyjna modelu,
+w której pojawiła się liczba nieobecna w dotychczasowym tekście, jest
+odrzucana.
+
+ZNAK WODNY. Operat przygotowany przez agentów ma na podglądzie i w PDF
+znak „PROJEKT — DO WERYFIKACJI". Znika, gdy zatwierdzisz operat w etapie
+końcowym. Operatów robionych ręcznie to nie dotyczy.
+
+
+4. USTAWIENIA AGENTÓW (zakładka Ustawienia)
+-------------------------------------------
+MÓZG AGENTÓW. Domyślnie model lokalny PER – nic nie wychodzi
+z komputera. Model w chmurze włączasz świadomie: dostawca (Anthropic
+albo dowolny w formacie OpenAI), własny klucz, nazwa modelu (przycisk
+„Pobierz listę modeli" pyta Twoje konto) i zaznaczona zgoda. Bez zgody
+się nie włączy. Dotyczy pisania, redakcji i weryfikacji; rozmowa z PER
+zostaje lokalna. UWAGA: przy modelu w chmurze fragmenty operatu trafiają
+do dostawcy i płacisz mu za użycie.
+
+WHATSAPP.
+  Jednym kliknięciem – działa od razu: przycisk „Wyślij raport na
+  WhatsApp" otwiera WhatsApp z gotową wiadomością; wysyłasz Ty.
+  Automatycznie – po wpisaniu danych konta WhatsApp Business (Meta):
+  identyfikator numeru nadawcy, token, najlepiej nazwa zatwierdzonego
+  szablonu z jednym polem {{1}}. Program wysyła wtedy sam: na start
+  i na koniec (opcjonalnie po każdym agencie).
+  Ograniczenie Meta: zwykły tekst dochodzi tylko w ciągu 24 godzin od
+  Twojej ostatniej wiadomości do numeru firmowego – dlatego szablon.
+  W wiadomościach jest adres nieruchomości, postęp i wynik – bez danych
+  osobowych.
+
+PAMIĘĆ WZORCÓW. Wgrywasz swoje operaty (Word .docx, tekst, albo wklejasz
+tekst skopiowany z PDF). Program dzieli je na rozdziały po tytułach
+i zapamiętuje jako wzór stylu. Liczby są zastępowane znakiem ‹…›, numery
+ksiąg, telefony i e-maile usuwane, a rozdział „Stan prawny" nie jest
+zapamiętywany wcale. Agent Redaktor dostaje fragment wzoru z wyraźnym
+zakazem przepisywania faktów. Do 30 operatów. PDF nie jest czytany
+bezpośrednio – tekst trzeba wkleić.
+
+Klucz do modelu i token WhatsApp leżą na tym komputerze, zaszyfrowane
+przez system; program nie pokazuje ich ponownie.
+
+
+5. CZEGO NIE SPRAWDZIŁEM NA ŻYWO — przeczytaj
+---------------------------------------------
+Pracuję w środowisku bez dostępu do tych usług, więc poniższe jest
+sprawdzone tylko testami na podstawionych odpowiedziach:
+  - wysyłka przez WhatsApp Business (Meta) – format zapytania według
+    dokumentacji, żadna wiadomość nie została faktycznie wysłana;
+    wersję interfejsu przyjąłem „v23.0",
+  - model w chmurze – formaty zapytań według dokumentacji dostawców,
+    żadne zapytanie nie zostało faktycznie wysłane,
+  - jak zawsze: GUGiK/Geoportal, OpenStreetMap, plan miejscowy, Brave,
+    rozpoznawanie pisma Windows, okno portali – bez zmian od 1.46.1,
+  - czytanie plików .docx – sprawdzone na strukturze XML, nie na
+    Twoich operatach; jeśli program nie rozpozna rozdziałów, napisze
+    dlaczego (tytuły muszą stać w osobnych liniach).
+Jeśli coś z tej listy nie zadziała, przyślij komunikat z ekranu.
+
+Jakość pracy agentów zależy od danych: bez treści księgi nie ma oceny
+stanu prawnego, bez transakcji nie ma wartości, a oceny cech zawsze
+zostają do ustawienia po oględzinach. Raport mówi o tym wprost.
+
+
+6. CO DALEJ (nie w tym wydaniu)
+-------------------------------
+Zgodnie z ustaleniem to pierwsze z kilku wydań przebudowy. Express,
+Klienci, Historia, Wynik i panel modelu lokalnego wyglądają jak
+dotychczas – ich nowa wersja jest następna w kolejce.
+
+
+TESTY
+-----
+Nowe: agenci_test.js (113), studio_widok_test.js (57).

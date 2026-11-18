@@ -1,0 +1,243 @@
+OPERO 3.3.0 - jeden plik, jeden instalator
+===========================================
+
+  KLIKNIJ DWUKROTNIE:   ZBUDUJ OPERO.cmd
+
+To jedyna rzecz, ktora trzeba tu uruchomic. Potrzebny jest Node.js 22
+(nodejs.org, wersja LTS) - bez niego nie da sie zlozyc kodu programu.
+
+
+CO POWSTAJE
+-----------
+  OPERO-Setup-3.3.0.exe          <- TO wysylasz klientowi (ok. 130 MB)
+  OPERO-Setup-3.3.0.exe.sha256      suma kontrolna do sprawdzenia
+
+I nic wiecej. Jeden plik, zadnych zalacznikow, zadnego wydania do skladania.
+
+
+DLACZEGO MODEL NIE SIEDZI W INSTALATORZE
+----------------------------------------
+Bo Windows NIE URUCHAMIA plikow .exe wiekszych niz okolo 4 GB. Instalator
+z modelem w srodku wazylby prawie 7 GB - powstawal poprawnie, ale system
+odmawial go otworzyc komunikatem "Ta aplikacja nie bedzie dzialac na Twoim
+komputerze". To ograniczenie systemu, nie blad do poprawienia.
+
+Dlatego klient dostaje JEDEN instalator, a model pobiera u siebie - jednym
+klikniecem, wprost z Hugging Face.
+
+
+CO JEST W INSTALATORZE, A CO SIE POBIERA
+----------------------------------------
+  W instalatorze (ok. 130 MB):  program, Biblia OPERO, PACZKA silnika PER
+                                (silnik.zip) oraz ADRES modelu z suma kontrolna
+  Pobiera klient (6,3 GB):      sam plik modelu .gguf
+
+Silnik jedzie jako PACZKA, a nie jako gotowy llama-server.exe. Powod jest
+konkretny: Windows nie pozwala nadpisac pliku .exe, ktory jest uruchomiony albo
+ktory system trzyma jeszcze chwile po zamknieciu (robi tak antywirus). Instalator
+stawal wtedy z pytaniem „Przerwij / Ponow probe / Ignoruj". Paczki nikt nie
+uruchamia, wiec ten blad nie ma gdzie powstac - program rozpakowuje ja sobie sam
+do swojego folderu danych, przy pierwszym starcie albo przyciskiem „Napraw".
+
+
+JAK TO WYGLADA U KLIENTA
+------------------------
+1. Klika instalator, program sie instaluje.
+2. Wlacza OPERO. W gornym pasku, przy napisie PER, swieci kropka:
+
+     CZERWONA      modelu nie ma
+     POMARANCZOWA  model jest, ale u zrodla lezy nowszy
+     ZIELONA       model wgrany i aktualny
+
+3. Klika PER. Otwiera sie panel przy prawej krawedzi, a w nim to samo zdanie
+   slowami i - gdy jest co pobierac - przycisk:
+
+     "Pobierz model (6,3 GB)"      gdy modelu nie ma
+     "Zaktualizuj model (6,3 GB)"  gdy wyszedl nowszy
+
+4. Klika przycisk. Pobieranie idzie w tle, widac procenty, da sie je zatrzymac.
+   Przy czerwonej i pomaranczowej lampce jest tez przycisk „Napraw": sprawdza
+   po kolei silnik, model i uruchomienie, i uzupelnia to, czego brakuje. Jeden
+   przycisk na wszystko, co moze byc nie tak.
+   Gotowy plik jest sprawdzany suma kontrolna, silnik wstaje na nim sam.
+   Od tej chwili wszystko dziala bez sieci.
+5. Zerwane lacze niczego nie cofa: kolejne klikniecie rusza od miejsca,
+   w ktorym pobieranie stanelo.
+
+Program NIGDY nie pobiera modelu sam z siebie. To 6 GB - decyduje czlowiek,
+a nie program za jego plecami.
+
+
+SPRAWDZANIE NOWSZYCH MODELI
+---------------------------
+Program zaglada do repozytorium, z ktorego pochodzi jego model, i porownuje
+nazwy plikow tej samej kwantyzacji. Gdy pojawi sie nowszy, kropka robi sie
+pomaranczowa, a w panelu pojawia sie przycisk. Stary model dziala dalej -
+pomaranczowy to informacja, nie alarm.
+
+Nowy model tez ma sume kontrolna: bierzemy ja wprost z repozytorium
+(pole lfs.oid), wiec program sprawdza, co pobral.
+
+
+ILE TRWA BUDOWA
+---------------
+Kilka minut. Pobiera sie Electron (ok. 110 MB) i silnik PER (ok. 47 MB),
+oba zostaja w pamieci podrecznej - kolejne budowy sa jeszcze szybsze.
+Modelu budowa NIE pobiera: z Hugging Face bierze tylko jego adres, rozmiar
+i sume SHA-256 ze spisu plikow.
+
+
+CO JEST W TYM FOLDERZE
+----------------------
+  ZBUDUJ OPERO.cmd       <- jedyny plik do klikniecia
+  CZYTAJ TO NAJPIERW.txt    ten plik
+  app\                     kod programu
+  narzedzia\               wszystko robocze: buduj.ps1, pobierz-silnik.ps1,
+                           zapisz-manifest.js, asar_tool.js, opero.nsi,
+                           eksport-biblii.js, ikona, manifest sum
+  test\                    testy, uruchamiane przed budowa
+  silnik\                  po pierwszej budowie: serwer modelu, licencje,
+                           ZAMEK.json i adres modelu
+  .github\                 przepis dla serwera GitHub (budowa samego programu)
+
+
+MODEL PER
+---------
+  Model:    Bielik 11B v2.5 Instruct, kwantyzacja Q4_K_M (ok. 6,3 GB)
+  Licencja: Apache 2.0 - wolno sprzedawac program korzystajacy z modelu
+  Serwer:   llama.cpp (MIT)
+
+Model pracuje na komputerze rzeczoznawcy. Po pobraniu nic nie wychodzi do
+sieci. Pelny tekst licencji i nota o autorze powstaja w silnik\ i jada
+w instalatorze.
+
+Jesli wolisz mniejszy model: w narzedzia\pobierz-silnik.ps1 jest lista
+kandydatow. Qwen2.5 7B (ok. 4,7 GB) jest drugi i ma te sama licencje.
+
+
+ZANIM WYSLESZ PROGRAM KOMUS
+---------------------------
+1. Uruchom raz narzedzia\eksport-biblii.js ze swoimi kluczami Supabase - bez
+   tego app\zasoby\biblia.json nie trafi do paczki.
+2. Sprawdz silnik\LICENCJE-MODELU.txt.
+3. Windows pokaze "System Windows ochronil Twoj komputer" - to normalne dla
+   programu bez platnego certyfikatu Code Signing.
+
+
+CO NOWEGO W 1.25
+----------------
+* KSIEGI WIECZYSTE - osobna rubryka po lewej. Masz numer KW: program sprawdza
+  cyfre kontrolna i wylapuje literowke, podpowiadajac, co prawdopodobnie mialo
+  byc. Nie masz numeru: zbierasz wojewodztwo, kod wydzialu i adres, a program
+  otwiera wyszukiwarke tresci KW z gotowym zestawem do wklejenia. Programu NIE
+  laczy sie z zadna baza ksiag - takiej nikt poza ministerstwem nie udostepnia.
+* PELNY OPERAT, NIE SAMA LICZBA. Program wie, czego operat wymaga, i sam sie
+  o to dopomina:
+  - DOKUMENTY. Przy kazdym rodzaju wyceny wypisuje, czego potrzebuje: odpis
+    ksiegi wieczystej, wypis z ewidencji, zaswiadczenie o przeznaczeniu, rzut
+    lokalu, fotografie z ogledzin, podstawe formalna, a przy dochodowej umowy
+    najmu. Nie masz pliku? Wystarczy ZDJECIE albo SKAN - program mowi to
+    wprost przy kazdej pozycji i sam podpisuje zdjecie nazwa dokumentu.
+    Zalaczniki wgrane przed policzeniem przechodza do zlozonego operatu.
+  - PYTANIA. Zamiast komunikatu „uzupelnij dane" program zadaje konkretne
+    pytania (cel, prawo, obciazenia z dzialu III i IV, daty, a przy dochodowej
+    czynsze i koszty od zarzadcy) i przy kazdym pisze, DLACZEGO pyta.
+    Odpowiedz ladauje wprost w operacie, w wlasciwym polu.
+  - CZERWONE FLAGI. Program pokazuje, co zobaczy weryfikator: jedna transakcja
+    decydujaca o wyniku, trzykrotny rozrzut cen, trend bez uzasadnienia, wagi
+    nie sumujace sie do 100%, stopa kapitalizacji bez dowodu z rynku, koszt bez
+    bazy cenowej, ogledziny po dacie wyceny, brak klauzul. Nie poprawia ich -
+    to sa rozstrzygniecia rzeczoznawcy - ale nie pozwala o nich zapomniec.
+  - BLOKADA. Dopoki brakuje dokumentow albo odpowiedzi, PDF i Word nie wychodza,
+    a program wymienia braki po nazwie.
+* EKSPORT DO WORDA (.docx). Obok PDF-a jest teraz „Eksport do Worda" - w
+  Express i w edytorze koncowym. Word sklada sie z TEGO SAMEGO html-a co PDF,
+  wiec obie wersje sa tym samym dokumentem. Naglowki maja style Worda (da sie
+  z nich zrobic spis tresci), tabele sa tabelami, zdjecia sa osadzone.
+  Program nie potrzebuje do tego ani Worda, ani zadnej biblioteki z internetu.
+* WLASNA BAZA TRANSAKCJI (rubryka „Baza rynku"). Do tej pory wyciag RCiWN
+  wchodzil do jednego operatu i znikal razem z nim - przy nastepnej wycenie
+  w tej samej dzielnicy wszystko zaczynalo sie od zera. Teraz kazda wczytana
+  transakcja zostaje w pliku baza-transakcji.json w Twoim katalogu danych:
+  na TYM komputerze, nie w chmurze i nie u nas. Nikt jej nie wylaczy.
+  Co to daje: wyszukiwanie po miejscowosci, dacie, powierzchni i prawie;
+  pasek ze stanem bazy (ile transakcji, od kiedy do kiedy, mediana zl/m2);
+  przycisk „Podpowiedz do tego operatu", ktory wybiera kandydatow z tego
+  samego rynku, o zblizonej powierzchni i z ostatnich 24 miesiecy - i przy
+  kazdym pisze, DLACZEGO go podpowiada; eksport calej bazy do CSV.
+  Czego program NIE robi: nie dobiera transakcji za Ciebie. Podpowiada i
+  uzasadnia, zaznaczasz Ty - bo to Ty odpowiadasz za dobor nieruchomosci
+  podobnych i to Tobie stawia sie z tego zarzuty.
+  Nic sie nie dubluje: ten sam wyciag wczytany drugi raz nie robi z jednej
+  transakcji dwoch (rozpoznajemy po akcie notarialnym, a gdy go brak - po
+  dacie, adresie, cenie i powierzchni razem). Mediana policzona z duplikatow
+  bylaby nieprawdziwa w sposob niewidoczny na pierwszy rzut oka.
+* SZUKANIE DZIALKI PO ADRESIE (rubryka Ksiegi wieczyste). Wpisujesz adres,
+  program pyta dwie oficjalne, bezplatne uslugi GUGiK - geokoder (UUG) i
+  usluge lokalizacji dzialek (ULDK) - i podaje identyfikator dzialki, numer,
+  obreb, gmine i powiat. Jednym klikiem otwiera te dzialke w Geoportalu albo
+  wstawia ja do operatu.
+  WAZNE, zeby nie bylo zludzen: DARMOWEJ, OFICJALNEJ WYSZUKIWARKI
+  „ADRES -> NUMER KW" NIE MA. Numer ksiegi jest w ewidencji dana chroniona i
+  nie wychodzi do uslug publicznych; eKW dziala wylacznie po numerze ksiegi.
+  Serwisy, ktore sprzedaja numer po adresie, trzymaja wlasne kopie bazy eKW i
+  licza kilkadziesiat zlotych za sztuke - OPERO niczego od nich nie pobiera.
+  Program prowadzi do numeru trzema drogami, od najtanszej: (1) szuka go w
+  TWOICH danych - w wyciagu RCiWN, w Twoich operatach i w Twojej ksiedze
+  ustalonych numerow, (2) otwiera dzialke w geoportalu, (3) wypelnia wniosek
+  do starosty o numer KW, z podstawa prawna z art. 155 ust. 3 ustawy o
+  gospodarce nieruchomosciami - masz do tych danych prawo jako rzeczoznawca.
+  Raz ustalony numer program zapamietuje przy dzialce, wiec druga wycena w tym
+  samym budynku jest od reki.
+* OPERAT EXPRESS - cztery kroki. (1) Wybierasz RODZAJ wyceny z okienek:
+  lokal mieszkalny (korygowanie ceny sredniej), nieruchomosc zabudowana
+  (porownywanie parami), nieruchomosc dochodowa (kapitalizacja prosta) albo
+  budynek i budowla (koszt odtworzenia minus zuzycie). (2) Program pyta TYLKO
+  o dane, ktorych ta metoda wymaga - przy dochodowej o czynsz, pustostan,
+  koszty i stope, przy kosztowej o koszt jednostkowy, jego zrodlo, wiek i
+  trwalosc; wyciag RCiWN pokazuje sie tylko przy podejsciach porownawczych,
+  bo tylko one go uzywaja. (3) Program sklada caly tok obliczen i wypisuje
+  KAZDE swoje przyjecie z uzasadnieniem - poprawiasz, co trzeba, i liczysz
+  ponownie. (4) Wybierasz szate dokumentu i zapisujesz PDF.
+  Czego Express nie zrobi i mowi o tym wprost: wywlaszczenia, oplaty
+  adiacenckiej, sluzebnosci i wyceny rolnej. Te wisza na rozstrzygnieciach
+  prawnych, ktorych program nie ma prawa przyjac za Ciebie.
+  Zadnych opisow Express nie pisze - pisze liczby i mowi, skad je wzial.
+* TRZY SZATY DOKUMENTU - przed zapisem PDF wybierasz jeden z trzech ukladow,
+  widzac miniatury obok siebie: "Urzedowy klasyczny" (szeryfowa Georgia, zloty
+  akcent, pelny spis tresci - do banku i sadu), "Nowoczesny czysty" (Calibri,
+  grafit, szerokie marginesy - dla klienta, do czytania z ekranu) i
+  "Prestizowy granat" (Cambria, granatowe pasy, okladka na zdjeciu, gestsze
+  tabele - na prezentacje). Kazdy kafelek ma wlasny przycisk "PDF w tym
+  ukladzie", a po wyborze mozna dostroic czcionke, interlinie, marginesy,
+  kolor, linie naglowkow, okladke i gestosc tabel. Jest i w Express,
+  i w edytorze koncowym operatu robionego recznie. Zmiana ukladu nie rusza
+  ani jednej liczby - wartosc, trend i wagi zostaja takie, jakie policzyl
+  program.
+* LICENCJE BEZ CHMURY - patrz "LICENCJE PROGRAMU" nizej.
+* SILNIK PER W PACZCE DANYCH - koniec z bledem "Blad otwarcia pliku do
+  zapisu ... llama-server.exe" przy instalacji. Instalator nie niesie juz
+  zadnego .exe silnika; program rozpakowuje go sobie sam do swojego folderu
+  danych, przy pierwszym starcie albo przyciskiem "Napraw" w asystencie PER.
+
+
+LICENCJE PROGRAMU
+-----------------
+Od wersji 1.25 program NIE MA serwera licencji i nie bedzie go mial. Zadnego
+Supabase, zadnej chmury, zadnej oplaty miesiecznej za to, zeby klienci mogli
+sie aktywowac.
+
+Klucze wydajesz osobna aplikacja "OPERO Generator kluczy" - stoi na Twoim
+komputerze i podpisuje klucze Twoim kluczem prywatnym. Klient wkleja pelny
+klucz (OPERO1....) albo wczytuje go z pliku, a program sprawdza podpis u
+siebie i dziala dalej bez internetu.
+
+Generator zapisuje w historii, komu i na jak dlugo wydales klucz, i zapala
+przy kazdym swiatelko: zielone - dziala, pomaranczowe - konczy sie w ciagu
+30 dni, czerwone - juz nie dziala. Szczegoly w jego wlasnym
+"CZYTAJ TO NAJPIERW.txt".
+
+Uwaga, na ktora trzeba miec oczy otwarte przy sprzedazy: wydanego klucza NIE
+DA SIE zdalnie uniewaznic. Program klienta nikogo o nic nie pyta. Dlatego
+sprzedawaj na czas (30 / 90 / 365 dni) i odnawiaj - krotki termin to jedyna
+prawdziwa dzwignia, jaka masz.

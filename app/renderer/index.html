@@ -1,0 +1,1944 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- Interfejs OPERO jest w całości lokalny: nie ładuje skryptów ani stylów z sieci.
+       Reguła blokuje wykonanie kodu, który mógłby trafić do okna np. z wklejonej treści EKW. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data:; frame-src 'self' data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+  <title>OPERO — operaty szacunkowe</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-default-brand">
+      <img src="../assets/logo.svg" alt="OPERO" class="auth-logo">
+      <h1>OPERO</h1><p class="lead">System operatów szacunkowych</p>
+    </div>
+
+    <div id="authLicense" class="hidden start-screen">
+      <div class="start-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
+      <div class="start-grid">
+
+        <section class="start-pitch">
+          <div class="start-brand">
+            <img src="../assets/logo.svg" alt="">
+            <div><strong>OPERO</strong><span>System operatów szacunkowych</span></div>
+          </div>
+
+          <h2 class="start-headline">Operat, który sam pilnuje<br>kompletności i rachunku.</h2>
+          <p class="start-lead">Od danych nieruchomości po gotowy PDF — jeden uporządkowany proces, jawne obliczenia i pełna kontrola rzeczoznawcy nad każdą decyzją.</p>
+
+          <div class="start-features">
+            <div class="start-feature">
+              <span class="sf-icon">◷</span>
+              <div><b>Prowadzenie krok po kroku</b><p>Program wskazuje najbliższą potrzebną informację i nie pozwoli wygenerować niekompletnego operatu.</p></div>
+            </div>
+            <div class="start-feature">
+              <span class="sf-icon">∑</span>
+              <div><b>Jawny rachunek wyceny</b><p>Korygowanie ceny średniej i porównywanie parami. Trend, ΔC, wagi i korekty widoczne na każdym etapie.</p></div>
+            </div>
+            <div class="start-feature">
+              <span class="sf-icon">▦</span>
+              <div><b>Import danych rynkowych</b><p>Transakcje wczytasz z Excela albo CSV. Okresy do daty wyceny program przelicza sam.</p></div>
+            </div>
+            <div class="start-feature">
+              <span class="sf-icon">◆</span>
+              <div><b>Raport PDF pod kontrolą</b><p>Podgląd A4 na żywo, własny motyw, nagłówki, spisy i dokumentacja fotograficzna.</p></div>
+            </div>
+            <div class="start-feature">
+              <span class="sf-icon">✒</span>
+              <div><b>PER i Biblia OPERO</b><p>Pytania o metodykę i źródła danych — z regułą, źródłem i granicą tego, czego program nie wie.</p></div>
+            </div>
+            <div class="start-feature">
+              <span class="sf-icon">▱</span>
+              <div><b>Cały program od pierwszego dnia</b><p>Wszystkie moduły, PER, Biblia OPERO i eksport PDF działają od razu. Operaty i zdjęcia zostają na Twoim komputerze.</p></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="start-panel">
+          <div class="start-card">
+            
+
+            <span class="start-eyebrow">DOSTĘP DO PROGRAMU</span>
+            <h3 class="start-card-title">Wpisz klucz licencyjny</h3>
+            <p class="start-card-sub">Jeden klucz odblokowuje cały program. Klucz jest podpisanym dokumentem — OPERO sprawdza go na tym komputerze i nie łączy się z żadnym serwerem licencyjnym. Najwygodniej wczytać go z pliku, który dostałeś.</p>
+
+            <div class="start-key-field" id="licenseKeyWrap">
+              <textarea id="licenseKey" rows="3" autocomplete="off" spellcheck="false" placeholder="OPERO1.… (wklej cały klucz albo wczytaj z pliku)" aria-label="Klucz licencyjny OPERO"></textarea>
+              <button id="licensePasteBtn" type="button" title="Wklej ze schowka" aria-label="Wklej ze schowka">⧉</button>
+            </div>
+            <div class="start-key-meta">
+              <span id="licenseKeyHint">Klucz zaczyna się od „OPERO1.” i jest jednym długim ciągiem bez spacji</span>
+              <span id="licenseKeyState" class="micro-status"></span>
+            </div>
+
+            <button id="licenseActivateBtn" class="start-cta">Aktywuj OPERO <i>→</i></button>
+
+            <div class="start-alt">
+              <button id="licenseImportBtn" type="button">Wczytaj klucz z pliku</button>
+              <span>·</span>
+              <button id="licensePurchaseBtn" type="button">Skąd wziąć klucz?</button>
+            </div>
+
+            <div id="licenseCurrentStatus" class="start-status"><span>i</span><div><b>Program czeka na klucz</b><p>Po aktywacji przejdziesz prosto do pracy.</p></div></div>
+
+            <div class="start-foot">
+              <div class="start-device">
+                <span>To urządzenie</span>
+                <b id="licenseDeviceCode" class="mono-value">—</b>
+                <button id="licenseCopyDeviceBtn" type="button" title="Kopiuj identyfikator" aria-label="Kopiuj identyfikator urządzenia">⧉</button>
+              </div>
+              <span class="start-lokalnie" title="OPERO nie wysyła klucza nigdzie — sprawdza jego podpis na tym komputerze">
+                <i class="connection-dot ok"></i><span>sprawdzane lokalnie</span>
+              </span></div>
+            <p id="licenseSyncText" class="start-sync"></p>
+          </div>
+
+          <p class="start-privacy">Klucz nie jest nigdzie wysyłany. OPERO sprawdza jego podpis na tym komputerze — działa bez internetu, także w terenie.</p>
+        </section>
+
+      </div>
+    </div>
+
+    <div id="authMessage" class="status hidden"></div>
+  </div>
+</div>
+
+<!-- =========================================================================
+     SAMOUCZEK 1.23.0 — OSOBNY EKRAN, NIE NAKLADKA
+
+     Do 1.18.0 samouczek swiecil reflektorem po zywym programie i przelaczal
+     zakladki pod rekami uzytkownika. Wygladalo to efektownie i bylo nie do
+     czytania: tekst stal obok elementu, ktory sam sie przesuwal, a pierwsze
+     spotkanie z programem zaczynalo sie od migania.
+
+     Teraz samouczek to WLASNY ekran. Program stoi spokojnie w tle, a tutaj
+     po kolei omawiamy jego czesci: z lewej spis tematow, w srodku opis, obok
+     mapa okna z zaznaczonym miejscem, o ktorym mowa. Przeskakiwanie miedzy
+     elementami odbywa sie wylacznie w tym ekranie.
+     ========================================================================= -->
+<div id="tutorScreen" class="tutor-ekran hidden" role="dialog" aria-modal="true" aria-label="Samouczek OPERO">
+  <header class="tutor-ekran-head">
+    <div class="tutor-marka">
+      <span class="tutor-postac"><span id="tutorPiorek" class="piorek-character state-idle" aria-hidden="true"><span class="piorek-ground-shadow"></span><svg class="piorek-svg" viewBox="0 0 120 190" focusable="false">
+      <!-- PER: pion rzeczoznawcy. Rysowany plaskimi warstwami, bez serwerow farb
+           (url(#...)), bo te nie rozwiazuja sie, gdy kopia postaci stoi w ukrytym
+           poddrzewie dokumentu. Kazdy polysk i cien to osobny ksztalt. -->
+      <g class="per-wahadlo">
+        <path class="per-sznur" d="M60 4 L60 46"/>
+        <circle class="per-wezel" cx="60" cy="47" r="3.4"/>
+
+        <g class="per-korpus">
+
+          <!-- mosiezna glowica: trapez + obrecz -->
+          <path class="per-glowica" d="M52 50 L68 50 L71 60 L49 60 Z"/>
+          <rect class="per-obrecz" x="44" y="59" width="32" height="9" rx="4.5"/>
+          <rect class="per-obrecz-blask" x="47" y="61" width="13" height="2.6" rx="1.3"/>
+
+          <!-- korpus: beczulka przechodzaca w stozek -->
+          <path class="per-cialo" d="M41 68 L79 68 L79 114 C79 136 70 153 60 168 C50 153 41 136 41 114 Z"/>
+          <path class="per-cialo-cien" d="M67 68 L79 68 L79 114 C79 136 70 153 60 168 C66.5 151 69.5 135 69.5 114 Z"/>
+          <path class="per-cialo-swiatlo" d="M46 74 C44 94 44.6 118 48.6 136"/>
+          <path class="per-cialo-swiatlo cienki" d="M74 76 C74.8 94 74.4 110 73 124"/>
+          <path class="per-przewiazka" d="M42.6 112 L77.4 112"/>
+
+          <!-- ostrze i linia pionu -->
+          <path class="per-ostrze" d="M56.6 164 L60 180 L63.4 164 Z"/>
+          <path class="per-pion" d="M60 182 L60 189"/>
+
+          <!-- twarz: osadzona na gornej, szerokiej czesci korpusu -->
+          <g class="per-twarz">
+            <g class="per-oczy">
+              <ellipse class="per-oko" cx="51" cy="95" rx="8.6" ry="9.4"/>
+              <ellipse class="per-oko" cx="69" cy="95" rx="8.6" ry="9.4"/>
+              <g class="per-wzrok">
+                <circle class="per-zrenica" cx="52.5" cy="96.5" r="4.1"/>
+                <circle class="per-zrenica" cx="70.5" cy="96.5" r="4.1"/>
+                <circle class="per-blik" cx="54.4" cy="93.4" r="1.7"/>
+                <circle class="per-blik" cx="72.4" cy="93.4" r="1.7"/>
+                <circle class="per-blik maly" cx="50.6" cy="98.6" r="0.9"/>
+                <circle class="per-blik maly" cx="68.6" cy="98.6" r="0.9"/>
+              </g>
+              <path class="per-powieka per-powieka-l" d="M42.4 95 A8.6 9.4 0 0 1 59.6 95 Z"/>
+              <path class="per-powieka per-powieka-p" d="M60.4 95 A8.6 9.4 0 0 1 77.6 95 Z"/>
+            </g>
+            <path class="per-brew per-brew-l" d="M44 82 Q51 78.2 58 81.6"/>
+            <path class="per-brew per-brew-p" d="M62 81.6 Q69 78.2 76 82"/>
+            <ellipse class="per-rumieniec" cx="44.4" cy="104.5" rx="4.4" ry="2.7"/>
+            <ellipse class="per-rumieniec" cx="75.6" cy="104.5" rx="4.4" ry="2.7"/>
+            <path class="per-usmiech" d="M53 105 Q60 112.5 67 105"/>
+          </g>
+
+          <g class="per-pierscienie" aria-hidden="true">
+            <ellipse class="per-pierscien" cx="60" cy="118" rx="30" ry="8"/>
+            <ellipse class="per-pierscien wolny" cx="60" cy="128" rx="37" ry="10"/>
+          </g>
+        </g>
+      </g>
+
+      <g class="per-iskry" aria-hidden="true">
+        <path d="M22 44 L24.4 49.4 L29.8 51.8 L24.4 54.2 L22 59.6 L19.6 54.2 L14.2 51.8 L19.6 49.4 Z"/>
+        <path d="M98 56 L99.7 59.8 L103.5 61.5 L99.7 63.2 L98 67 L96.3 63.2 L92.5 61.5 L96.3 59.8 Z"/>
+        <circle cx="16" cy="66" r="2"/>
+        <circle cx="105" cy="44" r="1.7"/>
+      </g>
+
+      <g class="per-odznaka" aria-hidden="true">
+        <circle cx="94" cy="132" r="15"/>
+        <path class="per-ptaszek" d="M86.5 132 L92 138 L102.5 125"/>
+      </g>
+      </svg></span></span>
+      <div><span class="eyebrow">SAMOUCZEK OPERO · PROWADZI PER</span><b id="tutorialTitleTop">Co znajdziesz w programie</b></div>
+    </div>
+    <div class="tutor-head-akcje">
+      <label class="check tutor-przystarcie"><input type="checkbox" id="tutorialPrzyStarcie"> Pokazuj przy uruchomieniu</label>
+      <button id="tutorialClose" class="btn ghost small" type="button">Zamknij samouczek</button>
+    </div>
+  </header>
+
+  <div class="tutor-ekran-cialo">
+    <nav id="tutorSpis" class="tutor-spis premium-scroll" aria-label="Spis tematów samouczka"></nav>
+
+    <main class="tutor-tresc premium-scroll">
+      <span id="tutorialCount" class="tutor-krok">KROK 1 Z 1</span>
+      <h2 id="tutorialTitle">Witaj w OPERO</h2>
+      <div id="tutorialText" class="tutor-akapity"></div>
+
+      <div class="tutor-dymek"><span class="tutor-dymek-ogon" aria-hidden="true"></span><p id="tutorialPer">—</p></div>
+
+      <div id="tutorialGdzie" class="tutor-gdzie"></div>
+      <button id="tutorialPokaz" class="btn gold-outline small" type="button">Zostań tutaj i zamknij →</button>
+    </main>
+
+    <aside class="tutor-mapa-kol">
+      <span class="eyebrow">GDZIE TO JEST W OKNIE</span>
+      <!-- Mapa okna: uproszczony rysunek programu. Podswietlamy na nim obszar,
+           o ktorym mowa w kroku - zamiast swiecic po prawdziwym interfejsie. -->
+      <svg class="tutor-mapa" viewBox="0 0 200 140" role="img" aria-label="Schemat okna programu">
+        <rect class="tm-okno" x="2" y="2" width="196" height="136" rx="7"/>
+        <rect class="tm-obszar" data-obszar="nawigacja" x="7" y="7" width="46" height="126" rx="5"/>
+        <rect class="tm-obszar" data-obszar="pasek" x="57" y="7" width="136" height="20" rx="5"/>
+        <rect class="tm-obszar" data-obszar="tresc" x="57" y="31" width="136" height="72" rx="5"/>
+        <rect class="tm-obszar" data-obszar="dol" x="57" y="107" width="136" height="26" rx="5"/>
+        <rect class="tm-obszar" data-obszar="per" x="150" y="9" width="41" height="16" rx="4"/>
+      </svg>
+      <small id="tutorMapaOpis" class="tutor-mapa-opis">—</small>
+    </aside>
+  </div>
+
+  <footer class="tutor-ekran-stopka">
+    <div class="tutor-progress"><i id="tutorialProgressFill"></i></div>
+    <div class="tutor-foot-akcje">
+      <span class="tutor-wskazowka">Strzałki ← → przechodzą między tematami. Escape zamyka.</span>
+      <button id="tutorialSkip" class="text-action" type="button">Pomiń</button>
+      <button id="tutorialPrev" class="btn ghost small" type="button">← Wstecz</button>
+      <button id="tutorialNext" class="btn primary small" type="button">Dalej →</button>
+    </div>
+  </footer>
+</div>
+
+<div id="operoDrawer" class="drawer-overlay hidden">
+  <aside class="drawer-panel" role="dialog" aria-label="Formularz">
+    <header class="drawer-head">
+      <div><span id="drawerEyebrow" class="eyebrow">OPERO</span><h2 id="drawerTitle">Formularz</h2></div>
+      <button id="drawerClose" class="icon-btn" type="button" aria-label="Zamknij">✕</button>
+    </header>
+    <p id="drawerLead" class="drawer-lead hidden"></p>
+    <div id="drawerError" class="drawer-error hidden" role="alert"></div>
+    <div id="drawerBody" class="drawer-body premium-scroll"></div>
+    <footer class="drawer-foot">
+      <button id="drawerCancel" class="btn ghost" type="button">Anuluj</button>
+      <button id="drawerSave" class="btn primary" type="button">Zapisz</button>
+      <small>Ctrl+Enter zapisuje, Esc zamyka</small>
+    </footer>
+  </aside>
+</div>
+
+<canvas id="confettiLayer" class="confetti-layer hidden" aria-hidden="true"></canvas>
+<div id="celebrateToast" class="celebrate-toast hidden" role="status" aria-live="polite">
+  <span class="celebrate-mark">✓</span>
+  <div><b id="celebrateTitle"></b><small id="celebrateText"></small></div>
+</div>
+
+</div>
+
+<div id="moduleSelectorOverlay" class="modal-overlay hidden">
+  <div class="modal module-selector-modal">
+    <div class="modal-head"><div><span class="eyebrow">NOWY OPERAT</span><h2>Wybierz rodzaj wyceny</h2><p>OPERO korzysta ze wspólnego rdzenia danych, a metoda i formularze dopasowują się do rodzaju wyceny.</p></div><button id="moduleSelectorClose" class="icon-btn">✕</button></div>
+    <div id="moduleZmianaInfo" class="module-zmiana-info hidden"></div>
+    <div id="moduleTiles" class="module-tiles"></div>
+    <div id="szablonyBlok" class="szablony-blok hidden">
+      <div class="szablony-glowa"><b>Moje szablony</b><span>Nowy operat ze stałymi elementami Twojej pracy: cel, podstawy, źródła, klauzule, cechy z wagami i układ dokumentu.</span></div>
+      <div id="szablonyLista" class="szablony-lista"></div>
+    </div>
+    <div class="module-roadmap-note"><b>Wersja 3.3.0</b><span>Działa osiem rodzajów wyceny: lokal / SWPL, nieruchomość zabudowana, dochodowa (kapitalizacja i DCF), kosztowa, wywłaszczenie, opłata adiacencka i planistyczna, służebność oraz nieruchomość rolna i leśna. Wzory i wymagania danych pochodzą z Biblii OPERO.</span></div>
+  </div>
+</div>
+
+<div id="tlo" class="tlo" aria-hidden="true"><span class="tlo-warstwa tlo-w1"><span class="tlo-plama tlo-1"></span><span class="tlo-plama tlo-2"></span></span><span class="tlo-warstwa tlo-w2"><span class="tlo-plama tlo-3"></span><span class="tlo-plama tlo-4"></span><span class="tlo-horyzont"></span></span><span class="tlo-warstwa tlo-w3"><span class="tlo-siatka"></span><span class="tlo-welon"></span></span><span class="tlo-warstwa tlo-w4"><span class="tlo-pyl tlo-pyl-daleki"></span><span class="tlo-pyl tlo-pyl-bliski"></span></span><span class="tlo-fale" aria-hidden="true"><svg viewBox="0 0 1440 320" preserveAspectRatio="none" focusable="false"><path class="tlo-fala tlo-fala-1" d="M0,160 C240,96 480,224 720,176 C960,128 1200,208 1440,160 L1440,320 L0,320 Z"/><path class="tlo-fala tlo-fala-2" d="M0,200 C200,152 420,256 720,208 C1020,160 1240,248 1440,200 L1440,320 L0,320 Z"/><path class="tlo-fala tlo-fala-3" d="M0,240 C260,200 460,288 760,248 C1060,208 1230,280 1440,244 L1440,320 L0,320 Z"/><path class="tlo-fala tlo-fala-4" d="M0,272 C220,244 500,300 780,268 C1040,238 1250,296 1440,270 L1440,320 L0,320 Z"/></svg></span><span class="tlo-swiatlo"></span><span class="tlo-winieta"></span><span class="tlo-ziarno"></span></div><div id="app" class="hidden-until-auth">
+  <aside class="sidebar">
+    <div class="brand"><img src="../assets/logo.svg" alt="OPERO"><div><strong>OPERO</strong><span>system operatów · 3.3.0</span></div></div>
+    <nav id="nav" class="main-nav">
+      <button class="nav-btn active" data-tab="dashboard">✦ <span>Nowy operat</span></button>
+      <button class="nav-btn result-nav" data-tab="result">◆ <span>Wynik</span></button>
+      <button class="nav-btn" data-tab="express">⚡ <span>Express</span></button>
+      <button class="nav-btn" data-tab="baza">▦ <span>Baza rynku</span></button>
+      <button class="nav-btn" data-tab="clients">☺ <span>Klienci</span></button>
+      <button class="nav-btn" data-tab="history">◷ <span>Historia</span></button>
+      <button class="nav-btn" data-tab="settings">⚙ <span>Ustawienia</span></button>
+    </nav>
+    <div class="side-footer"><span id="saveState">Autozapis do Historii aktywny</span><small>OPERO 3.3.0</small></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-project"><div class="eyebrow">AKTUALNY PROJEKT</div><h1 id="projectHeader">Operat szacunkowy</h1><div id="topSaveState" class="save-chip"><span class="save-dot"></span><span>Zapisano</span></div><button id="kontrolaChip" class="kontrola-chip" type="button" title="Kontrola operatu — co jest zrobione dobrze, a co wymaga poprawy"><span id="kontrolaPasek" class="kontrola-pasek"><i></i></span><b id="kontrolaProcent">—</b><span id="kontrolaLiczniki" class="kontrola-liczniki">sprawdzam…</span></button></div>
+      <!-- Pasek odpowiedzi: to, co program wlasnie robi i co ostatnio
+           powiedzial, WPROST w gornym pasku. Gorny pasek jest przyklejony
+           do gory strony, wiec jedzie razem z przewijaniem i jest widoczny
+           caly czas - komunikat schowany pod ikona to komunikat przegapiony. -->
+      <div id="pasekOdp" class="pasek-odp hidden" role="status" aria-live="polite">
+        <span id="pasekOdpZnak" class="pasek-odp-znak">◌</span>
+        <div class="pasek-odp-tresc">
+          <b id="pasekOdpGrupa" class="pasek-odp-grupa"></b>
+          <p id="pasekOdpTekst" class="pasek-odp-tekst"></p>
+        </div>
+        <span id="pasekOdpKrok" class="pasek-odp-krok hidden"></span>
+        <button id="pasekOdpPilne" class="pasek-odp-pilne hidden" type="button"></button>
+        <button id="pasekOdpWiecej" class="pasek-odp-wiecej" type="button">Pokaż wszystko</button>
+      </div>
+      <div class="top-actions premium-actions">
+        <div class="ux-mode-switch" aria-label="Tryb pracy">
+          <button type="button" class="ux-mode-btn active" data-ux-mode="guide">✒ Prowadzenie</button>
+          <button type="button" class="ux-mode-btn" data-ux-mode="expert">Ekspert</button>
+        </div>
+        <button id="goStartBtn" class="btn ghost icon-action" title="Start">⌂</button>
+        
+        <button id="licenseTimer" class="license-timer" type="button" title="Licencja OPERO"><i>⏳</i><span id="licenseTimerValue">Licencja OPERO</span></button>
+        <button id="commandPaletteBtn" class="btn ghost command-palette-btn" type="button" title="Szybkie działania · Ctrl+K"><span>⌘</span> Działania <kbd>Ctrl K</kbd></button>
+        <!-- Okno odpowiedzi: jedno miejsce na wszystko, co program mowi.
+             Zostaje otwarte obok pracy, zeby nie trzeba bylo przewijac strony
+             do gory w poszukiwaniu zdania, ktore program wlasnie powiedzial. -->
+        <div class="okno-wrap">
+          <button id="oknoOdpPrzycisk" class="btn ghost icon-action okno-przycisk" type="button" title="Odpowiedzi programu — wszystko, co program powiedział">
+            <span>◍</span><b id="oknoOdpSkrot" class="okno-skrot"></b><i id="oknoOdpLicznik" class="okno-licznik hidden">0</i>
+          </button>
+          <div id="oknoOdp" class="okno-panel premium-scroll hidden">
+            <div class="okno-glowa">
+              <div><span class="eyebrow">ODPOWIEDZI PROGRAMU</span><b>Wszystko, co program powiedział</b></div>
+              <button id="oknoOdpZamknij" type="button" aria-label="Zamknij">×</button>
+            </div>
+            <div class="okno-narzedzia">
+              <input id="oknoOdpFiltr" type="text" placeholder="Szukaj w odpowiedziach" autocomplete="off">
+              <select id="oknoOdpRodzaj" title="Rodzaj komunikatu">
+                <option value="">Wszystko</option>
+                <option value="pytanie">Pytania</option>
+                <option value="blad">Błędy</option>
+                <option value="ostrzezenie">Ostrzeżenia</option>
+                <option value="odpowiedz">Odpowiedzi</option>
+                <option value="etap">W toku</option>
+                <option value="sukces">Gotowe</option>
+                <option value="info">Informacje</option>
+              </select>
+            </div>
+            <div id="oknoOdpLista" class="okno-lista"></div>
+            <small id="oknoOdpUbytek" class="okno-ubytek hidden"></small>
+            <div class="okno-stopa">
+              <button id="oknoOdpKopiuj" class="btn ghost small" type="button">Skopiuj całość</button>
+              <button id="oknoOdpWyczysc" class="btn ghost small" type="button">Wyczyść</button>
+            </div>
+          </div>
+        </div>
+        <div class="notification-wrap">
+          <button id="notificationBtn" class="btn ghost icon-action notification-btn" type="button" title="Centrum podpowiedzi"><span>◌</span><b id="notificationNapis" class="notification-napis"></b><i id="notificationBadge" class="notification-badge">0</i></button>
+          <div id="notificationPanel" class="notification-panel premium-scroll hidden">
+            <div class="notification-head"><div><span class="eyebrow">CENTRUM OPERO</span><b>Co wymaga uwagi?</b></div><button id="notificationCloseBtn" type="button" aria-label="Zamknij">×</button></div><!-- Trzy liczby i trzy kolory: czerwone blokuje, pomaranczowe trzeba     zaakceptowac, zielone jest w porzadku. Jedno spojrzenie wystarczy. --><div id="notificationStan" class="notification-stan"></div><p id="notificationOpis" class="notification-opis"></p>
+            <div id="notificationList" class="notification-list"></div>
+            <div class="notification-foot"><button id="notificationGuideBtn" class="btn gold-outline wide small" type="button">✦ Pokaż następne działanie</button></div>
+          </div>
+        </div>
+        <div class="piorek-dock-wrap" id="piorekDockWrap">
+          <button id="piorekDock" class="piorek-dock" type="button" aria-label="Otwórz PER — asystenta OPERO" title="PER — asystent OPERO">
+            <span class="piorek-dock-character"><span id="dockPiorek" class="piorek-character state-idle" aria-hidden="true"><span class="piorek-ground-shadow"></span><svg class="piorek-svg" viewBox="0 0 120 190" focusable="false">
+      <!-- PER: pion rzeczoznawcy. Rysowany plaskimi warstwami, bez serwerow farb
+           (url(#...)), bo te nie rozwiazuja sie, gdy kopia postaci stoi w ukrytym
+           poddrzewie dokumentu. Kazdy polysk i cien to osobny ksztalt. -->
+      <g class="per-wahadlo">
+        <path class="per-sznur" d="M60 4 L60 46"/>
+        <circle class="per-wezel" cx="60" cy="47" r="3.4"/>
+
+        <g class="per-korpus">
+
+          <!-- mosiezna glowica: trapez + obrecz -->
+          <path class="per-glowica" d="M52 50 L68 50 L71 60 L49 60 Z"/>
+          <rect class="per-obrecz" x="44" y="59" width="32" height="9" rx="4.5"/>
+          <rect class="per-obrecz-blask" x="47" y="61" width="13" height="2.6" rx="1.3"/>
+
+          <!-- korpus: beczulka przechodzaca w stozek -->
+          <path class="per-cialo" d="M41 68 L79 68 L79 114 C79 136 70 153 60 168 C50 153 41 136 41 114 Z"/>
+          <path class="per-cialo-cien" d="M67 68 L79 68 L79 114 C79 136 70 153 60 168 C66.5 151 69.5 135 69.5 114 Z"/>
+          <path class="per-cialo-swiatlo" d="M46 74 C44 94 44.6 118 48.6 136"/>
+          <path class="per-cialo-swiatlo cienki" d="M74 76 C74.8 94 74.4 110 73 124"/>
+          <path class="per-przewiazka" d="M42.6 112 L77.4 112"/>
+
+          <!-- ostrze i linia pionu -->
+          <path class="per-ostrze" d="M56.6 164 L60 180 L63.4 164 Z"/>
+          <path class="per-pion" d="M60 182 L60 189"/>
+
+          <!-- twarz: osadzona na gornej, szerokiej czesci korpusu -->
+          <g class="per-twarz">
+            <g class="per-oczy">
+              <ellipse class="per-oko" cx="51" cy="95" rx="8.6" ry="9.4"/>
+              <ellipse class="per-oko" cx="69" cy="95" rx="8.6" ry="9.4"/>
+              <g class="per-wzrok">
+                <circle class="per-zrenica" cx="52.5" cy="96.5" r="4.1"/>
+                <circle class="per-zrenica" cx="70.5" cy="96.5" r="4.1"/>
+                <circle class="per-blik" cx="54.4" cy="93.4" r="1.7"/>
+                <circle class="per-blik" cx="72.4" cy="93.4" r="1.7"/>
+                <circle class="per-blik maly" cx="50.6" cy="98.6" r="0.9"/>
+                <circle class="per-blik maly" cx="68.6" cy="98.6" r="0.9"/>
+              </g>
+              <path class="per-powieka per-powieka-l" d="M42.4 95 A8.6 9.4 0 0 1 59.6 95 Z"/>
+              <path class="per-powieka per-powieka-p" d="M60.4 95 A8.6 9.4 0 0 1 77.6 95 Z"/>
+            </g>
+            <path class="per-brew per-brew-l" d="M44 82 Q51 78.2 58 81.6"/>
+            <path class="per-brew per-brew-p" d="M62 81.6 Q69 78.2 76 82"/>
+            <ellipse class="per-rumieniec" cx="44.4" cy="104.5" rx="4.4" ry="2.7"/>
+            <ellipse class="per-rumieniec" cx="75.6" cy="104.5" rx="4.4" ry="2.7"/>
+            <path class="per-usmiech" d="M53 105 Q60 112.5 67 105"/>
+          </g>
+
+          <g class="per-pierscienie" aria-hidden="true">
+            <ellipse class="per-pierscien" cx="60" cy="118" rx="30" ry="8"/>
+            <ellipse class="per-pierscien wolny" cx="60" cy="128" rx="37" ry="10"/>
+          </g>
+        </g>
+      </g>
+
+      <g class="per-iskry" aria-hidden="true">
+        <path d="M22 44 L24.4 49.4 L29.8 51.8 L24.4 54.2 L22 59.6 L19.6 54.2 L14.2 51.8 L19.6 49.4 Z"/>
+        <path d="M98 56 L99.7 59.8 L103.5 61.5 L99.7 63.2 L98 67 L96.3 63.2 L92.5 61.5 L96.3 59.8 Z"/>
+        <circle cx="16" cy="66" r="2"/>
+        <circle cx="105" cy="44" r="1.7"/>
+      </g>
+
+      <g class="per-odznaka" aria-hidden="true">
+        <circle cx="94" cy="132" r="15"/>
+        <path class="per-ptaszek" d="M86.5 132 L92 138 L102.5 125"/>
+      </g>
+      </svg></span></span>
+            <span class="piorek-dock-copy"><b>PER</b></span>
+            <span id="perStanKropka" class="piorek-dock-status" data-stan="nieznany" title="Stan modelu PER"></span>
+          </button>
+        </div>
+        <button id="tutorialBtn" class="btn ghost">? Pomoc</button>
+        <div class="top-menu-wrap">
+          <button id="moreActionsBtn" class="btn ghost icon-action" type="button" title="Więcej działań">•••</button>
+          <div id="moreActionsMenu" class="top-menu hidden">
+            <button id="newBtn" type="button">＋ Nowy operat</button>
+            <button id="openBtn" type="button">Otwórz plik</button>
+            <button id="exportProjectBtn" type="button">Eksport projektu</button>
+            <button id="saveBtn" type="button">Zapisz teraz</button>
+            <button id="topResultBtn" type="button">Przejdź do wyniku</button>
+          </div>
+        </div>
+        <button id="pdfBtn" class="btn primary">Edytor raportu</button>
+      </div>
+    </header>
+
+    <aside id="workflowRail" class="workflow-rail hidden" aria-label="Etapy operatu">
+      <div class="workflow-rail-head"><span class="eyebrow">ŚCIEŻKA OPERATU</span><strong id="railModuleName">Lokal / SWPL</strong><small id="railProgressText">0% kompletności</small></div>
+      <nav id="workflowSteps" class="workflow-steps"></nav>
+      <div class="workflow-rail-foot"><button id="railGuideToggle" class="rail-mode-btn" type="button">✦ Tryb prowadzenia</button><small>Ctrl + Enter · następny krok</small></div>
+    </aside>
+
+    <aside id="livePanel" class="live-panel hidden" aria-label="Operat na żywo">
+      <div class="live-panel-head"><span class="eyebrow">OPERAT NA ŻYWO</span><b id="livePanelType">—</b><small id="livePanelAddress">Uzupełnij adres</small></div>
+      <div class="live-progress-ring" id="liveProgressRing"><div><strong id="liveProgressValue">0%</strong><span>kompletności</span></div></div>
+      <div class="live-step-card"><span>BIEŻĄCY ETAP</span><b id="liveStepName">Dane lokalu i podstawy</b><small id="liveStepIssues">Sprawdzam wymagane informacje…</small></div>
+      <div class="live-metrics">
+        <div><span>Rynek</span><b id="liveTransactions">0 transakcji</b></div>
+        <div><span>Metoda</span><b id="liveMethod">—</b></div>
+        <div><span>Wartość</span><b id="liveValue">—</b></div>
+      </div>
+      <div id="nextActionCard" class="next-action-card"><span>NASTĘPNY KROK</span><b id="nextActionTitle">Rozpocznij operat</b><p id="nextActionText">OPERO pokaże tutaj najbliższe działanie.</p><button id="showNextFieldBtn" class="btn primary small" type="button">Pokaż mi gdzie →</button></div>
+      <button id="motionModeBtn" class="motion-mode-btn" type="button">Animacje: pełne</button>
+    </aside>
+
+    <div class="wizard-bar" id="wizardBar">
+      <button id="wizardBack" class="btn ghost small">← Wstecz</button>
+      <div class="wizard-center"><div class="wizard-label"><span id="wizardStepNo">1/10</span><strong id="wizardStepName">Dane lokalu i podstawy</strong><span id="wizardIssueCount" class="wizard-issue-count">Sprawdzam etap…</span></div><div class="wizard-progress"><i id="wizardProgressFill"></i></div></div>
+      <div class="wizard-next-wrap"><button id="wizardNext" class="btn primary small">Dalej →</button><div id="wizardBubble" class="validation-bubble hidden"></div></div>
+    </div>
+    <div id="statusBar" class="status hidden"></div>
+
+    <section class="tab active" id="tab-dashboard">
+      <!-- STUDIO OPERATU (2.0). Jedno okno na poczatek: opis wlasnymi slowami
+           i dokumenty. Reszte robi zespol agentow; rzeczoznawca dostaje
+           gotowy operat do weryfikacji i raport, czego zabraklo. -->
+      <div id="studio" class="studio" data-stan="opis">
+        <div class="studio-tlo" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="studio-glowa">
+          <span class="pill">OPERO · STUDIO OPERATU</span>
+          <h2 id="dashboardGreeting">Dzień dobry. Co dziś wyceniamy?</h2>
+          <p>Podaj zlecenie i wrzuć dokumenty. Zespół agentów zbierze dane z rejestrów i map, policzy wartość, napisze operat, sprawdzi go i poprawi pod nadzorem kierownika — Ty dostajesz gotowy operat w Wordzie i PDF do weryfikacji.</p>
+          <button id="studioNowyPusty" class="btn ghost small" type="button">＋ Zacznij nowy, pusty operat</button>
+        </div>
+        <div class="studio-siatka">
+          <div class="studio-opis">
+            <div class="studio-krok"><b>1</b><div><h3>Zlecenie</h3><small>Jedyne, co podajesz sam. Autora operatu program bierze z Ustawień, resztę — z dokumentów, rejestrów i map.</small></div></div>
+            <div class="zlecenie-pola">
+              <label class="zl-szeroka">Zleceniodawca<input id="zlecKto" type="text" autocomplete="off" placeholder="np. Jan Kowalski albo Bank XYZ S.A."></label>
+              <label>Nr zlecenia / umowy<input id="zlecNr" type="text" autocomplete="off" placeholder="np. 12/11/2026"></label>
+              <label>Data zlecenia<input id="zlecData" type="date"></label>
+              <label class="zl-szeroka">Cel wyceny<input id="zlecCel" type="text" list="zlecCele" autocomplete="off" placeholder="np. zabezpieczenie wierzytelności kredytowej"></label>
+              <datalist id="zlecCele"><option value="określenie wartości rynkowej na potrzeby zabezpieczenia wierzytelności kredytowej"><option value="określenie wartości rynkowej na potrzeby sprzedaży"><option value="określenie wartości rynkowej na potrzeby podziału majątku"><option value="określenie wartości rynkowej na potrzeby postępowania spadkowego"><option value="określenie wartości rynkowej na potrzeby ustalenia opłaty adiacenckiej"><option value="określenie wartości rynkowej na potrzeby aktualizacji opłaty rocznej"></datalist>
+              <span id="zlecAutor" class="zl-autor" title="Zmienisz w Ustawieniach → Profil rzeczoznawcy">Autor: z Ustawień</span>
+            </div>
+            <div class="studio-krok studio-krok-maly"><b>+</b><div><h3>Co jeszcze wiesz (opcjonalnie)</h3><small>Adres, księga, rodzaj nieruchomości — jeśli masz dokumenty, nie musisz nic pisać.</small></div></div>
+            <textarea id="opisTekst" class="opis-tekst" rows="4" spellcheck="true" placeholder="np. Mieszkanie 3-pokojowe 54,30 m² na 2 piętrze, ul. Ikara 97/12, Gdańsk. KW GD1G/00012345/6. Wycena pod kredyt hipoteczny. Zleceniodawca: Jan Kowalski. Cena ofertowa 650 tys. zł."></textarea>
+            <div id="opisFakty" class="opis-fakty" aria-live="polite"></div>
+            <div class="studio-krok"><b>2</b><div><h3>Wrzuć wszystko, co masz</h3><small>Zrzuty księgi, rzut, zdjęcia, PDF-y, wzory w Wordzie, wyciąg z rejestru cen, Twój podręcznik. Program sam rozpozna, co jest czym.</small></div></div>
+            <div id="wsadPole" class="wsad-pole" role="button" tabindex="0">
+              <div class="wsad-ikona" aria-hidden="true"><i></i><i></i><i></i></div>
+              <div class="wsad-tekst"><b>Przeciągnij tutaj pliki</b><small>PNG · JPG · PDF (także skany) · DOCX · XLSX · TXT — nic nie wychodzi z komputera</small></div>
+              <button id="wsadWybierz" class="btn gold-outline" type="button">Wybierz pliki</button>
+              <button id="wsadEkw" class="btn ghost" type="button" title="Otwiera przeglądarkę ksiąg wieczystych. Ty otwierasz działy — program przepisuje każdy do operatu.">⚖ Księga z EKW</button>
+            </div>
+            <p id="wsadStan" class="wsad-stan" aria-live="polite"></p>
+            <div id="wsadLista" class="wsad-lista hidden"></div>
+            <details class="wsad-reczne"><summary>Albo dodaj ręcznie</summary>
+            <div class="opis-dokumenty">
+              <button id="opisKwWklej" class="dok-kafel" type="button"><i>⚖</i><b>Treść księgi</b><small id="opisDokKw">wklej tekst z EKW</small></button>
+              <button id="opisKwZrzuty" class="dok-kafel" type="button"><i>▣</i><b>Zrzuty księgi</b><small>program odczyta obraz</small></button>
+              <button id="opisZdjecia" class="dok-kafel" type="button"><i>◐</i><b>Zdjęcia</b><small id="opisDokZdjecia">lokal i budynek</small></button>
+              <button id="opisPliki" class="dok-kafel" type="button"><i>▤</i><b>Rzut i dokumenty</b><small id="opisDokPliki">rzut, wypisy, umowy</small></button>
+            </div>
+            </details>
+            <div id="opisKwPole" class="opis-kw hidden">
+              <textarea id="opisKwTekst" rows="5" spellcheck="false" placeholder="Na stronie działu w EKW naciśnij Ctrl+A, Ctrl+C, a tutaj Ctrl+V. Możesz wkleić kilka działów jeden pod drugim."></textarea>
+              <small id="opisKwStan" class="opis-kw-stan"></small>
+            </div>
+            <div class="studio-start">
+              <label class="studio-dokladnosc">Dokładność<select id="opisDokladnosc"><option value="1">1 przebieg — szybko</option><option value="2" selected>2 przebiegi — sprawdź ponownie</option><option value="3">3 przebiegi — najdokładniej</option></select></label>
+              <label class="studio-dokladnosc studio-geo" title="Agent Geoportalu otworzy okno geoportalu ustawione na działce i zrobi zrzut ekranu jako załącznik. Mapy, legendy i opis działki pobiera zawsze."><input id="geoOkno" type="checkbox" checked> okno geoportalu</label>
+              <button id="agenciStart" class="btn primary large studio-guzik" type="button"><span>Uruchom zespół agentów</span></button>
+              <button id="agenciStop" class="btn ghost hidden" type="button">Zatrzymaj</button>
+            </div>
+            <p id="agenciKomunikat" class="studio-komunikat" aria-live="polite"></p>
+            <div class="studio-stopka"><span id="agenciMozg" class="studio-znaczek" title="Zmienisz w Ustawieniach">Mózg: model lokalny PER</span><span id="agenciWzorce" class="studio-znaczek" title="Zmienisz w Ustawieniach">Wzorce: brak</span><span id="agenciPodrecznik" class="studio-znaczek" title="Wrzuć PDF swojego podręcznika – agenci użyją go jako wzoru">Podręcznik: brak</span><span id="agenciWa" class="studio-znaczek" title="Zmienisz w Ustawieniach">WhatsApp: jednym kliknięciem</span><button id="studioUstawienia" class="text-action" type="button">Ustawienia agentów →</button></div>
+          </div>
+          <div class="studio-zespol">
+            <div class="zespol-glowa">
+              <div class="zespol-pierscien" id="agenciPierscien" style="--postep:0"><b id="agenciProcent">0%</b></div>
+              <div><span class="eyebrow">ZESPÓŁ AGENTÓW</span><h3 id="agenciStan">Czeka na zlecenie</h3><small id="agenciCzas">16 agentów · zespół z nadzorem</small></div>
+            </div>
+            <ol id="agenciLista" class="agenci-lista"></ol>
+            <div id="agenciDziennik" class="agenci-dziennik" aria-live="polite"></div>
+          </div>
+        </div>
+        <div id="agenciRaport" class="agenci-raport hidden"></div>
+      </div>
+      <div class="premium-dashboard-hero studio-reszta hidden" aria-hidden="true">
+        <div class="dashboard-welcome">
+          <span class="eyebrow">PRACA RĘCZNA</span>
+          <h3>Wolisz prowadzić operat sam?</h3>
+          <p>Wybierz rodzaj wyceny i przejdź etapy po kolei. Agentów możesz uruchomić w każdej chwili — dopiszą tylko puste rubryki.</p>
+          <div class="hero-actions"><button id="chooseModuleBtn" class="btn primary large">＋ Nowy operat</button><button id="startWizardBtn" class="btn gold-outline large">Kontynuuj aktualny</button><button id="dashboardHistoryBtn" class="btn ghost">Historia</button></div>
+        </div>
+        <div class="dashboard-current-card">
+          <span class="eyebrow">AKTUALNY OPERAT</span><b id="dashboardCurrentType">Lokal mieszkalny</b><strong id="dashboardCurrentAddress">Nowy projekt</strong>
+          <div class="dashboard-progress"><i id="dashboardProgressFill"></i></div><small id="dashboardProgressText">0% kompletności</small>
+          <div class="dashboard-current-value"><span>Aktualny wynik</span><b id="dashboardCurrentValue">—</b></div>
+          <button id="dashboardResultBtn" class="btn gold-outline wide">Podgląd wyniku</button>
+        </div>
+      </div>
+      <div class="dashboard-duo">
+        <div id="clientCard" class="card client-card">
+          <div class="card-head"><div><span class="eyebrow">ZLECENIODAWCA</span><h3>Klient tego operatu</h3></div>
+            <button id="clientEditBtn" class="btn gold-outline small" type="button">+ Dodaj klienta</button></div>
+          <div id="clientSummary" class="client-summary"></div>
+        </div>
+        <div id="remindersCard" class="card reminders-card">
+          <div class="card-head"><div><span class="eyebrow">TERMINY <i id="remindersBadge" class="reminders-badge hidden">0</i></span><h3>Przypomnienia</h3></div>
+            <button id="addReminderBtn" class="btn gold-outline small" type="button">+ Nowy termin</button></div>
+          <div id="remindersList" class="reminders-list"></div>
+          <div class="reminders-foot"><button id="remindersAllBtn" class="text-action" type="button">Wszystkie terminy →</button><button id="remindersExportBtn" class="text-action" type="button">↗ Do kalendarza (.ics)</button></div>
+        </div>
+      </div>
+      <div class="dashboard-section-head"><div><span class="eyebrow">OSTATNIA PRACA</span><h3>Wróć tam, gdzie skończyłeś</h3></div><button id="dashboardAllHistoryBtn" class="text-action" type="button">Pokaż całą historię →</button></div>
+      <div id="recentProjects" class="recent-projects"></div>
+      <div class="dashboard-grid">
+        <div class="card premium-completeness"><div class="card-head"><div><h3>Kontrola kompletności</h3><p>Nie liczymy postępu po numerze ekranu. Pasek reaguje na rzeczywiście uzupełnione informacje.</p></div><span id="dashboardCompletenessBadge" class="completion-badge">0%</span></div><div id="completeness"></div></div>
+        <div class="card premium-workflow-card"><span class="eyebrow">JAK PROWADZI OPERO</span><h3>Jedna rzecz na raz</h3><div class="start-flow"><div><b>1</b><span>OPERO wskazuje najbliższą potrzebną informację.</span></div><div><b>2</b><span>Każdy ukończony etap dostaje wyraźne potwierdzenie.</span></div><div><b>3</b><span>Obliczenia są jawne i możliwe do prześledzenia.</span></div><div><b>4</b><span>Przed PDF przechodzisz końcową kontrolę jakości.</span></div></div></div>
+      </div>
+      <div class="professional-note"><span>◆</span><div><b>Kontrola zawodowa pozostaje po Twojej stronie</b><p>OPERO porządkuje proces i wykonuje rachunki. Dane źródłowe, podobieństwo nieruchomości, cechy, wagi, korekty oraz wnioski końcowe zatwierdza rzeczoznawca majątkowy.</p></div></div>
+    </section>
+
+    <section class="tab" id="tab-history">
+      <div class="section-title"><div><span>H</span><h2>Historia operatów</h2></div><p>Wszystkie zapisane zlecenia, koszt wykonania i wynik ekonomiczny.</p></div>
+      <div class="kpi-grid history-kpis"><div class="kpi"><span>Liczba operatów</span><strong id="historyCount">0</strong></div><div class="kpi"><span>Łączny koszt wykonania</span><strong id="historyCost">0 zł</strong></div><div class="kpi"><span>Łączne wynagrodzenia netto</span><strong id="historyFees">0 zł</strong></div><div class="kpi"><span>Łączny wynik</span><strong id="historyProfit">0 zł</strong></div></div>
+      <div class="card"><div class="card-head"><div><h3>Zapisane operaty</h3><p>Historia jest przechowywana lokalnie.</p></div><div class="history-tools"><input id="historySearch" placeholder="Szukaj po adresie, KW lub statusie"><button id="refreshHistory" class="btn small">Odśwież</button></div></div><div id="historyList" class="history-list"></div></div>
+    </section>
+
+    <section class="tab" id="tab-project">
+      <div class="section-title"><div><span>01</span><h2>Projekt, cel i podstawy opracowania</h2></div><p>Najpierw określ przedmiot i cel wyceny. Pola oznaczone jako konieczne są sprawdzane przed przejściem dalej.</p></div>
+      <div class="card szybki-karta" id="szybkiKarta">
+        <div class="card-head"><div><span class="eyebrow">ZACZNIJ TUTAJ · OPERAT Z DOKUMENTÓW</span><h3>Najpierw dokumenty — program wypełni operat sam</h3><p>Wklejasz treść księgi wieczystej, dodajesz zdjęcia i ewentualnie cenę ofertową. Program sam odczyta księgę, znajdzie działkę, sprawdzi otoczenie i plan, wyszuka transakcje, policzy wartość, napisze opisy i pokaże, czego mu brakuje. Na końcu wszystko możesz poprawić.</p></div></div>
+        <ol class="szybki-kroki">
+          <li class="szybki-krok" id="szybkiKrokKw">
+            <div class="szybki-krok-glowa"><span class="szybki-nr">1</span><div><b>Księga wieczysta</b><small>W ekw.ms.gov.pl otwórz „Aktualną treść KW", na stronie działu naciśnij Ctrl+A, potem Ctrl+C i wklej tutaj. Kolejne działy wklejaj jeden pod drugim albo po kolei — program sam rozpozna, który to dział. Masz tylko zrzuty ekranu? Użyj „Odczytaj ze zrzutów ekranu".</small></div><span class="szybki-stan" id="szybkiStanKw">czeka</span></div>
+            <textarea id="szybkiKwTekst" rows="5" placeholder="Wklej tu skopiowaną treść księgi wieczystej (działy I-O, I-Sp, II, III, IV)…" aria-label="Treść księgi wieczystej skopiowana z EKW"></textarea>
+            <div class="szybki-pasek"><button id="szybkiKwBtn" type="button" class="btn primary">Odczytaj księgę</button><button id="szybkiKwZrzuty" type="button" class="btn gold-outline">Odczytaj ze zrzutów ekranu</button><button id="szybkiKwOtworz" type="button" class="btn ghost">Otwórz EKW</button><span class="szybki-dzialy" id="szybkiDzialy"></span></div>
+            <div class="szybki-wynik hidden" id="szybkiKwWynik" aria-live="polite"></div>
+          </li>
+          <li class="szybki-krok" id="szybkiKrokDok">
+            <div class="szybki-krok-glowa"><span class="szybki-nr">2</span><div><b>Zdjęcia, rzut i cena ofertowa</b><small>Zdjęcia lokalu i budynku, zrzuty ekranu księgi, rzut — jeżeli je masz. Cena ofertowa jest nieobowiązkowa: program porówna z nią wynik.</small></div><span class="szybki-stan" id="szybkiStanDok">nieobowiązkowe</span></div>
+            <div class="szybki-pasek"><button id="szybkiZdjecia" type="button" class="btn gold-outline">Dodaj zdjęcia</button><button id="szybkiPliki" type="button" class="btn gold-outline">Dodaj dokumenty / rzut / zrzuty KW</button>
+              <label class="szybki-cena">Cena ofertowa [zł]<input id="szybkiCena" type="text" inputmode="numeric" placeholder="np. 890 000" autocomplete="off"></label></div>
+          </li>
+          <li class="szybki-krok" id="szybkiKrokAuto">
+            <div class="szybki-krok-glowa"><span class="szybki-nr">3</span><div><b>Wypełnij operat automatycznie</b><small>Program przechodzi wszystkie etapy za Ciebie: ewidencja, plan, otoczenie, kod QR, transakcje z Rejestru Cen Nieruchomości i Twojej bazy, obliczenia i opisy. Zaznacza, co wpisał, i prowadzi prosto do etapu końcowego. Potem sprawdzasz etapy od 2 do końca, poprawiasz i zatwierdzasz.</small></div><span class="szybki-stan" id="szybkiStanAuto">czeka</span></div>
+            <div class="szybki-pasek"><button id="szybkiCalyBtn" type="button" class="btn primary large">Wypełnij cały operat automatycznie →</button><button id="szybkiAutoBtn" type="button" class="btn ghost">Tylko zbierz dane i transakcje</button></div>
+            <div class="szybki-wynik hidden" id="szybkiCalyWynik" aria-live="polite"></div>
+            <div class="szybki-wynik hidden" id="szybkiAutoWynik" aria-live="polite"></div>
+          </li>
+          <li class="szybki-krok" id="szybkiKrokFinal">
+            <div class="szybki-krok-glowa"><span class="szybki-nr">4</span><div><b>Albo krok po kroku: policz, napisz opisy i sprawdź</b><small>Program liczy wartość, PER pisze puste opisy z zebranych danych, a kontrola wskazuje wszystko, czego brakuje do podpisu.</small></div><span class="szybki-stan" id="szybkiStanFinal">czeka</span></div>
+            <div class="szybki-pasek"><button id="szybkiFinalBtn" type="button" class="btn primary">Policz i napisz operat</button><button id="szybkiDoOperatu" type="button" class="btn ghost">Otwórz operat do poprawek</button></div>
+            <div class="szybki-wynik hidden" id="szybkiFinalWynik" aria-live="polite"></div>
+          </li>
+        </ol>
+      </div>
+
+      <div class="card module-current-card"><div><span class="eyebrow">AKTYWNY MODUŁ</span><h3 id="currentModuleTitle">Nieruchomość lokalowa / SWPL</h3><p id="currentModuleDescription">Podejście porównawcze · metoda korygowania ceny średniej.</p></div><button id="changeModuleBtn" class="btn gold-outline">Zmień rodzaj operatu</button></div>
+      <div class="card form-grid cols-3">
+        <label>Autor opracowania<input data-path="author.name"></label><label>Nr uprawnień<input data-path="author.licenseNo" placeholder="np. 1234"></label><label>Firma / pracownia<input data-path="author.company"></label>
+        <label>Miasto<input data-path="property.city"></label><label>Dzielnica<input data-path="property.district"></label><label>Ulica<input data-path="property.street"></label>
+        <label>Nr budynku<input data-path="property.buildingNo"></label><label id="localNoField">Nr lokalu<input data-path="property.localNo"></label><label id="staircaseField">Klatka<input data-path="property.staircase"></label>
+        <label id="usableAreaField"><span id="usableAreaLabel">Powierzchnia użytkowa lokalu [m²]</span><input type="number" step="0.01" data-path="property.usableArea"></label><label>Powierzchnia wg KW [m²]<input type="number" step="0.01" data-path="property.kwArea"></label><label>Liczba pokoi<input type="number" step="1" data-path="property.rooms"></label>
+        <label id="floorField">Piętro / kondygnacja<input data-path="property.floor"></label><label id="balconyField">Balkon / loggia [m²]<input type="number" step="0.01" data-path="property.balconyArea"></label><label id="basementNameField">Pom. przynależne<input data-path="property.basementName" placeholder="np. Piwnica nr 7B"></label>
+        <label id="basementAreaField">Pow. pom. przynależnego [m²]<input type="number" step="0.01" data-path="property.basementArea"></label><label class="span-2">Rodzaj prawa<input data-path="property.rightType" list="rightsList"></label><label class="developed-only hidden">Powierzchnia działki [m²]<input type="number" step="1" data-path="property.landArea"></label><label class="developed-only hidden">Kształt / dostęp / uzbrojenie działki<input data-path="property.plotDescription" placeholder="np. regularna, droga asfaltowa, pełne uzbrojenie"></label><label class="developed-only hidden">Zabudowa dodatkowa<input data-path="property.auxiliaryBuildings" placeholder="np. garaż wolnostojący, wiata"></label>
+      </div>
+      <div class="card"><h3>Cel i daty wyceny</h3><div class="form-grid cols-3"><label class="span-2">Cel wyceny<input data-path="valuation.purpose" placeholder="np. określenie wartości rynkowej dla potrzeb sprzedaży"></label><label>Zaokrąglenie wyniku [zł]<input type="number" step="1000" data-path="valuation.roundTo"></label><label>Data sporządzenia<input type="date" data-path="valuation.reportDate"></label><label>Data wyceny<input type="date" data-path="valuation.valuationDate"></label><label>Data poziomu cen<input type="date" data-path="valuation.priceLevelDate"></label><label>Data oględzin<input type="date" data-path="valuation.inspectionDate"></label><label class="span-2">Data / godzina stanu prawnego<input data-path="valuation.legalStateDate"></label></div></div>
+      <div class="card"><div class="card-head"><div><h3>Podstawa formalna i metodyczna</h3><p><b>Podstawa formalna</b> powinna wskazywać zlecenie, umowę albo rozstrzygnięcie będące podstawą sporządzenia operatu. <b>Podstawa metodyczna</b> opisuje przyjęty rodzaj wartości, podejście, metodę oraz uzasadnienie wyboru.</p></div></div>
+        <div class="per-field"><label>Podstawa formalna<textarea data-path="formalBasis" rows="4" placeholder="Kto zlecił wycenę, kiedy, w jakim celu i na jakiej podstawie..."></textarea></label><button class="btn per-inline" data-per-target="formalBasis" data-per-task="Zredaguj podstawę formalną operatu. Użyj tylko podanych danych i pozostaw [DO UZUPEŁNIENIA], jeśli brakuje zleceniodawcy, umowy albo podstawy formalnej.">✦ Zredaguj (PER)</button></div>
+        <div class="per-field"><label>Podstawa metodyczna<textarea data-path="methodicalBasis" rows="5" placeholder="Rodzaj wartości, podejście, metoda, jednostka porównawcza, uzasadnienie..."></textarea></label><button class="btn per-inline" data-per-target="methodicalBasis" data-per-task="Zredaguj podstawę metodyczną dla lokalu mieszkalnego wycenianego w podejściu porównawczym metodą korygowania ceny średniej. Nie dopisuj niepotwierdzonych standardów ani aktów prawnych.">✦ Zredaguj (PER)</button></div>
+        <div class="per-field"><label>Rodzaj wartości i uzasadnienie wyboru podejścia / metody<textarea data-path="valuation.approachDescription" rows="5" placeholder="Tekst, który trafi do pkt 12.1 operatu..."></textarea></label><button class="btn per-inline" data-per-target="valuation.approachDescription" data-per-task="Zredaguj uzasadnienie wyboru rodzaju wartości, podejścia porównawczego i metody korygowania ceny średniej dla tego konkretnego lokalu. Oprzyj się na celu wyceny i dostępności danych rynkowych. Jeżeli nie wiadomo, czy dane są wystarczające, wpisz [DO UZUPEŁNIENIA].">✦ Zredaguj (PER)</button></div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-legal">
+      <div class="section-title"><div><span>02</span><h2>Stan prawny / Elektroniczne Księgi Wieczyste</h2></div><p>Stan prawny uzupełniasz dział po dziale. OPERO pomaga uporządkować treść, ale nie omija CAPTCHA ani zabezpieczeń portalu Ministerstwa.</p></div>
+      <div class="card ekw-card">
+        <div class="card-head"><div><h3>1. Numer księgi i otwarcie EKW</h3><p>Wpisz numer w jednym polu. Możesz wkleić go ze spacjami lub bez ukośników — program normalizuje zapis przed skopiowaniem.</p></div><span class="source-badge">ekw.ms.gov.pl</span></div>
+        <div class="form-grid cols-2"><label id="kwMainLabel" data-help="Elektroniczny numer księgi wieczystej lokalu, np. GD1G/00212545/4. To podstawowy identyfikator księgi używany do badania stanu prawnego.">Numer KW lokalu<input id="kwMainInput" data-path="legal.kwLocal" autocomplete="off" placeholder="np. GD1G/00212545/4"></label><label data-help="Data i opcjonalnie godzina, w której zbadano aktualną treść EKW. Ta data określa moment badania stanu prawnego.">Data badania stanu prawnego<input data-path="valuation.legalStateDate" placeholder="np. 20.08.2026, godz. 12:30"></label></div>
+        <div class="ekw-actions"><button id="copyKWBtn" class="btn ghost">Kopiuj poprawny numer KW</button><button id="openKWBtn" class="btn primary">Otwórz oficjalne EKW</button><button id="openKWGovInfo" class="btn ghost">Instrukcja gov.pl</button></div>
+        <div class="alert-box"><strong>Jeżeli portal pokaże „Request Rejected / BOT support ID”:</strong> nie jest to błąd numeru KW w OPERO. Otwórz portal w zwykłej przeglądarce, nie odświeżaj go seryjnie i spróbuj ponownie później. OPERO nie obchodzi CAPTCHA, limitów ani zabezpieczeń IP.</div>
+        <div id="cooperativeLegalHint" class="info-strip"><b>Spółdzielcze własnościowe prawo bez urządzonej KW:</b> pomiń import EKW. W części „Dane strukturalne stanu prawnego” wpisz osobę uprawnioną, sposób przysługiwania prawa i dokument stanowiący podstawę prawa, a w „Opisie / wnioskach” wyjaśnij na podstawie jakich dokumentów ustalono stan prawny. Program nie będzie wtedy wymagał numeru KW ani działów III–IV.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div><h3>2. Wczytaj treść księgi dział po dziale</h3><p>Na stronie EKW wybierz aktualną treść księgi. Przechodź po działach, kopiuj widoczny tekst i wklejaj go poniżej. Zakładki OPERO odpowiadają strukturze księgi.</p></div><button id="pasteKWBtn" class="btn small">Wklej ze schowka do bieżącego działu</button></div>
+        <div id="ekwSectionTabs" class="ekw-section-tabs">
+          <button class="ekw-tab active" data-ekw-section="IO">I-O — oznaczenie</button><button class="ekw-tab" data-ekw-section="ISP">I-Sp — prawa związane</button><button class="ekw-tab" data-ekw-section="II">II — własność</button><button class="ekw-tab" data-ekw-section="III">III — prawa i roszczenia</button><button class="ekw-tab" data-ekw-section="IV">IV — hipoteka</button>
+        </div>
+        <div class="ekw-section-help" id="ekwSectionHelp"></div>
+        <label id="ekwRawLabel">Treść działu I-O<textarea id="ekwRawText" rows="13" placeholder="Skopiuj z EKW treść bieżącego działu i wklej tutaj."></textarea></label>
+        <div class="button-row"><button id="ingestKWBtn" class="btn">Zapisz bieżący dział</button><button id="applyKWBtn" class="btn primary">Rozpoznaj dane z zapisanych działów</button></div>
+        <div id="ekwImportStatus" class="ekw-status">Nie zapisano jeszcze działów EKW.</div><div id="ekwSections" class="ekw-sections"></div>
+      </div>
+
+      <div class="card legal-structured">
+        <h3>3. Dane strukturalne stanu prawnego</h3>
+        <p class="hint">Pola mogą zostać wypełnione po imporcie, ale każde z nich należy porównać z aktualną treścią księgi.</p>
+        <h4>Dział I-O — oznaczenie nieruchomości</h4><div class="form-grid cols-3">
+          <label data-help="Miejscowość ujawniona w dziale I-O. Powinna odpowiadać lokalizacji lokalu.">Miejscowość<input data-path="property.city"></label><label data-help="Nazwa ulicy ujawniona w dziale I-O.">Ulica<input data-path="property.street"></label><label data-help="Numer budynku, w którym znajduje się lokal.">Numer budynku<input data-path="property.buildingNo"></label>
+          <label class="local-legal-only" data-help="Numer lokalu będącego przedmiotem wyceny.">Numer lokalu<input data-path="property.localNo"></label><label data-help="Kondygnacja ujawniona w księdze. Zwróć uwagę, że numer kondygnacji nie zawsze odpowiada potocznemu numerowi piętra.">Kondygnacja<input data-path="property.floor"></label><label class="local-legal-only" data-help="Powierzchnia ujawniona w KW; może obejmować pomieszczenie przynależne. Nie utożsamiaj jej automatycznie z powierzchnią użytkową przyjętą do wyceny.">Powierzchnia wg KW [m²]<input type="number" step="0.01" data-path="property.kwArea"></label>
+          <label class="span-3 local-legal-only" data-help="Opis izb z działu I-O, np. liczba pokoi, kuchnia, łazienka, przedpokój. Przepisz zgodnie z treścią księgi.">Opis izb / pomieszczeń<input data-path="legal.ioRooms"></label>
+        </div>
+        <h4>Dział I-Sp — spis praw związanych z własnością</h4><div class="form-grid cols-3">
+          <label class="local-legal-only" data-help="Księga nieruchomości, z której lokal został wyodrębniony lub z którą jest związany.">KW nieruchomości wspólnej<input data-path="legal.kwCommon"></label><label data-help="Rodzaj prawa związanego z własnością lokalu, najczęściej udział związany z własnością lokalu.">Rodzaj prawa z I-Sp<input data-path="legal.ispRightType"></label><label class="local-legal-only" data-help="Udział związany z własnością lokalu w nieruchomości wspólnej, np. 181/10000. Obejmuje odpowiedni udział w gruncie i częściach wspólnych.">Udział w nieruchomości wspólnej<input data-path="legal.commonShare"></label>
+        </div>
+        <h4>Dział II — własność</h4><div class="form-grid cols-2">
+          <label data-help="Osoba lub podmiot ujawniony jako właściciel albo uprawniony. W operacie przepisz dane zgodnie z aktualną treścią księgi i zasadą minimalizacji danych.">Właściciel / uprawniony<input data-path="legal.ownerNames"></label><label data-help="Sposób przysługiwania prawa: np. własność 1/1, współwłasność ułamkowa albo wspólność ustawowa majątkowa małżeńska. To nie jest to samo co udział w nieruchomości wspólnej z działu I-Sp.">Rodzaj wspólności / udział właścicielski<input data-path="legal.ownershipType"></label>
+          <label data-help="Sąd i wydział prowadzący księgę. Informacja identyfikuje organ prowadzący EKW.">Sąd / wydział<input data-path="legal.court"></label><label data-help="Podstawa aktualnego wpisu własności, jeżeli jest potrzebna w opracowaniu i została odczytana z księgi.">Podstawa aktualnego wpisu<input data-path="legal.currentEntryBasis"></label>
+        </div>
+        <h4>Dział III — prawa, roszczenia i ograniczenia</h4><div class="per-field"><label data-help="W tym dziale ujawnia się m.in. ograniczone prawa rzeczowe, roszczenia, ostrzeżenia i ograniczenia w rozporządzaniu. Jeśli brak wpisów, zapisz to jednoznacznie.">Treść / wniosek z Działu III<textarea data-path="legal.sectionIII" rows="4"></textarea></label><button class="btn per-inline" data-per-target="legal.sectionIII" data-per-task="Uporządkuj wyłącznie podaną treść działu III księgi wieczystej. Jeżeli wynika z niej brak wpisów, sformułuj jednoznacznie BRAK WPISÓW. Nie dopisuj praw ani roszczeń, których nie ma w danych.">✦ Zredaguj (PER)</button></div>
+        <h4>Dział IV — hipoteka</h4><div class="per-field"><label data-help="Dział IV zawiera hipoteki. Jeśli brak wpisów, wskaż to jednoznacznie; jeśli wpisy istnieją, nie interpretuj ich ponad treść księgi.">Treść / wniosek z Działu IV<textarea data-path="legal.sectionIV" rows="4"></textarea></label><button class="btn per-inline" data-per-target="legal.sectionIV" data-per-task="Uporządkuj wyłącznie podaną treść działu IV księgi wieczystej. Jeżeli wynika z niej brak wpisów, sformułuj jednoznacznie BRAK WPISÓW. Nie dopisuj hipotek ani wniosków niewynikających z danych.">✦ Zredaguj (PER)</button></div>
+      </div>
+      <div id="commonPropertyCard" class="card legal-structured">
+        <h3>4. Księga nieruchomości wspólnej / gruntowej</h3>
+        <p class="hint">Wzorce zawodowe często badają nie tylko KW lokalu, ale również księgę nieruchomości wspólnej. Uzupełnij te pola, jeżeli są istotne dla prawa związanego z lokalem.</p>
+        <div class="form-grid cols-3">
+          <label data-help="Numer działki ujawniony w KW nieruchomości wspólnej lub zweryfikowany w EGiB.">Nr działki<input data-path="legal.commonProperty.plotNo"></label>
+          <label data-help="Pełny identyfikator działki, jeżeli został zweryfikowany w EGiB lub KW.">Id działki<input data-path="legal.commonProperty.plotId"></label>
+          <label data-help="Powierzchnia nieruchomości gruntowej związanej z lokalem, zgodnie ze źródłem urzędowym.">Powierzchnia gruntu<input data-path="legal.commonProperty.area"></label>
+          <label data-help="Sposób korzystania / oznaczenie użytku ujawnione w źródle, np. B – tereny mieszkaniowe.">Sposób korzystania<input data-path="legal.commonProperty.landUse"></label>
+          <label data-help="Identyfikator budynku, jeżeli został zweryfikowany w EGiB.">Id budynku<input data-path="legal.commonProperty.buildingId"></label>
+          <label data-help="Liczba kondygnacji budynku wynikająca z dokumentów źródłowych.">Kondygnacje budynku<input data-path="legal.commonProperty.buildingStoreys"></label>
+          <label data-help="Liczba samodzielnych / wyodrębnionych lokali, jeśli wynika z badanej księgi lub EGiB.">Liczba lokali<input data-path="legal.commonProperty.buildingUnits"></label>
+        </div>
+        <div class="grid-2">
+          <label data-help="Prawa związane z własnością ujawnione w dziale I-Sp księgi nieruchomości wspólnej.">I-Sp księgi wspólnej<textarea data-path="legal.commonProperty.sectionISP" rows="4"></textarea></label>
+          <label data-help="Własność / współwłasność ujawniona w dziale II księgi nieruchomości wspólnej.">Dział II księgi wspólnej<textarea data-path="legal.commonProperty.sectionII" rows="4"></textarea></label>
+          <label data-help="Prawa, roszczenia i ograniczenia z działu III księgi nieruchomości wspólnej, np. sposób korzystania z miejsca postojowego.">Dział III księgi wspólnej<textarea data-path="legal.commonProperty.sectionIII" rows="4"></textarea></label>
+          <label data-help="Hipoteki ujawnione w dziale IV księgi nieruchomości wspólnej.">Dział IV księgi wspólnej<textarea data-path="legal.commonProperty.sectionIV" rows="4"></textarea></label>
+        </div>
+      </div>
+      <div class="card per-field"><label data-help="Podsumowanie badania stanu prawnego: wskaż typ prawa, właścicieli/uprawnionych, udział związany z lokalem, istotne wpisy z działów III i IV oraz ewentualne rozbieżności wymagające wyjaśnienia.">Opis / wnioski ze stanu prawnego<textarea data-path="legal.kwNotes" rows="7"></textarea></label><button class="btn per-inline" data-per-target="legal.kwNotes" data-per-task="Zredaguj wnioski z badania stanu prawnego na podstawie wyłącznie zapisanych danych I-O, I-Sp, II, III i IV. Wyraźnie wskaż rozbieżności i [DO UZUPEŁNIENIA] zamiast zgadywać.">✦ Zredaguj (PER)</button></div>
+    </section>
+
+    <section class="tab" id="tab-egib">
+      <div class="section-title"><div><span>03</span><h2>EGiB, MPZP i lokalizacja</h2></div><p>Dane ewidencyjne, planistyczne i opis otoczenia nieruchomości.</p></div>
+      <div class="card weryfikator-card"><div class="card-head"><div><h3>Wymagania weryfikatora</h3><p>Te pola sprawdza bank i recenzent operatu. Puste nie blokują PDF, ale Kontrola operatu o nich przypomni.</p></div></div>
+        <div class="form-grid cols-2">
+          <label data-help="Dostęp do drogi publicznej: bezpośredni, przez drogę wewnętrzną z udziałem, przez służebność albo brak. Banki odrzucają operaty, w których tego nie ma.">Dostęp do drogi publicznej
+            <select data-path="property.roadAccess">
+              <option value="">— wybierz —</option>
+              <option value="bezposredni">bezpośredni z drogi publicznej</option>
+              <option value="wewnetrzna_udzial">przez drogę wewnętrzną — udział w działce drogowej</option>
+              <option value="wewnetrzna_bez_udzialu">przez drogę wewnętrzną — bez udziału</option>
+              <option value="sluzebnosc">przez służebność drogi koniecznej / gruntową</option>
+              <option value="brak">brak prawnie uregulowanego dostępu</option>
+            </select></label>
+          <label data-help="Czym potwierdzasz dostęp: zaświadczenie gminy, KW drogi, uchwała o kategorii drogi, zapis w MPZP, decyzja podziałowa.">Czym potwierdzony<input data-path="property.roadAccessProof" placeholder="np. KW drogi WA1M/00012345/6 + zapis w MPZP"></label>
+          <label data-help="Źródło powierzchni użytkowej. Weryfikator wymaga wskazania, skąd wzięta jest powierzchnia przyjęta do obliczeń.">Źródło powierzchni użytkowej
+            <select data-path="property.usableAreaSource">
+              <option value="">— wybierz —</option>
+              <option value="akt">akt ustanawiający odrębną własność / umowa</option>
+              <option value="projekt">projekt budowlany / zestawienie powierzchni</option>
+              <option value="inwentaryzacja">inwentaryzacja architektoniczna</option>
+              <option value="pomiar">pomiar własny rzeczoznawcy podczas oględzin</option>
+              <option value="egib">dane EGiB / kartoteka lokali</option>
+            </select></label>
+          <label data-help="Data wypisu z EGiB. Banki wymagają dokumentu nie starszego niż 6 miesięcy względem daty wyceny.">Data wypisu z EGiB<input type="date" data-path="egib.extractDate"></label>
+          <label data-help="Klasa energetyczna ze świadectwa charakterystyki energetycznej.">Klasa energetyczna<input data-path="building.energyClass" placeholder="np. C"></label>
+          <label data-help="Wskaźnik EP ze świadectwa charakterystyki energetycznej, w kWh/(m²·rok).">Wskaźnik EP [kWh/(m²·rok)]<input data-path="building.energyEP" inputmode="decimal"></label>
+          <label class="span-2 check" data-help="Oświadczenie o braku konfliktu interesów: brak powiązań ze stronami, wynagrodzenie niezależne od wyniku wyceny i od udzielenia kredytu."><input type="checkbox" data-path="author.independence"> Oświadczam brak konfliktu interesów (wymagane przy wycenie dla zabezpieczenia wierzytelności)</label>
+        </div></div>
+      <div class="card automat-karta" id="automatKarta">
+        <div class="card-head"><div><span class="eyebrow">AUTOMAT</span><h3>Zbierz dane o nieruchomości z adresu</h3><p>Program sam ustali położenie, działkę i obręb w ewidencji, sprawdzi, co jest w otoczeniu i w jakiej odległości, zapyta o plan miejscowy — a potem wpisze to do rubryk poniżej i napisze opis lokalizacji. Tego, co wpisałeś sam, nie nadpisze.</p></div><button id="automatBtn" type="button" class="btn primary">Zbierz dane automatycznie</button></div>
+        <div id="automatWynik" class="automat-wynik hidden" aria-live="polite"></div>
+      </div>
+      <div class="grid-2"><div class="card"><h3>Ewidencja gruntów i budynków</h3><div class="form-grid cols-2"><label>Jednostka ewidencyjna<input data-path="egib.unit"></label><label>Obręb<input data-path="egib.district"></label><label>Nr działki<input data-path="egib.plotNo"></label><label>Id działki<input data-path="egib.plotId"></label><label>Pow. działki<input data-path="egib.plotArea"></label><label>Id budynku<input data-path="egib.buildingId"></label></div><div class="per-field"><label>Uwagi EGiB<textarea data-path="egib.notes" rows="5"></textarea></label><button class="btn per-inline" data-per-target="egib.notes" data-per-task="Zredaguj opis danych EGiB na podstawie pól projektu. Nie wymyślaj identyfikatorów ani powierzchni.">✦ Zredaguj (PER)</button></div></div>
+      <div class="card"><div class="card-head"><div><h3>MPZP / planowanie — cała Polska</h3><p>Zacznij od ogólnopolskiego Geoportalu, a następnie zweryfikuj dokument w BIP lub systemie informacji przestrzennej właściwej gminy. W operacie wskaż źródło, uchwałę, symbol terenu, przeznaczenie i istotne ustalenia.</p></div></div><div class="portal-list" data-portale="geoportal,mpzp,rcn"></div><div class="info-strip"><b>Jak uzupełnić:</b> 1) zlokalizuj działkę, 2) sprawdź czy obowiązuje MPZP, 3) otwórz dokument źródłowy gminy, 4) przepisz numer i nazwę planu, uchwałę, symbol, przeznaczenie, parametry oraz ograniczenia, 5) przycisk PER napisze opis z uzupełnionych pól — albo wygładzi tekst, który wpisałeś sam.</div>
+        <div class="form-grid cols-2"><label>Nr / symbol planu<input data-path="planning.planNumber"></label><label>Nazwa planu<input data-path="planning.planName"></label><label>Uchwała / data<input data-path="planning.resolution"></label><label>Symbol terenu<input data-path="planning.zoneSymbol"></label><label>Przeznaczenie terenu<input data-path="planning.designation"></label><label>Źródło / link<input data-path="planning.sourceUrl"></label><label class="span-2">Parametry istotne dla nieruchomości<textarea data-path="planning.parameters" rows="4" placeholder="np. funkcja, intensywność, wysokość, PBC, linie zabudowy"></textarea></label><label class="span-2">Ochrona / ograniczenia<textarea data-path="planning.protections" rows="3" placeholder="np. konserwatorskie, osuwiskowe, infrastrukturalne"></textarea></label></div>
+        <div class="per-field"><label>Gotowy opis planistyczny do operatu<textarea data-path="planning.description" rows="8"></textarea></label><button class="btn per-inline" data-per-target="planning.description" data-per-task="Na podstawie uzupełnionych pól MPZP zredaguj rozdział o uwarunkowaniach planistycznych. Nie wyszukuj i nie dopisuj parametrów, których użytkownik nie podał.">✦ Zredaguj (PER)</button></div>
+      </div></div>
+      <div class="card"><h3>Lokalizacja, usługi i otoczenie</h3><div class="form-grid cols-3"><label>Komunikacja / transport<input data-path="location.transport"></label><label>Usługi w otoczeniu<input data-path="location.services"></label><label>Zieleń / rekreacja<input data-path="location.recreation"></label><label class="span-3">Inne fakty o lokalizacji<input data-path="location.surroundings"></label></div><div class="per-field"><label>Opis lokalizacji<textarea data-path="location.description" rows="8"></textarea></label><button class="btn per-inline" data-per-target="location.description" data-per-task="Zredaguj profesjonalny opis lokalizacji na podstawie adresu oraz wpisanych przez użytkownika informacji o komunikacji, usługach, zieleni i otoczeniu. Nie wymyślaj nazw obiektów ani odległości.">✦ Zredaguj (PER)</button></div></div>
+      <div class="card"><div class="card-head"><div><h3>Google Maps i kod QR</h3><p>Wybierz dokładny adres albo współrzędne geograficzne. QR trafia do PDF i po zeskanowaniu otwiera Google Maps.</p></div><button id="generateMapsQR" class="btn primary small">Generuj / odśwież QR</button></div><div class="grid-2 maps-editor"><div class="form-grid cols-2"><label>Szerokość geograficzna<input type="number" step="0.000001" data-path="location.latitude" placeholder="np. 54.352000"></label><label>Długość geograficzna<input type="number" step="0.000001" data-path="location.longitude" placeholder="np. 18.646600"></label><label class="span-2">Własny link Google Maps (opcjonalnie)<input data-path="location.manualMapsUrl"></label><label class="check span-2"><input type="checkbox" data-path="location.includeMapsQR"> Umieść kod QR w PDF</label></div><div class="qr-preview"><img id="mapsQrPreview" alt="Kod QR"><div><strong id="mapsQrAddress">Brak kodu QR</strong><small id="mapsQrUrl"></small><button id="openMapsBtn" class="btn small ghost">Otwórz mapę</button></div></div></div></div>
+    </section>
+
+    <section class="tab" id="tab-building">
+      <div class="section-title"><div><span>04</span><h2>Budynek</h2></div><p>Wybieraj typowe odpowiedzi z list albo wpisuj własne.</p></div>
+      <div class="card form-grid cols-3">
+        <label>Rodzaj zabudowy<input data-path="building.type" list="buildingTypeList"></label><label>Rok budowy<input data-path="building.year"></label><label>Liczba kondygnacji<input data-path="building.storeys"></label>
+        <label>Konstrukcja / technologia<input data-path="building.construction" list="constructionList"></label><label>Winda<input data-path="building.lift" list="liftList"></label><label>Stan techniczny<input data-path="building.condition" list="conditionList"></label>
+        <label>Dach<input data-path="building.roof" list="roofList"></label><label>Elewacja<input data-path="building.facade" list="facadeList"></label><label>Części wspólne<input data-path="building.commonAreas" list="commonAreasList"></label>
+        <label>Parking<input data-path="building.parking" list="parkingList"></label><label>Zarządca<input data-path="building.manager"></label><label>Otoczenie<input data-path="building.surroundings"></label>
+        <label class="span-3">Instalacje<input data-path="building.installations" list="installationsList"></label>
+      </div><div class="card per-field"><label>Opis budynku<textarea data-path="building.description" rows="9"></textarea></label><button class="btn per-inline" data-per-target="building.description" data-per-task="Zredaguj techniczno-użytkowy opis budynku na podstawie wszystkich uzupełnionych pól budynku. Nie dopisuj stanu elementów, których nie oceniono podczas oględzin.">✦ Zredaguj (PER)</button></div>
+    </section>
+
+    <section class="tab" id="tab-local">
+      <div class="section-title"><div><span>05</span><h2>Lokal — układ, standard i stan techniczny</h2></div><p>Tekst wpisujesz samodzielnie. Przycisk „Zredaguj (PER)” uporządkuje styl Twojego opisu na tym komputerze — bez dopisywania faktów.</p></div>
+      <div class="card form-grid cols-3"><label data-help="Wybierz sposób organizacji kuchni w lokalu. Jeżeli stan jest nietypowy, wybierz pozycję „inny układ” i doprecyzuj go w opisie układu pomieszczeń.">Typ kuchni<select data-path="local.kitchenType"><option value="">— wybierz —</option><option>oddzielna kuchnia zamknięta</option><option>oddzielna kuchnia z oknem</option><option>oddzielna kuchnia bez okna</option><option>aneks kuchenny w pokoju dziennym</option><option>kuchnia otwarta na salon</option><option>kuchnia częściowo otwarta</option><option>kuchnia z jadalnią</option><option>aneks w przedpokoju / wnęce</option><option>brak urządzonej kuchni</option><option>inny układ — opisać ręcznie</option></select></label><label>Łazienka / WC<input data-path="local.bathrooms"></label><label>Ekspozycja<input data-path="local.orientation"></label><label>Podłogi<input data-path="local.floors"></label><label>Ściany<input data-path="local.walls"></label><label>Stolarka okienna<input data-path="local.windows"></label><label>Standard<input data-path="local.standardLevel" list="localStandardList"></label><label>Stan techniczny<input data-path="local.technicalCondition" list="localConditionList"></label><label>Instalacje<input data-path="local.installations"></label></div>
+      <div class="card"><div class="per-field"><label>Układ pomieszczeń<textarea data-path="local.layout" rows="5" placeholder="Wpisz pomieszczenia, relacje funkcjonalne, strony świata, powierzchnie..."></textarea></label><button class="btn per-inline" data-per-target="local.layout" data-per-task="Zredaguj opis układu pomieszczeń lokalu na podstawie liczby pokoi, powierzchni i danych wpisanych przez użytkownika. Nie wymyślaj powierzchni pomieszczeń ani stron świata.">✦ Zredaguj (PER)</button></div><div class="per-field"><label>Standard i stan techniczny<textarea data-path="local.description" rows="10"></textarea></label><button class="btn per-inline" data-per-target="local.description" data-per-task="Zredaguj opis standardu i stanu technicznego lokalu na podstawie wpisanych materiałów, stolarki, instalacji, standardu i oględzin. Oddziel stan faktyczny od oceny.">✦ Zredaguj (PER)</button></div></div>
+    </section>
+
+    <section class="tab" id="tab-market">
+      <div class="section-title"><div><span>06</span><h2>Rynek, trend i transakcje porównawcze</h2></div><p>Transakcje możesz wpisywać ręcznie albo importować z XLS/XLSX/CSV. Obliczenia wykonuje wyłącznie silnik OPERO; PER nie uczestniczy w obliczeniach.</p></div>
+      <div class="card"><h3>Opis rynku</h3><div class="per-field"><label>Zakres / segment rynku<textarea data-path="market.segmentDescription" rows="4"></textarea></label><button class="btn per-inline" data-per-target="market.segmentDescription" data-per-task="Zredaguj zakres i segment rynku dla wycenianego lokalu. Wykorzystaj typ prawa, lokalizację, powierzchnię, funkcję, rynek pierwotny/wtórny i okres analizy tylko jeżeli są podane.">✦ Zredaguj (PER)</button></div><div class="per-field"><label>Charakterystyka rynku lokalnego<textarea data-path="market.marketDescription" rows="7"></textarea></label><button class="btn per-inline" data-per-target="market.marketDescription" data-per-task="Zredaguj charakterystykę rynku lokalnego wyłącznie na podstawie danych transakcyjnych i informacji wpisanych w projekcie. Możesz podsumować Cmin/Cśred/Cmax i rozpiętość cen, ale nie twórz zewnętrznych statystyk.">✦ Zredaguj (PER)</button></div></div>
+      <div class="card"><div class="card-head"><div><h3>Skąd wziąć transakcje</h3><p>Ceny transakcyjne pochodzą z aktów notarialnych zebranych w Rejestrze Cen Nieruchomości. Podgląd map jest publiczny, ale <b>pełny wypis z RCN wydaje starostwo (PODGiK) na wniosek rzeczoznawcy</b> w związku z wykonywaną wyceną — i to on jest źródłem, które wpisujesz do operatu.</p></div></div><div class="portal-list" data-portale="rcn,geoportal,podgik"></div><div class="info-strip"><b>Zanim wpiszesz transakcję:</b> sprawdź datę aktu, powierzchnię przyjętą w akcie, czy cena dotyczy prawa tego samego rodzaju i czy transakcja nie jest obciążona szczególnymi warunkami (rodzina, licytacja, zamiana). Takie pozycje odrzuć albo opisz w operacie.</div></div>
+      <div class="card"><div class="card-head"><div><h3>Transakcje porównawcze</h3><p>Dodaj ręcznie albo zaimportuj arkusz. Δt jest liczone automatycznie z daty transakcji i daty wyceny. Kolumny ocen cech tworzą się automatycznie z listy cech rynkowych.</p></div><div class="button-row"><button id="rcnStart" class="btn primary small" type="button">Wczytaj wyciąg RCiWN →</button><button id="importMarketSheet" class="btn small">Importuj XLS/XLSX/CSV</button><button id="addTransactionDrawer" class="btn primary small" type="button">+ Dodaj ofertę / transakcję</button><button id="addTransaction" class="btn ghost small" title="Dodaje pusty wiersz prosto w tabeli">+ Pusty wiersz</button></div></div><div id="importSummary" class="hint"></div><div class="table-wrap"><table class="edit-table"><thead><tr><th>Lp.</th><th>Adres</th><th>Data</th><th>Pow. m²</th><th>Izby/kond.</th><th>Cₜ zł/m²</th><th>Okres do daty wyceny Δt [m-c]</th><th>Cₛ zł/m²</th><th></th></tr></thead><tbody id="transactionsBody"></tbody></table></div></div>
+      <div class="card"><div class="card-head"><div><h3>Trend czasowy</h3><p><b>Pary do trendu</b> służą wyłącznie do określenia zmiany cen w czasie. Nie są tym samym co pary używane później do uzasadnienia wag cech.</p></div><button id="addTrendPair" class="btn small">+ Para trendu</button></div>
+        <div class="inline-settings"><label>Źródło trendu<select data-path="market.trendSourceMode"><option value="pairs">Wylicz z par transakcji</option><option value="regression">Regresja liniowa zbioru porównawczego</option><option value="manual">Trend wpisany / z odrębnej analizy</option><option value="none">Brak korekty czasowej (0%)</option></select></label><label>Trend ręczny [%/m-c]<input type="number" step="0.0001" data-path="market.manualTrendRate"></label><label>Precyzja<select data-path="market.trendPrecisionMode"><option value="rounded">Zaokrąglaj trend przed korektą</option><option value="raw">Pełna precyzja</option></select></label><label>Miejsca po przecinku<input type="number" min="0" max="8" data-path="market.trendRoundDigits"></label></div>
+        <div class="table-wrap"><table class="edit-table"><thead><tr><th>#</th><th>C₁ — nr trans.</th><th>C₂ — nr trans.</th><th>Odstęp między transakcjami Δt [m-c]</th><th>vₜ [%/m-c]</th><th></th></tr></thead><tbody id="trendPairsBody"></tbody></table></div><div id="regressionInfo" class="info-strip"><b>Regresja liniowa zbioru porównawczego:</b> program dopasowuje linię ceny jednostkowej do czasu dla wszystkich transakcji z prawidłową datą. Jeżeli trend wyznaczasz na odrębnym, szerszym zbiorze rynku, wybierz „Trend wpisany / z odrębnej analizy” i wprowadź wynik tej analizy. Trend względny jest liczony jako miesięczne nachylenie linii / średnia cena jednostkowa × 100%. W raporcie pokazywane są nachylenie, R² i przeliczenie roczne.</div><div class="formula-note"><b>Δt</b> oznacza liczbę miesięcy: w parze trendu — pomiędzy datami porównywanych transakcji; w tabeli transakcji — od daty transakcji do daty wyceny. vₜ = ((C₁ − C₂) / (C₂ × Δt)) × 100% &nbsp; | &nbsp; Cₛ = Cₜ × (100 + vₜ × Δt) / 100</div>
+      </div>
+      <div class="card"><div class="card-head"><div><h3>Nieruchomości o cenie minimalnej i maksymalnej</h3><p>Po obliczeniu Cmin i Cmax opisz obie nieruchomości skrajne nie tylko adresem, ale także cechami, które są istotne dla porównania z lokalem wycenianym. Nie wnioskuj o standardzie wyłącznie z samej ceny.</p></div></div>
+        <div class="grid-2"><div class="per-field"><label data-help="Opis nieruchomości o najwyższej skorygowanej cenie jednostkowej: podstawowe dane transakcji oraz zweryfikowane cechy rynkowe na tle przyjętej skali.">Opis nieruchomości Cmax<textarea data-path="narratives.extremeMax" rows="6" placeholder="Adres, powierzchnia, data transakcji, Cmax oraz zweryfikowane cechy i ich oceny..."></textarea></label><button class="btn per-inline" data-per-target="narratives.extremeMax" data-per-task="Zredaguj charakterystykę nieruchomości o cenie maksymalnej na podstawie danych transakcji o najwyższej skorygowanej cenie oraz faktów wpisanych przez użytkownika. Nie wyprowadzaj standardu ani stanu technicznego wyłącznie z ceny. Jeśli brakuje cech, wpisz [DO UZUPEŁNIENIA].">✦ Zredaguj (PER)</button></div><div class="per-field"><label data-help="Opis nieruchomości o najniższej skorygowanej cenie jednostkowej: podstawowe dane transakcji oraz zweryfikowane cechy rynkowe na tle przyjętej skali.">Opis nieruchomości Cmin<textarea data-path="narratives.extremeMin" rows="6" placeholder="Adres, powierzchnia, data transakcji, Cmin oraz zweryfikowane cechy i ich oceny..."></textarea></label><button class="btn per-inline" data-per-target="narratives.extremeMin" data-per-task="Zredaguj charakterystykę nieruchomości o cenie minimalnej na podstawie danych transakcji o najniższej skorygowanej cenie oraz faktów wpisanych przez użytkownika. Nie wyprowadzaj standardu ani stanu technicznego wyłącznie z ceny. Jeśli brakuje cech, wpisz [DO UZUPEŁNIENIA].">✦ Zredaguj (PER)</button></div></div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-modul">
+      <div class="section-title"><div><span>06</span><h2 id="modulTytul">Dane wyceny</h2></div><p id="modulWstep"></p></div>
+      <div id="modulTresc"></div>
+      <div class="card"><h3>Wynik</h3><div class="table-wrap"><table class="edit-table"><tbody id="modulWynikBody"></tbody></table></div></div>
+    </section>
+
+    <section class="tab" id="tab-income">
+      <div class="section-title"><div><span>06</span><h2>Dochód, najem i stopa</h2></div><p>Podejście dochodowe. Każdy parametr — czynsz, pustostan, stopa — musi mieć widoczne źródło; bez tego wynik jest nie do sprawdzenia i OPERO nie wypuści PDF.</p></div>
+
+      <div class="card"><h3>Przedmiot i technika</h3>
+        <div class="form-grid cols-2">
+          <label>Powierzchnia efektywna / najmu [m²]<input type="number" step="0.01" min="0" data-path="income.areaLettable"></label>
+          <label>Standard / klasa obiektu<input data-path="income.classStandard" placeholder="np. B+, z uzasadnieniem cech"></label>
+          <label>Technika dochodowa<select data-path="income.technique"><option value="cap">Kapitalizacja prosta</option><option value="dcf">Zdyskontowane strumienie dochodów (DCF)</option></select></label>
+          <label>Inne wpływy właściciela [zł/rok]<input type="number" step="0.01" min="0" data-path="income.otherIncome"></label>
+          <label>Pustostany [%]<input type="number" step="0.01" min="0" max="100" data-path="income.vacancyPct"></label>
+          <label>Nieściągalność [%]<input type="number" step="0.01" min="0" max="100" data-path="income.collectionPct"></label>
+          <label class="span-2">Uzasadnienie wyboru techniki<textarea data-path="income.techniqueJustification" rows="3" placeholder="Dlaczego kapitalizacja prosta, a nie DCF (albo odwrotnie) — na tle stabilności dochodu i struktury najmu."></textarea></label>
+        </div>
+        <div class="info-strip" id="incomeAreaInfo"></div>
+      </div>
+
+      <div class="card"><div class="card-head"><div><h3>Rejestr umów najmu</h3><p>Każda umowa osobno. Uśrednianie warunków przed kontrolą zniekształca i dochód, i ocenę ryzyka.</p></div><button id="addLease" class="btn primary small" type="button">+ Umowa najmu</button></div>
+        <div class="table-wrap"><table class="edit-table"><thead><tr><th>Najemca</th><th>Pow. [m²]</th><th>Start</th><th>Koniec</th><th>Czynsz bazowy [zł/m²/mc]</th><th>Czynsz efektywny</th><th>Istotne warunki</th><th>Źródło</th><th></th></tr></thead><tbody id="leasesBody"></tbody></table></div>
+        <div class="formula-note" id="waultInfo"></div>
+        <label>Sposób policzenia WAULT<textarea data-path="income.waultBasis" rows="2" placeholder="Opisz, jak ważyłeś okresy — bez tego WAULT nie zostanie przyjęty jako parametr."></textarea></label>
+      </div>
+
+      <div class="card"><div class="card-head"><div><h3>Czynsz rynkowy — dowody</h3><p>Oddziel dane rynkowe od czynszu umownego i od benchmarków publikowanych dla całego rynku. Do modelu wchodzą tylko pozycje zaznaczone jako przyjęte.</p></div><button id="addRentEvidence" class="btn primary small" type="button">+ Dowód czynszu</button></div>
+        <div class="table-wrap"><table class="edit-table"><thead><tr><th>Źródło</th><th>Rynek / podrynek</th><th>Klasa</th><th>Data</th><th>Czynsz [zł/m²/mc]</th><th>Warunki</th><th>Typ dowodu</th><th>Do modelu</th><th>Uzasadnienie</th><th></th></tr></thead><tbody id="rentEvidenceBody"></tbody></table></div>
+        <div class="formula-note" id="rentInfo"></div>
+      </div>
+
+      <div class="card"><div class="card-head"><div><h3>Stopa kapitalizacji / dyskontowa — dowody</h3><p>Stopa musi odpowiadać przyjętej definicji dochodu. Prime yield z raportu dotyczy najlepszych aktywów rynku, a nie tego obiektu — jego użycie wymaga korekty i uzasadnienia.</p></div><button id="addRateEvidence" class="btn primary small" type="button">+ Dowód stopy</button></div>
+        <div class="table-wrap"><table class="edit-table"><thead><tr><th>Źródło</th><th>Rynek</th><th>Data</th><th>Stopa [%]</th><th>Definicja dochodu</th><th>Ryzyko aktywa</th><th>Korekta [p.p.]</th><th>Przyjęta</th><th></th></tr></thead><tbody id="rateEvidenceBody"></tbody></table></div>
+        <div class="inline-settings">
+          <label>Stopa kapitalizacji przyjęta [%]<input type="number" step="0.01" min="0" data-path="income.capRate" placeholder="puste = średnia z przyjętych dowodów"></label>
+          <label>Stopa dyskontowa (DCF) [%]<input type="number" step="0.01" min="0" data-path="income.discountRate"></label>
+          <label>Stopa rezydualna (DCF) [%]<input type="number" step="0.01" min="0" data-path="income.terminalRate"></label>
+        </div>
+        <div class="formula-note" id="rateInfo"></div>
+      </div>
+
+      <div class="card"><div class="card-head"><div><h3>Koszty operacyjne właściciela</h3><p>Do NOI odejmujemy wyłącznie koszty obciążające właściciela. Koszty przenoszone na najemcę, finansowanie i podatek dochodowy do NOI nie wchodzą.</p></div><button id="addOpex" class="btn primary small" type="button">+ Pozycja kosztowa</button></div>
+        <div class="table-wrap"><table class="edit-table"><thead><tr><th>Pozycja</th><th>Kwota roczna [zł]</th><th>Kto ponosi</th><th>Źródło / założenie</th><th></th></tr></thead><tbody id="opexBody"></tbody></table></div>
+      </div>
+
+      <div class="card" id="dcfCard"><div class="card-head"><div><h3>Prognoza DCF rok po roku</h3><p>Każdy rok osobno wraz ze źródłem założenia. Wartość rezydualna wynika z kapitalizacji dochodu po okresie prognozy.</p></div><button id="addDcfYear" class="btn primary small" type="button">+ Rok prognozy</button></div>
+        <div class="table-wrap"><table class="edit-table"><thead><tr><th>Rok</th><th>Przychód</th><th>Pustostan</th><th>Inne</th><th>OPEX</th><th>CAPEX</th><th>Przepływ</th><th>Dyskonto</th><th>PV</th><th>Źródło założenia</th><th></th></tr></thead><tbody id="dcfBody"></tbody></table></div>
+      </div>
+
+      <div class="card"><h3>Rachunek dochodu: PGI → EGI → NOI</h3>
+        <div class="table-wrap"><table class="edit-table"><tbody id="incomeBridgeBody"></tbody></table></div>
+        <div class="formula-note">PGI = Σ(czynsz × powierzchnia × 12) + inne wpływy &nbsp;|&nbsp; EGI = PGI − pustostany − nieściągalność &nbsp;|&nbsp; NOI = EGI − koszty właściciela &nbsp;|&nbsp; V = NOI / R</div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-features">
+      <div class="section-title"><div><span>07</span><h2>Cechy rynkowe, skale ocen i wagi</h2></div><p>Cechy startowe są wyłącznie propozycją struktury. Ich wagi zaczynają się od 0 — program nie przyjmuje automatycznie sztucznego podziału 20/20/20/20/20.</p></div>
+      <!-- Pomoc przy cechach i wagach. To miejsce, w ktorym operat porownawczy
+           najczesciej sie sypi: zly zestaw cech, suma wag inna niz 100%,
+           oceny bez definicji. Program podpowiada, a decyduje rzeczoznawca. -->
+      <div class="card cechy-pomoc" id="cechyPomoc">
+        <div class="card-head">
+          <div><h3>Pomoc przy cechach i wagach</h3>
+            <p>Program podpowiada zestaw cech stosowany na tym rynku, typowe przedziały wag z praktyki i definicje trzech stopni oceny. Wybór i uzasadnienie należą do Ciebie — to Ty podpisujesz operat.</p></div>
+          <div class="button-row">
+            <button id="cechyPodpowiedz" class="btn primary" type="button">Podpowiedz cechy</button>
+            <button id="cechyWyrownaj" class="btn gold-outline" type="button">Wyrównaj wagi do 100%</button>
+            <button id="cechyZSugestii" class="btn" type="button" title="Przyjmij wagi policzone przez program z par albo z korelacji">Przyjmij wagi z analizy</button>
+          </div>
+        </div>
+        <div class="cechy-suma" id="cechySuma"></div>
+        <ul class="cechy-uwagi" id="cechyUwagi"></ul>
+        <div class="cechy-wybor hidden" id="cechyWybor"></div>
+      </div>
+
+      <div class="card"><div class="inline-settings"><label data-help="Skala 3-stopniowa wymaga trzech odrębnych definicji; skala 5-stopniowa wymaga pięciu odrębnych definicji. Program nie tworzy automatycznie opisów poziomów pośrednich.">Domyślna skala dla cech<select data-path="market.ratingMode"><option value="three">Skala 3-stopniowa</option><option value="five">Skala 5-stopniowa</option></select></label><label data-help="Wybierz rzeczywisty sposób ustalenia wpływu cech. Sugestia programu nie zastępuje decyzji rzeczoznawcy.">Sposób ustalenia wag<select data-path="market.weightMethod"><option value="manual">Analiza rynku / wagi przyjęte przez rzeczoznawcę</option><option value="pairs">Pary „pozostałe równe”</option><option value="correlation">Analiza korelacji ocen cech z ceną</option><option value="other">Inny wiarygodny sposób</option></select></label><button id="addFeature" class="btn small">+ Dodaj cechę rynkową</button><button id="applySuggestedWeights" class="btn small">Przyjmij wyliczone sugestie</button><button id="normalizeWeights" class="btn small">Normalizuj wpisane wagi</button></div><div class="per-field"><label data-help="Wyjaśnij, z jakich danych, par, korelacji, obserwacji rynku lub innych wiarygodnych przesłanek wynikają przyjęte wagi. To pole powinno pozwalać odtworzyć tok analizy.">Uzasadnienie sposobu ustalenia wag<textarea data-path="market.weightJustification" rows="4" placeholder="Np. wagi określono na podstawie par nieruchomości różniących się przede wszystkim jedną cechą... albo na podstawie korelacji i weryfikacji rynkowej..."></textarea></label><button class="btn per-inline" data-per-target="market.weightJustification" data-per-task="Uporządkuj uzasadnienie sposobu ustalenia wag na podstawie tekstu wpisanego przez użytkownika. Nie twórz danych o parach, korelacjach ani preferencjach nabywców, których nie ma w projekcie.">✦ Zredaguj (PER)</button></div><div class="info-strip"><b>Nie myl dwóch rodzajów par:</b> pary trendu porównują ceny w czasie; pary przy konkretnej cesze są materiałem do oszacowania wpływu tej cechy na rozpiętość cenową. Przy analizie korelacji program wykorzystuje oceny cech wpisane przy każdej transakcji.</div><details class="scale-details" open><summary>Macierz ocen cech nieruchomości porównawczych</summary><p class="hint">Ta sama ocena jest widoczna również przy transakcji w dziale Rynek. Uzupełnij każdą przyjętą cechę dla każdej nieruchomości podobnej; dzięki temu można odtworzyć porównanie oraz policzyć sugestię korelacyjną.</p><div id="featureRatingMatrix" class="table-wrap"></div></details><div id="featuresEditor" class="features"></div></div>
+      <div id="pairComparisonCard" class="card pair-comparison-card hidden"><div class="card-head"><div><span class="eyebrow">METODA PORÓWNYWANIA PARAMI</span><h3>Porównanie nieruchomości wycenianej z nieruchomościami podobnymi</h3><p>Zaznacz w tabeli transakcji minimum 3 nieruchomości do porównania. OPERO pokazuje jawnie korektę każdej cechy wynikającą z różnicy ocen w zdefiniowanej skali i przyjętej wagi cechy.</p></div></div><div class="pair-formula">Korekta cechy = ΔC × waga cechy × (ocena wycenianej − ocena porównawczej) / liczba przedziałów skali</div><div id="pairComparisonSummary" class="pair-summary"></div><div id="pairComparisonTable" class="table-wrap"></div><div class="info-strip"><b>Kontrola rzeczoznawcy:</b> program wykonuje rachunek według jawnego algorytmu. Dobór nieruchomości podobnych, cech, skal, wag i zasad korekt pozostaje decyzją rzeczoznawcy i musi być uzasadniony w operacie.</div></div>
+    </section>
+
+    <section class="tab" id="tab-photos">
+      <div class="section-title"><div><span>08</span><h2>Zdjęcia i pliki źródłowe</h2></div><p>Fotografie i obrazy są umieszczane w PDF. Pozostałe pliki są zapisywane w projekcie i wykazywane jako załączniki.</p></div>
+      <div class="card"><div class="card-head"><div><h3>Dokumentacja fotograficzna</h3><p>JPG, PNG, WEBP. Wybierz kategorię i podpis.</p></div><button id="addPhotos" class="btn primary small">+ Dodaj zdjęcia</button></div><div id="photoGrid" class="photo-editor-grid"></div></div>
+      <div class="card"><div class="card-head"><div><h3>Pliki źródłowe i załączniki</h3><p>PDF, Word, Excel, TXT/CSV i obrazy.</p></div><button id="addFiles" class="btn primary small">+ Dodaj pliki</button></div><div id="fileList" class="file-editor-list"></div></div>
+    </section>
+
+    <section class="tab" id="tab-costing">
+      <div class="section-title"><div><span>09</span><h2>Koszt wykonania operatu i rentowność</h2></div><p>Koszt jest zapisany przy operacie i zliczany w historii.</p></div>
+      <div class="kpi-grid"><div class="kpi"><span>Koszt pracy</span><strong id="costLabor">0 zł</strong></div><div class="kpi"><span>Koszt dojazdu</span><strong id="costTravel">0 zł</strong></div><div class="kpi"><span>Łączny koszt operatu</span><strong id="costTotal">0 zł</strong></div><div class="kpi"><span>Wynagrodzenie brutto</span><strong id="costGross">0 zł</strong></div><div class="kpi"><span>Wynik na zleceniu</span><strong id="costProfit">0 zł</strong></div><div class="kpi"><span>Marża</span><strong id="costMargin">0%</strong></div></div>
+      <div class="card form-grid cols-3"><label>Czas pracy [h]<input type="number" step="0.25" min="0" data-path="costing.hours"></label><label>Wewnętrzna stawka pracy [zł/h]<input type="number" step="1" min="0" data-path="costing.hourlyRate"></label><label>Wynagrodzenie klienta netto [zł]<input type="number" step="50" min="0" data-path="costing.clientFeeNet"></label><label>Dojazd [km]<input type="number" step="1" min="0" data-path="costing.travelKm"></label><label>Koszt 1 km [zł]<input type="number" step="0.01" min="0" data-path="costing.costPerKm"></label><label>VAT [%]<input type="number" step="1" min="0" data-path="costing.vatRate"></label><label>Koszt dokumentów / danych [zł]<input type="number" step="1" min="0" data-path="costing.documentsCost"></label><label>Druk / oprawa [zł]<input type="number" step="1" min="0" data-path="costing.printingCost"></label><label>Narzędzia zewnętrzne [zł]<input type="number" step="1" min="0" data-path="costing.toolsCost"></label><label>Inne koszty [zł]<input type="number" step="1" min="0" data-path="costing.otherCost"></label><label class="check"><input type="checkbox" data-path="costing.vatExempt"> Zlecenie zwolnione z VAT</label><label class="check"><input type="checkbox" data-path="costing.includeInPDF"> Umieść kalkulację kosztu w PDF</label></div><div class="card"><h3>Rozbicie kosztu</h3><div id="costBreakdown" class="cost-breakdown"></div></div>
+    </section>
+
+    
+
+    <section class="tab" id="tab-clauses">
+      <div class="section-title"><div><span>11</span><h2>Podstawy prawne, źródła, klauzule i finalizacja</h2></div><p>Operat powinien wskazywać podstawy prawne, źródła danych, tok obliczeń oraz wynik. Poniższe propozycje są edytowalne i wymagają weryfikacji na datę sporządzenia.</p></div>
+      <div class="card"><div class="card-head"><div><h3>Podstawy prawne</h3><p>Przycisk wstawia zestaw bazowy dla wyceny lokalu mieszkalnego. Usuń akty, które nie dotyczą konkretnego zlecenia, i dodaj inne, jeżeli były rzeczywiście wykorzystane.</p></div><div class="button-row"><button id="insertLegalBases" class="btn small">Wstaw sugerowane podstawy</button><button class="btn per-inline" data-per-target="legalBases" data-per-task="Na podstawie istniejącej listy aktów prawnych i danych projektu uporządkuj podstawy prawne operatu. Nie wymyślaj nowych numerów Dz.U.; nie usuwaj informacji o konieczności weryfikacji aktualności.">✦ Zredaguj (PER)</button></div></div><label data-help="Lista aktów i podstaw prawnych rzeczywiście wykorzystanych w danym operacie. Każdą pozycję zweryfikuj co do aktualności i adekwatności na datę sporządzenia.">Podstawy prawne — jeden akt / podstawa w osobnym wierszu<textarea id="legalBasesList" rows="10"></textarea></label></div>
+      <div class="grid-2"><div class="card"><div class="card-head"><div><h3>Materiały źródłowe</h3><p>Wpisz tylko źródła rzeczywiście wykorzystane i zweryfikowane.</p></div><button class="btn per-inline small" data-per-target="sources" data-per-task="Uporządkuj listę materiałów źródłowych na podstawie tekstu wpisanego przez użytkownika i istniejącej listy. Nie twórz źródeł, których użytkownik nie wskazał; możesz wskazać [DO UZUPEŁNIENIA] dla typowego źródła, które wymaga potwierdzenia.">✦ Zredaguj (PER)</button></div><label data-help="Materiały źródłowe faktycznie wykorzystane przy wycenie, np. oględziny, KW, EGiB, MPZP i dane transakcyjne. Nie wpisuj źródeł, których nie zweryfikowano.">Jedno źródło w osobnym wierszu<textarea id="sourcesList" rows="10"></textarea></label></div><div class="card"><label data-help="Wykaz dokumentów i materiałów dołączonych do operatu, np. dokumentacja fotograficzna, wydruki, wypisy, wyrysy i inne materiały wskazane przez autora.">Lista załączników<textarea id="attachmentsList" rows="10"></textarea></label></div></div>
+      <div class="card per-field"><label>Klauzule i ustalenia dodatkowe<textarea data-path="clauses" rows="10"></textarea></label><button class="btn per-inline" data-per-target="clauses" data-per-task="Zredaguj klauzule i ustalenia dodatkowe dla operatu lokalu mieszkalnego na podstawie tekstu wpisanego przez użytkownika. Nie twórz nowych obowiązków prawnych i pozostaw [DO UZUPEŁNIENIA] tam, gdzie wymagana jest decyzja rzeczoznawcy.">✦ Zredaguj (PER)</button></div>
+      <div class="card result-link-card"><div><h3>Podstawy uzupełnione?</h3><p>Po zakończeniu tego kroku przejdź do osobnej sekcji <b>Wynik</b>. Tam zobaczysz wartość, wskaźniki, kompletność oraz blokady przed PDF.</p></div><button id="goResultBtn" class="btn primary">Przejdź do wyniku →</button></div>
+    </section>
+
+    <!-- WLASNA BAZA TRANSAKCJI. Do 1.25 wyciag RCiWN wchodzil do jednego
+         operatu i znikal razem z nim. Teraz kazda wczytana transakcja zostaje
+         na tym komputerze i wraca przy kazdej nastepnej wycenie na tym rynku. -->
+    <section class="tab" id="tab-baza">
+      <div class="section-title"><div><span>▦</span><h2>Baza rynku</h2></div><p>Wszystkie transakcje, które kiedykolwiek wczytałeś. Leżą na tym komputerze, w jednym pliku — nie w chmurze i nie u nas. Przy nowej wycenie program podpowie z nich kandydatów.</p></div>
+
+      <div class="card zbieracz-karta" id="zbieraczKarta">
+        <div class="card-head"><div><span class="eyebrow">BAZA, KTÓRA BUDUJE SIĘ SAMA</span><h3>Zbieracz rynku</h3>
+          <p>Każda transakcja pobrana przez agentów zostaje w bazie. Do tego co 6 godzin, także gdy nie robisz operatu, program sam pyta Rejestr Cen Nieruchomości (GUGiK) o obszary, w których wyceniałeś (promień 5 km: lokale, budynki, działki) i dokłada nowe transakcje — ze źródłem przy każdej.</p></div>
+          <div class="button-row"><label class="zbieracz-wl"><input id="zbieraczWl" type="checkbox" checked> zbieraj automatycznie</label><button id="zbieraczTeraz" class="btn primary" type="button">Zbierz teraz</button></div></div>
+        <p id="zbieraczStan" class="hint">Sprawdzam stan zbieracza…</p>
+      </div>
+      <div class="baza-pasek" id="bazaPasek"></div>
+
+      <!-- Ceny ofertowe deweloperow z dane.gov.pl. Program pobiera je sam,
+           bo deweloperzy maja obowiazek je publikowac jako dane otwarte.
+           To NIE sa transakcje i do zbioru porownawczego nie wchodza. -->
+      <div class="card oferty-karta hidden" id="ofertyKarta">
+        <div class="card-head">
+          <div><h3>Ceny ofertowe deweloperów <span class="oferty-znacznik">oferty — nie do zbioru</span></h3>
+            <p>Cenniki rynku pierwotnego publikowane na dane.gov.pl na podstawie art. 19b ust. 1 ustawy deweloperskiej. Program bierze je wprost ze źródła i podaje przy każdym nazwę dewelopera, adres pliku i datę.</p></div>
+          <div class="button-row">
+            <button id="ofertySzukajBtn" class="btn primary" type="button">Szukaj cenników</button>
+            <button id="ofertyDoOperatu" class="btn gold-outline hidden" type="button">Dopisz analizę rynku do operatu</button>
+            <button id="ofertyZamknij" class="btn ghost" type="button">Zamknij</button>
+          </div>
+        </div>
+        <div id="ofertyEtapy" class="oferty-etapy hidden premium-scroll"></div>
+        <div id="ofertyPodsumowanie" class="oferty-podsumowanie hidden"></div>
+        <div class="table-wrap oferty-tabela-obudowa">
+          <table class="data-table">
+            <thead><tr><th>Lokal</th><th>Adres</th><th>Pow. [m²]</th><th>Cena [zł]</th><th>zł/m²</th><th>Data</th><th>Deweloper</th></tr></thead>
+            <tbody id="ofertyTabela"></tbody>
+          </table>
+        </div>
+        <h4 class="oferty-naglowek">Źródła do wskazania w operacie</h4>
+        <ul id="ofertyZrodla" class="oferty-zrodla"></ul>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div><h3>Szukanie w bazie</h3><p>Zawęź do rynku, który Cię interesuje. Zaznaczone transakcje wstawisz do bieżącego operatu jednym kliknięciem.</p></div><div class="button-row"><button id="bazaZGeoportalu" class="btn primary" type="button">Pobierz z Geoportalu (RCN)</button><button id="bazaOferty" class="btn" type="button">Ceny ofertowe (dane.gov.pl)</button><button id="bazaDopasujBtn" class="btn gold-outline" type="button">Podpowiedz do tego operatu</button><button id="bazaEksportBtn" class="btn" type="button">Eksport CSV</button><button id="bazaFolderBtn" class="btn ghost" type="button">Pokaż plik bazy</button></div></div>
+
+        <div class="baza-filtry">
+          <label>Miejscowość<input id="bazaMiasto" autocomplete="off" placeholder="np. Gdańsk"></label>
+          <label>Szukaj w treści<input id="bazaTekst" autocomplete="off" placeholder="ulica, akt, KW, uwaga"></label>
+          <label>Data od<input id="bazaOdData" type="date"></label>
+          <label>Data do<input id="bazaDoData" type="date"></label>
+          <label>Pow. od [m²]<input id="bazaPowOd" type="number" step="0.01" min="0"></label>
+          <label>Pow. do [m²]<input id="bazaPowDo" type="number" step="0.01" min="0"></label>
+          <label>Prawo<input id="bazaPrawo" autocomplete="off" placeholder="np. własność"></label>
+          <div class="baza-filtry-akcje"><button id="bazaSzukaj" class="btn primary" type="button">Szukaj</button><button id="bazaWyczysc" class="btn ghost" type="button">Wyczyść</button></div>
+        </div>
+
+        <div id="bazaWynikInfo" class="baza-info"></div>
+        <div class="button-row baza-akcje">
+          <label class="check"><input type="checkbox" id="bazaZaznaczWszystko"> Zaznacz wszystkie widoczne</label>
+          <button id="bazaDoOperatu" class="btn primary" type="button">Wstaw zaznaczone do operatu</button>
+          <button id="bazaUsunBtn" class="btn danger" type="button">Usuń zaznaczone z bazy</button>
+        </div>
+        <div class="table-wrap"><table class="edit-table baza-tabela"><thead><tr>
+          <th></th><th>Data</th><th>Adres</th><th>Miejscowość</th><th>Pow. [m²]</th><th>Cena [zł]</th><th>zł/m²</th><th>Prawo</th><th>Źródło</th><th>Dlaczego podpowiadam</th>
+        </tr></thead><tbody id="bazaWiersze"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-kw">
+      <div class="section-title"><div><span>⚖</span><h2>Księgi wieczyste</h2></div><p>Od adresu do działki w oficjalnych usługach GUGiK, dalej do numeru księgi — Twoimi danymi, geoportalem albo wnioskiem do starosty. Plus sprawdzanie numeru i wyłapywanie literówek. Działa niezależnie od otwartego operatu.</p></div>
+      <!-- OD ADRESU DO KSIEGI. Darmowego, oficjalnego wyszukiwania „adres -> KW"
+           nie ma: numer ksiegi jest w ewidencji dana chroniona i nie wychodzi do
+           publicznych uslug. Jest za to droga, ktora NAPRAWDE konczy sie numerem:
+           adres -> punkt (geokoder GUGiK) -> dzialka (ULDK) -> numer KW z wlasnych
+           danych, z geoportalu powiatowego albo z wniosku do starosty, do ktorego
+           rzeczoznawca ma prawo z art. 155 ust. 3 ugn. -->
+      <div class="card kw-adres-card">
+        <div class="card-head"><div><h3>Od adresu do numeru księgi</h3><p>Podaj adres — program ustali działkę w oficjalnych usługach GUGiK, poszuka numeru KW w Twoich danych, a jeśli go tam nie ma, wypełni wniosek do starosty. Ten jeden krok łączy się z internetem.</p></div></div>
+
+        <div class="kwa-siatka">
+          <label><span>Miejscowość<b class="wymagane"> *</b></span><input id="kwaMiasto" autocomplete="off" placeholder="np. Gdańsk"></label>
+          <label>Ulica<input id="kwaUlica" autocomplete="off" placeholder="np. Długa"></label>
+          <label>Numer<input id="kwaNumer" autocomplete="off" placeholder="np. 12"></label>
+          <label>Województwo<select id="kwaWojewodztwo"><option value="">— nie zawężaj —</option>
+            <option>dolnośląskie</option><option>kujawsko-pomorskie</option><option>lubelskie</option>
+            <option>lubuskie</option><option>łódzkie</option><option>małopolskie</option>
+            <option>mazowieckie</option><option>opolskie</option><option>podkarpackie</option>
+            <option>podlaskie</option><option>pomorskie</option><option>śląskie</option>
+            <option>świętokrzyskie</option><option>warmińsko-mazurskie</option>
+            <option>wielkopolskie</option><option>zachodniopomorskie</option>
+          </select></label>
+        </div>
+
+        <div class="button-row">
+          <button id="kwaSzukaj" class="btn primary" type="button">Znajdź działkę</button>
+          <button id="kwaZOperatu" class="btn ghost" type="button">Wypełnij z operatu</button>
+        </div>
+
+        <details class="kwa-po-numerze">
+          <summary>Znam numer działki — szukaj po nim</summary>
+          <div class="kwa-siatka">
+            <label>Obręb<input id="kwaObreb" autocomplete="off" placeholder="np. Śródmieście albo 0001"></label>
+            <label>Numer działki<input id="kwaNrDzialki" autocomplete="off" placeholder="np. 123/4"></label>
+            <label>Albo pełny identyfikator<input id="kwaIdDzialki" autocomplete="off" placeholder="np. 226101_1.0001.123/4"></label>
+          </div>
+          <div class="button-row"><button id="kwaSzukajNr" class="btn" type="button">Znajdź po numerze działki</button></div>
+        </details>
+
+        <div id="kwaStan" class="kwa-stan hidden"></div>
+        <div id="kwaWynik" class="kwa-wynik hidden"></div>
+      </div>
+
+      <!-- Wyszukiwarka treści KW. Program NIE ma bazy ksiąg - nikt poza
+           ministerstwem takiej nie udostępnia, a EKW wymaga znajomości numeru.
+           To, co tu robimy, jest realnie przydatne: składamy i sprawdzamy numer,
+           wyłapujemy literówkę i podajemy komplet danych serwisowi, który
+           potrafi szukać po adresie. -->
+      <div class="card kw-szukaj-card">
+        <div class="card-head"><div><h3>Szukanie numeru księgi wieczystej</h3><p>Masz numer — sprawdzę go i wyłapię literówkę. Nie masz — zbiorę dane i otworzę wyszukiwarkę treści KW z gotowym zestawem do wklejenia.</p></div></div>
+
+        <div class="kw-szukaj-gora">
+          <label>Województwo<select id="kwWojewodztwo">
+            <option value="">— wybierz —</option>
+            <option>dolnośląskie</option><option>kujawsko-pomorskie</option><option>lubelskie</option>
+            <option>lubuskie</option><option>łódzkie</option><option>małopolskie</option>
+            <option>mazowieckie</option><option>opolskie</option><option>podkarpackie</option>
+            <option>podlaskie</option><option>pomorskie</option><option>śląskie</option>
+            <option>świętokrzyskie</option><option>warmińsko-mazurskie</option>
+            <option>wielkopolskie</option><option>zachodniopomorskie</option>
+          </select></label>
+          <label>Sąd Rejonowy / kod wydziału<input id="kwKodWydzialu" list="kwKodyZnane" autocomplete="off" placeholder="np. GD1G" maxlength="4">
+            <datalist id="kwKodyZnane"></datalist></label>
+          <div class="kw-typy" role="group" aria-label="Rodzaj nieruchomości">
+            <button type="button" class="kw-typ" data-kw-typ="dzialki">Działki</button>
+            <button type="button" class="kw-typ" data-kw-typ="budynki">Budynki / domy</button>
+            <button type="button" class="kw-typ active" data-kw-typ="lokale">✓ Lokale</button>
+          </div>
+        </div>
+
+        <div class="alert-box kw-ostrzezenie">Dane w księgach bywają niepełne i zawierają literówki. Wpisuj tylko część danych — „Reja 2” znajdzie więcej niż „ul. Mikołaja Reja 2”. Niektóre lokale nie mają wyodrębnionej księgi; wtedy szukaj budynku.</div>
+
+        <div class="kw-szukaj-dol">
+          <div class="kw-pole-grupa"><span class="kw-grupa-nazwa">Adres</span>
+            <div class="kw-adres"><input id="kwUlica" autocomplete="off" placeholder="Ulica"><input id="kwNumer" autocomplete="off" placeholder="Numer"><span class="kw-ukosnik">/</span><input id="kwLokal" autocomplete="off" placeholder="Lokal"></div>
+          </div>
+          <div class="kw-pole-grupa"><span class="kw-grupa-nazwa">Dodatkowy filtr</span>
+            <div class="kw-adres"><input id="kwLokalizacja" autocomplete="off" placeholder="Gmina, miasto (dzielnica) lub wieś"></div>
+          </div>
+        </div>
+
+        <div class="button-row"><button id="kwSzukajBtn" class="btn primary" type="button">Przeszukaj KW</button><button id="kwZOperatuBtn" class="btn ghost" type="button">Wypełnij z operatu</button></div>
+
+        <div class="kw-sprawdzarka">
+          <label>Mam numer — sprawdź go<input id="kwSprawdzPole" autocomplete="off" placeholder="np. GD1G/00012345/0 albo gd1g 12345"></label>
+          <div id="kwWerdykt" class="kw-werdykt" data-stan="pusty">Wpisz numer, a powiem, czy jest poprawny.</div>
+          <div class="button-row"><button id="kwUzyjBtn" class="btn gold-outline small hidden" type="button">Wstaw do operatu</button><button id="kwKopiujBtn" class="btn small hidden" type="button">Kopiuj</button></div>
+        </div>
+      </div>
+
+    </section>
+
+    <section class="tab" id="tab-express">
+      <div class="section-title"><div><span>⚡</span><h2>Express — szybka wycena</h2></div><p>Kilka danych i od razu orientacyjna wartość z przedziałem — z transakcji podobnych lokali w okolicy. To szacunek na szybko, nie operat: pełny operat zaczynasz w „Operaty".</p></div>
+      <div class="card szybka-karta" id="swKarta">
+        <div class="form-grid cols-3 szybka-pola">
+          <label>Miejscowość<input id="swMiasto" type="text" autocomplete="off" placeholder="np. Gdańsk"></label>
+          <label>Dzielnica<input id="swDzielnica" type="text" autocomplete="off" placeholder="np. Osowa"></label>
+          <label>Ulica i numer<input id="swUlica" type="text" autocomplete="off" placeholder="np. Ikara 97"></label>
+          <label>Powierzchnia [m²]<input id="swPow" type="text" inputmode="decimal" autocomplete="off" placeholder="np. 68"></label>
+          <label>Liczba pokoi<input id="swPokoje" type="text" inputmode="numeric" autocomplete="off" placeholder="np. 3"></label>
+          <label>Piętro<input id="swPietro" type="text" inputmode="numeric" autocomplete="off" placeholder="0 = parter"></label>
+          <label>Stan lokalu<select id="swStan"><option value="remont">do remontu</option><option value="przecietny" selected>przeciętny</option><option value="dobry">dobry</option><option value="wysoki">wysoki standard</option></select></label>
+          <label>Cena ofertowa [zł] — jeśli jest<input id="swOferta" type="text" inputmode="numeric" autocomplete="off" placeholder="nieobowiązkowo"></label>
+          <label>Promień szukania [m]<input id="swPromien" type="text" inputmode="numeric" autocomplete="off" value="1500"></label>
+        </div>
+        <div class="szybki-pasek"><button id="swWycen" type="button" class="btn primary large">⚡ Wyceń</button><button id="swZOperatu" type="button" class="btn ghost">Weź dane z bieżącego operatu</button><span class="szybka-stan" id="swStanPracy" aria-live="polite"></span></div>
+        <div id="swWynik" class="szybka-wynik hidden" aria-live="polite"></div>
+      </div>
+      <details class="express-rozszerzony" id="exRozszerzony">
+        <summary><b>Operat skrócony</b><span>rodzaj wyceny, cechy z wagami, dokumenty, opisy i PDF — gdy szybki szacunek to za mało</span></summary>
+
+
+      <!-- KROK 1. Rodzaj operatu. Express nie jest jednym formularzem dla
+           wszystkiego: inny rodzaj wyceny potrzebuje innych danych, a czesci
+           rodzajow Express nie zrobi wcale i mowi o tym wprost. -->
+      <div class="card">
+        <div class="card-head"><div><h3>1. Jaki operat robimy</h3><p>Wybierz rodzaj wyceny. Program zapyta tylko o to, czego ten rodzaj naprawdę wymaga.</p></div><div class="szata-biezacy">Wybrany: <b id="exTypNazwa">—</b></div></div>
+        <div class="express-typy" id="exTypy"></div>
+        <div class="express-niedostepne" id="exTypyNie"></div>
+      </div>
+
+      <!-- KROK 2. Dane. Formularz powstaje z listy pol wybranego rodzaju -
+           jedno zrodlo prawdy, wiec nie da sie zapytac o pole, ktorego silnik
+           nie uzywa, ani pominac pola, bez ktorego nie policzy. -->
+      <div class="card hidden" id="exDaneKarta">
+        <div class="card-head"><div><h3>2. Co podajesz</h3><p id="exDaneOpis">Tylko to, czego program nie ma skąd wziąć. Reszta policzy się sama.</p></div></div>
+        <div class="express-siatka" id="exPola"></div>
+        <div class="express-rcn hidden" id="exRcnWiersz">
+          <div><b>Transakcje porównawcze</b><small id="exRcnStan">Nie wczytano jeszcze wyciągu RCiWN.</small></div>
+          <div class="button-row">
+            <button id="exZGeoportalu" class="btn primary" type="button">Szukaj transakcji (RCN)</button>
+            <button id="exZBazy" class="btn gold-outline" type="button">Weź z mojej bazy</button>
+            <button id="exWczytajRcn" class="btn" type="button">Wczytaj wyciąg z pliku</button>
+          </div>
+        </div>
+        <!-- Skad wziac ceny. Kolejnosc nie jest dowolna: najpierw transakcje
+             (tylko one wchodza do zbioru porownawczego), dopiero potem oferty,
+             ktore sluza analizie rynku i nie wchodza do zbioru. -->
+        <div class="zrodla hidden" id="exZrodla"></div>
+        <div class="button-row"><button id="exPolicz" class="btn primary large" type="button">⚡ Policz operat</button></div>
+        <div id="exBraki" class="express-braki hidden"></div>
+      </div>
+
+      <!-- KROK 3. Dokumenty. Operat bez zalacznikow nie jest operatem - zalaczniki
+           maja pozwolic komus innemu przesledzic tok wyceny. Gdy rzeczoznawca nie
+           ma dokumentu w postaci pliku, ma miec choc ZDJECIE albo SKAN. -->
+      <div class="card hidden" id="exDokumentyKarta">
+        <div class="card-head"><div><h3>3. Dokumenty i zdjęcia</h3><p>Czego nie da się zastąpić opisem. Jeśli nie masz pliku, wystarczy zdjęcie albo skan — ważne, żeby w aktach było źródło.</p></div><div class="szata-biezacy" id="exDokStan">—</div></div>
+        <div class="dok-lista" id="exDokumenty"></div>
+        <p class="hint">Zdjęcia trafiają do dokumentacji fotograficznej operatu, pozostałe pliki — do listy załączników. Nic nie jest wysyłane do sieci.</p>
+      </div>
+
+      <div id="exWynikKarta" class="card hidden">
+        <!-- EXPRESS TO OPERAT SKROCONY. Nie „operat na skroty": te same wzory,
+             ten sam silnik, ta sama metoda — mniej rubryk i wiecej przyjec
+             programu, kazde wypisane nizej. Pelny operat to ta sama wycena
+             rozwinieta do wymogu podrecznika. -->
+        <div class="express-czym-jest">
+          <b>To jest wycena w trybie skróconym</b>
+          <p>Ten sam silnik i ta sama metoda co w pełnym operacie — tylko krótsza droga:
+             zestaw cech skrócony, wagi z praktyki, część danych przyjęta przez program
+             (wszystkie przyjęcia wypisane niżej). <b>Do podpisu idzie pełny operat</b> —
+             naciśnij „Otwórz w kreatorze", a Express stanie się jego pierwszym szkicem.</p>
+        </div>
+        <div class="card-head"><div><h3>4. Co wyszło i co program przyjął</h3><p>Każdą pozycję z listy podpisujesz swoim nazwiskiem. Przejrzyj je, popraw w kreatorze i przelicz ponownie.</p></div><div class="button-row"><button id="exPrzelicz" class="btn" type="button">Przelicz</button><button id="exDoKreatora" class="btn gold-outline" type="button">Otwórz w kreatorze</button></div></div>
+        <div class="express-wynik">
+          <div><span>Wartość rynkowa</span><strong id="exWartosc">—</strong><small id="exJednostkowa"></small></div>
+          <div><span>Cena średnia</span><strong id="exCavg">—</strong><small>z przyjętych transakcji</small></div>
+          <div><span>Transakcje</span><strong id="exIleTx">—</strong><small id="exTrend"></small></div>
+        </div>
+        <!-- Trzy warianty ocen cech: najnizszy, przecietny i najwyzszy.
+             To NIE sa trzy wyceny - to widelki metody przy tych transakcjach
+             i tych wagach. Operat zawiera jedna wartosc, z ocenami
+             odpowiadajacymi stanowi stwierdzonemu na ogledzinach. -->
+        <!-- CECHY RYNKOWE W EXPRESIE. Express to operat SKROCONY, a nie
+             "bez cech": korygowanie ceny sredniej bez wag nie jest zadna
+             metoda. Roznica wobec pelnego operatu jest w szczegolowosci -
+             tu zestaw skrocony, wagi z praktyki, ocena z rozwijanej listy;
+             tam ten sam zestaw rozwiniety zgodnie z wymogiem podrecznika. -->
+        <div id="exCechy" class="express-cechy hidden">
+          <div class="express-cechy-glowa">
+            <div>
+              <h4 class="express-naglowek">Cechy rynkowe i ich wagi</h4>
+              <p id="exCechyWstep"></p>
+            </div>
+            <div class="button-row">
+              <button id="exCechyPodpowiedz" class="btn gold-outline" type="button">Przyjmij sugerowane</button>
+              <button id="exCechyWyrownaj" class="btn ghost" type="button">Wyrównaj do 100%</button>
+            </div>
+          </div>
+          <div class="express-cechy-suma" id="exCechySuma"></div>
+          <div class="express-cechy-lista" id="exCechyLista"></div>
+          <p class="express-cechy-stopka" id="exCechyStopka"></p>
+        </div>
+
+        <div id="exWarianty" class="express-warianty hidden"></div>
+
+        <!-- Express pisze caly operat modelem lokalnym. Kazdy rozdzial jest
+             potem sprawdzany: liczba, ktorej nie ma w danych operatu, zostaje
+             zgloszona czlowiekowi, bo tak wlasnie model psuje dokument. -->
+        <div class="express-pisanie-pasek">
+          <div>
+            <b>Niech program napisze operat</b>
+            <p>Model lokalny PER napisze wszystkie rozdziały opisowe na podstawie Twoich danych i wyniku obliczeń — bez internetu, na tym komputerze. Liczby pochodzą z silnika obliczeń, a program sprawdzi każdą wartość w napisanym tekście.</p>
+          </div>
+          <button id="exNapiszBtn" class="btn primary" type="button">Napisz operat</button>
+        </div>
+        <div id="exNapisane" class="express-napisane hidden"></div>
+
+        <h4 class="express-naglowek">Program przyjął za Ciebie</h4>
+        <div id="exZalozenia" class="express-zalozenia"></div>
+        <div id="exDoNapisania" class="express-do-napisania"></div>
+        <div class="wywiad" id="exWywiad"></div>
+        <div class="flagi" id="exFlagi"></div>
+        <label class="check express-zgoda"><input type="checkbox" id="exPotwierdzam"> Przejrzałem powyższe przyjęcia i biorę je na siebie</label>
+        <div id="exBlokada" class="express-blokada"></div>
+      </div>
+
+      <!-- Wybor szaty dokumentu. Trzy gotowe uklady, kazdy widoczny od razu -
+           rzeczoznawca ma je ZOBACZYC obok siebie, a nie czytac o nich. Po wyborze pelna
+           regulacja i PDF dokladnie w tym ukladzie, ktory widzi. -->
+      <div id="exSzataKarta" class="card hidden">
+        <div class="card-head"><div><h3>5. Jak ma wyglądać dokument</h3><p>Trzy gotowe układy. Kliknij ten, który ma pojechać do klienta — potem możesz dostroić czcionki, linie i marginesy.</p></div><div class="szata-biezacy">Wybrany układ: <b id="exSzataNazwa">—</b></div></div>
+        <div class="szata-kafelki" id="exSzataKafelki"></div>
+        <details class="szata-dostroj" id="exSzataDostroj">
+          <summary>Dostrój szczegóły — czcionki, linie, marginesy</summary>
+          <div class="szata-pola form-grid cols-3" id="exSzataPola"></div>
+          <p class="hint">Zmiana wyglądu nie rusza ani jednej liczby. Wartość, trend, wagi i transakcje zostają takie, jakie policzył program.</p>
+        </details>
+        <div class="button-row szata-akcje">
+          <button id="exSzataPodglad" class="btn gold-outline" type="button">Pełny podgląd</button>
+          <button id="exSzataDocx" class="btn" type="button">Zapisz do Worda (.docx)</button><button id="exSzataPdf" class="btn primary large" type="button">Zapisz PDF w tym układzie</button>
+        </div>
+      </div>
+          </details>
+</section>
+
+    <!-- KLIENCI. Ksiazka zleceniodawcow byla juz w programie, ale schowana w
+         panelu bocznym jednego operatu - zapisani klienci istnieli, a nie bylo
+         gdzie ich zobaczyc. Tu sa wszyscy, z operatami przypisanymi do kazdego. -->
+    <section class="tab" id="tab-clients">
+      <div class="section-title"><div><span>☺</span><h2>Klienci</h2></div><p>Książka zleceniodawców. Dane leżą na tym komputerze, nic nie wychodzi do sieci. Przy kliencie widać jego operaty.</p></div>
+      <div class="klienci-pasek">
+        <input id="klienciSzukaj" type="search" placeholder="Szukaj po nazwisku, firmie, NIP-ie, telefonie…" aria-label="Szukaj klienta">
+        <div class="klienci-pasek-akcje">
+          <button id="klienciNowy" class="btn primary" type="button">+ Nowy klient</button>
+          <button id="klienciOdswiez" class="btn ghost" type="button">Odśwież</button>
+        </div>
+      </div>
+      <div class="klienci-licznik" id="klienciLicznik"></div>
+      <div id="klienciLista" class="klienci-lista"></div>
+    </section>
+
+    <section class="tab" id="tab-settings">
+      <div class="section-title"><div><span>⚙</span><h2>Ustawienia</h2></div><p>Wszystko, czym zarządza się raz: profil, asystent PER, dostęp, wygląd i dane. Parametry konkretnego operatu zostają w sekcji Operaty.</p></div>
+      <div class="grid-2">
+
+        <!-- Profil wchodzi do KAZDEGO operatu. Do tej pory trzeba bylo wpisywac
+             numer uprawnien za kazdym razem - a to dane, pod ktorymi ktos sie
+             podpisuje, wiec maja byc wpisane raz i porzadnie. -->
+        <div class="card settings-card span-2"><h3>Mój profil rzeczoznawcy</h3><p>Te dane wchodzą do każdego nowego operatu — autor opracowania, numer uprawnień i pracownia. Wpisujesz je raz.</p>
+          <div class="profil-siatka">
+            <label>Imię i nazwisko<input id="profilName" autocomplete="off" placeholder="np. Jan Kowalski"></label>
+            <label>Nr uprawnień zawodowych<input id="profilLicenseNo" autocomplete="off" placeholder="np. 1234"></label>
+            <label>Firma / pracownia<input id="profilCompany" autocomplete="off" placeholder="np. Biuro Wycen Nieruchomości"></label>
+            <label>Telefon<input id="profilPhone" autocomplete="off" placeholder="np. 600 100 200"></label>
+            <label>E-mail<input id="profilEmail" type="email" autocomplete="off" placeholder="np. biuro@przyklad.pl"></label>
+            <label class="span-2">Adres<input id="profilAddress" autocomplete="off" placeholder="ul. Przykładowa 1, 80-000 Gdańsk"></label>
+          </div>
+          <div class="button-row"><button id="profilZapisz" class="btn primary" type="button">Zapisz profil</button><button id="profilDoOperatu" class="btn gold-outline" type="button">Wstaw do bieżącego operatu</button></div>
+          <p class="hint">Dane leżą na tym komputerze, razem z operatami. Nic nie wychodzi do sieci.</p>
+        </div>
+
+        <div class="card settings-card span-2" id="mozgKarta"><h3>Mózg agentów — który model pisze i ocenia</h3><p>Domyślnie agenci pracują na modelu lokalnym PER: nic nie wychodzi z komputera. Kto chce mocniejszego weryfikatora, wpisuje <b>własny</b> klucz do modelu w chmurze i włącza go świadomie.</p>
+          <div class="settings-row"><span>Teraz pracuje</span><b id="mozgStan">sprawdzam…</b></div>
+          <div class="mozg-wybor" role="radiogroup" aria-label="Model agentów">
+            <label class="mozg-opcja"><input type="radio" name="mozgTryb" value="lokalny" checked><span><b>Model lokalny PER</b><small>Bez internetu, bez kosztów. Dane klientów i ksiąg zostają na tym komputerze.</small></span></label>
+            <label class="mozg-opcja"><input type="radio" name="mozgTryb" value="chmura"><span><b>Model w chmurze (własny klucz)</b><small>Lepsze teksty i dokładniejsza weryfikacja. Treść poleceń — fragmenty operatu — jest wysyłana do dostawcy, a Ty płacisz mu za użycie.</small></span></label>
+          </div>
+          <div id="mozgChmura" class="mozg-chmura hidden">
+            <div class="profil-siatka">
+              <label>Dostawca<select id="mozgDostawca"><option value="anthropic">Anthropic (Claude)</option><option value="zgodny">Inny dostawca (format OpenAI)</option></select></label>
+              <label id="mozgBazaPole" class="hidden">Adres serwera (https)<input id="mozgBaza" autocomplete="off" spellcheck="false" placeholder="https://api.example.com"></label>
+              <label>Klucz API<input id="mozgKlucz" type="password" autocomplete="off" spellcheck="false" placeholder="wklej klucz i naciśnij Zapisz"></label>
+              <label>Model<input id="mozgModel" list="mozgModeleLista" autocomplete="off" spellcheck="false" placeholder="pobierz listę albo wpisz nazwę"><datalist id="mozgModeleLista"></datalist></label>
+            </div>
+            <label class="mozg-zgoda"><input id="mozgZgoda" type="checkbox"><span>Rozumiem, że przy włączonym modelu w chmurze fragmenty operatu (adres, opisy, dane z księgi wpisane do pól) są wysyłane do wybranego dostawcy, i odpowiadam za zgodność tego z umową z klientem i przepisami o ochronie danych.</span></label>
+            <div class="settings-actions-row"><button id="mozgModele" class="btn ghost" type="button">Pobierz listę modeli</button><button id="mozgProbuj" class="btn ghost" type="button">Sprawdź połączenie</button><button id="mozgUsunKlucz" class="btn ghost" type="button">Usuń klucz</button></div>
+          </div>
+          <div class="settings-actions-row"><button id="mozgZapisz" class="btn primary" type="button">Zapisz wybór</button></div>
+          <p class="hint" id="mozgKomunikat">Klucz zostaje na tym komputerze, zaszyfrowany przez system. Program nie pokazuje go ponownie.</p>
+        </div>
+
+        <div class="card settings-card" id="perKarta"><h3>Asystent PER — model na tym komputerze</h3><p>Model językowy pracuje lokalnie. Przyciski „Zredaguj (PER)” porządkują <b>Twój</b> tekst i pokazują propozycję obok oryginału — nic nie podmienia się samo, nic nie wychodzi do sieci.</p>
+          <div class="summary-row"><span>Stan modelu</span><b id="settingsPerModel">sprawdzam…</b></div>
+          <div class="summary-row"><span>Skąd pochodzi</span><b id="settingsPerZrodlo">—</b></div>
+          <div class="button-row"><button id="settingsPerAktualizuj" class="btn primary" type="button">Pobierz / zaktualizuj model</button></div>
+          <details class="ustawienia-wiecej"><summary>Mam własny model albo chcę zwolnić miejsce</summary>
+            <p class="hint">Masz już plik .gguf na dysku — ściągnięty do innego programu albo większy niż nasz domyślny? Wskaż go, zamiast pobierać te same gigabajty drugi raz. Program zapamiętuje <b>ścieżkę</b>, nie kopiuje pliku.</p>
+            <div class="button-row"><button id="settingsPerWlasny" class="btn" type="button">Wskaż własny model (.gguf)</button><button id="settingsPerWlasnyOff" class="btn ghost" type="button">Wróć do modelu OPERO</button><button id="settingsPerUsun" class="btn ghost danger-link" type="button">Usuń pobrane modele</button></div>
+          </details>
+          <!-- Droga awaryjna. Istnieje, bo pobieranie potrafi nie wyjsc z powodow,
+               na ktore program nic nie poradzi: firmowa siec blokuje adresy,
+               program antywirusowy kasuje silnik, lacze pada w polowie. Wtedy
+               czlowiek ma zrobic to sam - i ma dokladnie wiedziec jak. -->
+          <details class="ustawienia-wiecej"><summary>Wgranie ręczne — krok po kroku</summary>
+            <p class="hint">Gdy pobieranie nie wychodzi (firmowa sieć, program antywirusowy, zerwane łącze), możesz wgrać wszystko sam. Program nie musi niczego pobierać.</p>
+            <ol class="instrukcja-reczna">
+              <li><b>Pobierz model na dowolnym komputerze.</b> Wejdź na <code>huggingface.co/speakleash/Bielik-11B-v2.5-Instruct-GGUF</code>, zakładka <b>Files</b>, i pobierz plik kończący się na <code>Q4_K_M.gguf</code> (ok. 6,3 GB). Zamiennie: <code>ollama.com/library/qwen2.5</code>, wariant <code>7b-instruct-q4_K_M</code> (ok. 4,7 GB).</li>
+              <li><b>Przenieś plik na ten komputer</b> — pendrivem, dyskiem zewnętrznym, czymkolwiek. Nie zmieniaj rozszerzenia <code>.gguf</code>.</li>
+              <li><b>Wskaż go programowi.</b> Kliknij wyżej „Wskaż własny model (.gguf)" i wybierz pobrany plik. To wszystko — OPERO zapamiętuje ścieżkę, nie kopiuje gigabajtów.</li>
+            </ol>
+            <p class="hint"><b>Gdy to silnik zniknął</b> (czerwona lampka mimo wgranego modelu): zwykle usunął go program antywirusowy, bo <code>llama-server.exe</code> nie ma podpisu wydawcy. Kliknij „Napraw" w panelu PER — program rozpakuje silnik jeszcze raz z własnej paczki. Żeby nie wracało, dodaj folder asystenta do wyjątków antywirusa.</p>
+            <div class="button-row"><button id="settingsOtworzSilnik" class="btn ghost" type="button">Otwórz folder asystenta</button><button id="settingsOtworzModele" class="btn ghost" type="button">Otwórz folder modeli</button></div>
+          </details>
+        </div>
+
+        <div class="card settings-card license-settings-card"><h3>Dostęp do programu</h3><p>OPERO jest jednym, kompletnym programem — nie ma wersji okrojonej ani dodatkowo płatnych funkcji. Klucz decyduje wyłącznie o tym, jak długo program działa.</p><div class="summary-row"><span>Status</span><b id="settingsLicenseState">—</b></div><div class="summary-row"><span>Działa do</span><b id="settingsLicenseExpiry">—</b></div><div class="summary-row"><span>Pozostało</span><b id="settingsLicenseRemaining">—</b></div><div class="summary-row"><span>Ten komputer</span><b id="settingsLicenseDevice">—</b></div><div class="summary-row"><span>ID licencji</span><b id="settingsLicenseId">—</b></div><label>Nowy klucz (przedłużenie)<input id="settingsLicenseKey" autocomplete="off" spellcheck="false" placeholder="OPERO1.… (wklej cały klucz)"></label><div class="button-row"><button id="settingsActivateLicense" class="btn primary">Aktywuj / przedłuż</button><button id="settingsRefreshLicense" class="btn ghost">Odśwież stan</button></div><button id="settingsDeactivateLicense" class="auth-link-btn danger-link" type="button">Odłącz klucz od tego komputera</button><p class="hint">Odłączenie nie kasuje Historii ani operatów — zwalnia tylko to urządzenie, żeby klucza użyć na innym komputerze.</p></div>
+
+        <div class="card settings-card"><h3>Wygląd i sposób pracy</h3><p>Ustawienia interfejsu są lokalne dla tego komputera i nie wpływają na dane operatu ani na raport.</p>
+          <div class="ustawienia-wiersz"><div><b>Tryb pracy</b><small>Prowadzenie podpowiada następny krok. Ekspert zagęszcza widok.</small></div><div class="button-row"><button id="settingsUxGuide" class="btn gold-outline" type="button">✒ Prowadzenie</button><button id="settingsUxExpert" class="btn ghost" type="button">Ekspert</button></div></div>
+          <div class="ustawienia-wiersz"><div><b>Ruch i animacje</b><small>Pełne / ograniczone / wyłączone — dotyczy też falowania tła.</small></div><div class="button-row"><button id="settingsMotion" class="btn ghost" type="button">Animacje: pełne</button></div></div>
+          <div class="ustawienia-wiersz"><div><b>Żywe tło</b><small>Spokojna poświata i fala pod treścią programu.</small></div><div class="button-row"><button id="settingsTlo" class="btn ghost" type="button">Tło: żywe</button></div></div>
+          <div class="ustawienia-wiersz"><div><b>Gratulacje po ukończonym kroku</b><small>Krótkie potwierdzenie, że etap jest domknięty.</small></div><div class="button-row"><button id="settingsCelebrate" class="btn ghost" type="button">Gratulacje: włączone</button></div></div>
+          <div class="ustawienia-wiersz"><div><b>Samouczek</b><small>Przypomnienie, jak prowadzony jest operat od danych po PDF.</small></div><div class="button-row"><button id="settingsTutorial" class="btn ghost" type="button">Uruchom samouczek</button></div></div>
+        </div>
+
+        <div class="card settings-card" id="waKarta"><h3>Powiadomienia WhatsApp</h3><p>Agenci dają znać, gdy operat jest gotowy. <b>Jednym kliknięciem</b> działa od razu — program składa wiadomość i otwiera WhatsApp. <b>Automatycznie</b> wysyła sam, gdy wpiszesz dane konta WhatsApp Business (Meta).</p>
+          <div class="settings-row"><span>Stan</span><b id="waStan">sprawdzam…</b></div>
+          <label>Numer, na który mają przychodzić wiadomości<input id="waOdbiorca" autocomplete="off" inputmode="tel" placeholder="np. 600 100 200"></label>
+          <label class="mozg-zgoda"><input id="waAutomat" type="checkbox"><span>Wysyłaj automatycznie (wymaga danych konta poniżej)</span></label>
+          <details class="ustawienia-wiecej" id="waWiecej"><summary>Dane konta WhatsApp Business</summary>
+            <label>Identyfikator numeru nadawcy (Phone number ID)<input id="waIdNumeru" autocomplete="off" inputmode="numeric" placeholder="same cyfry, z panelu Meta"></label>
+            <label>Token dostępu<input id="waToken" type="password" autocomplete="off" spellcheck="false" placeholder="wklej token i naciśnij Zapisz"></label>
+            <label>Nazwa zatwierdzonego szablonu (zalecane)<input id="waSzablon" autocomplete="off" spellcheck="false" placeholder="np. opero_status"></label>
+            <label>Język szablonu<input id="waJezyk" autocomplete="off" spellcheck="false" placeholder="pl" maxlength="5"></label>
+            <label class="mozg-zgoda"><input id="waEtapy" type="checkbox"><span>Wysyłaj też wiadomość po każdym agencie (domyślnie tylko start i koniec)</span></label>
+            <p class="hint">Meta dostarcza zwykły tekst tylko wtedy, gdy w ciągu ostatnich 24 godzin napisałeś z tego numeru do numeru firmowego. Poza tym oknem dochodzi wyłącznie <b>szablon</b> — utwórz w panelu Meta szablon z jednym polem <code>{{1}}</code> w treści i wpisz tu jego nazwę.</p>
+            <div class="settings-actions-row"><button id="waUsunToken" class="btn ghost" type="button">Usuń token</button></div>
+          </details>
+          <div class="settings-actions-row"><button id="waZapisz" class="btn primary" type="button">Zapisz</button><button id="waProba" class="btn ghost" type="button">Wyślij wiadomość próbną</button></div>
+          <p class="hint" id="waKomunikat">W wiadomościach jest tylko adres nieruchomości, postęp i wynik — bez danych osobowych z księgi.</p>
+        </div>
+
+        <div class="card settings-card" id="wiedzaKarta"><h3>Podręcznik — wzór każdego operatu</h3><p>Wgraj swój podręcznik (PDF, także zeskanowany telefonem). Program odczyta go strona po stronie i zapamięta na tym komputerze. Agenci przy każdym kroku szukają w nim zasad i postępują według nich — w raporcie widzisz, na które strony się powołali. Tekstu podręcznika nie przepisują do operatu.</p>
+          <div id="wiedzaLista" class="pamiec-lista"></div>
+          <div class="settings-actions-row"><button id="wiedzaDodaj" class="btn primary" type="button">+ Wgraj podręcznik (PDF)</button></div>
+          <p class="hint">Skan 400 stron czyta się kilkanaście minut — możesz w tym czasie pracować. Podręcznik zostaje tylko u Ciebie.</p>
+        </div>
+
+        <div class="card settings-card" id="pamiecKarta"><h3>Pamięć wzorców — Twoje operaty</h3><p>Wgraj swoje wcześniejsze operaty — pojedynczo albo cały folder z podfolderami (do 1000). Agent Redaktor uczy się z nich <b>stylu</b>: układu, długości i języka opisów. Liczby, numery ksiąg i dane kontaktowe są przy wgrywaniu usuwane, a treść księgi nie jest zapamiętywana.</p>
+          <div class="settings-row"><span>W pamięci</span><b id="pamiecStan">sprawdzam…</b></div>
+          <div id="pamiecLista" class="pamiec-lista"></div>
+          <div class="settings-actions-row"><button id="pamiecFolder" class="btn primary" type="button">+ Wgraj cały folder operatów</button><button id="pamiecDodaj" class="btn ghost" type="button">Wybrane pliki</button><button id="pamiecWklejBtn" class="btn ghost" type="button">Wklej tekst operatu</button></div>
+          <div id="pamiecWklejPole" class="hidden"><label>Nazwa<input id="pamiecNazwa" autocomplete="off" placeholder="np. Lokal Gdańsk Zaspa 2025"></label><textarea id="pamiecTekst" rows="6" spellcheck="false" placeholder="Wklej cały tekst operatu (z PDF: Ctrl+A, Ctrl+C). Tytuły rozdziałów muszą stać w osobnych liniach."></textarea><div class="settings-actions-row"><button id="pamiecWklejZapisz" class="btn primary" type="button">Zapamiętaj</button></div></div>
+          <label class="mozg-zgoda"><input id="pamiecUzywaj" type="checkbox" checked><span>Używaj wzorców przy pisaniu opisów</span></label>
+          <label class="mozg-zgoda"><input id="pamiecUczSie" type="checkbox" checked><span>Ucz się na operatach, które zatwierdzam w programie (każdy zatwierdzony operat trafia do pamięci)</span></label>
+          <p class="hint" id="pamiecKomunikat">Wzorce leżą na tym komputerze. Przy modelu w chmurze fragment wzoru (bez liczb) jest dołączany do polecenia.</p>
+        </div>
+
+        <div class="card settings-card" id="siecKarta"><h3>PER szuka w internecie</h3><p>Przy polach opisowych przycisk „Szukaj w internecie" pyta wyszukiwarkę i pokazuje wyniki ze źródłami — Ty wybierasz, z których PER ma napisać tekst. Potrzebny jest własny klucz wyszukiwarki Brave Search (zakładasz go na stronie Brave, w panelu API). Program wysyła do wyszukiwarki tylko treść zapytania.</p>
+          <div class="settings-row"><span>Stan</span><b id="siecStan">sprawdzam…</b></div>
+          <label>Klucz Brave Search<input id="siecKlucz" type="password" autocomplete="off" spellcheck="false" placeholder="wklej klucz i naciśnij Zapisz"></label>
+          <div class="settings-actions-row"><button id="siecZapisz" class="btn primary" type="button">Zapisz klucz</button><button id="siecUsun" class="btn ghost" type="button">Usuń klucz</button><button id="siecStrona" class="btn ghost" type="button">Strona Brave Search API</button></div>
+          <p class="hint" id="siecKomunikat">Klucz zostaje na tym komputerze, zaszyfrowany przez system.</p>
+        </div>
+        <div class="card settings-card"><h3>Dane lokalne i kopia zapasowa</h3><p>Operaty, zdjęcia, dokumenty i Historia pozostają na komputerze użytkownika. Klucz licencyjny jest sprawdzany na tym komputerze, bez łączenia z serwerem — program nie wysyła nigdzie danych operatów ani klientów.</p><div class="backup-note"><b>Operat to dokument, za który odpowiadasz zawodowo.</b><p>Wszystkie dane OPERO leżą na tym jednym dysku. Rób kopię zapasową regularnie — najlepiej na dysk zewnętrzny albo do folderu synchronizowanego z chmurą.</p></div><div id="backupStatus" class="backup-status hidden"></div><div class="settings-actions-row"><button id="settingsBackup" class="btn primary">Zapisz kopię zapasową danych</button><button id="settingsOpenDataFolder" class="btn ghost">Otwórz folder z danymi</button><button id="settingsOpenLog" class="btn ghost">Dziennik błędów</button></div><div class="data-local-badge">LOCAL FIRST</div></div>
+
+        <div class="card settings-card"><h3>Diagnostyka</h3><p>Przydatne, gdy coś nie działa i trzeba opisać problem.</p><div class="summary-row"><span>Wersja programu</span><b id="creatorVersionValue">3.3.0</b></div><div class="summary-row"><span>Stan klucza</span><b id="settingsAccessState">—</b></div><div class="summary-row"><span>Ważny do</span><b id="settingsAccessExpiry">—</b></div><div class="button-row"><button id="creatorDiagnosticsBtn" class="btn gold-outline" type="button">Diagnostyka systemu</button><button id="creatorRoadmapBtn" class="btn ghost" type="button">Rodzaje operatów</button></div></div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-result">
+      <div class="section-title result-title"><div><span>◆</span><h2>Wynik wyceny</h2></div><p>Ta sekcja nie jest krokiem kreatora. Pokazuje efekt obliczeń i kontrolę gotowości dokumentu do wygenerowania PDF.</p></div>
+      <div class="result-hero"><div><span>WARTOŚĆ RYNKOWA</span><strong id="kpiValue">0 zł</strong><small id="kpiUnit">0,00 zł/m²</small></div><div class="result-actions"><button id="resultPdfBtn" class="btn primary large">Generuj PDF</button></div></div>
+      <div class="card wynik-operat" id="wynikOperat">
+        <div class="wynik-operat-glowa"><div><span class="eyebrow">OPERAT DO SPRAWDZENIA</span><h3 id="wynikOperatTytul">Operat wygenerowany przez zespół agentów</h3><p id="wynikWerdykt" class="wynik-werdykt">Uruchom zespół na ekranie „Nowy operat" — gotowy operat pojawi się tutaj.</p></div>
+          <div class="wynik-operat-akcje"><button id="wynikWord" class="btn primary large" type="button">Pobierz Word (.docx)</button><button id="wynikPdf" class="btn primary large" type="button">Pobierz PDF</button></div></div>
+        <iframe id="wynikPodglad" class="operat-podglad-ramka" title="Operat" sandbox="allow-same-origin"></iframe>
+      </div>
+      <details class="wynik-szczegoly"><summary>Obliczenia, kontrola i audyt — dla dociekliwych</summary>
+      <!-- Droga operatu: od danych do PDF. Rysuje studio.js. -->
+      <div id="wynikSciezka" class="wynik-sciezka" aria-label="Droga operatu"></div>
+      <div class="kpi-grid"><div class="kpi"><span>Cmin</span><strong id="kpiMin">-</strong></div><div class="kpi"><span>Cśred</span><strong id="kpiAvg">-</strong></div><div class="kpi"><span>Cmax</span><strong id="kpiMax">-</strong></div><div class="kpi"><span id="kpiUiLabel">Σ Ui</span><strong id="kpiUi">-</strong></div><div class="kpi"><span>Trend / miesiąc</span><strong id="kpiTrend">-</strong></div><div class="kpi"><span>Suma wag</span><strong id="kpiWeights">-</strong></div></div>
+      <div class="grid-2"><div class="card"><h3>Logika obliczeń</h3><ol id="resultLogic" class="steps"><li>Wyznaczenie / przyjęcie trendu czasowego.</li><li>Aktualizacja cen transakcyjnych na datę wyceny.</li><li>Wyznaczenie Cmin, Cśred, Cmax i ΔC.</li><li>Ustalenie cech rynkowych, wag i zakresów Ui.</li><li>Ocena nieruchomości i obliczenie ΣUi.</li><li>WN = Pu × Cśred × ΣUi.</li></ol></div><div class="card result-summary"><h3>Podsumowanie</h3><div class="summary-row"><span>Powierzchnia przyjęta do wyceny</span><b id="resultArea">0,00 m²</b></div><div class="summary-row"><span>Metoda</span><b id="resultMethod">korygowanie ceny średniej</b></div><div class="summary-row"><span>Status projektu</span><b id="resultStatus">Roboczy</b></div><div class="summary-row"><span>Gotowość PDF</span><b id="resultReady">—</b></div></div></div>
+      <!-- AUDYT PRZED PODPISEM. Kontrola przed PDF pilnuje BRAKOW; audyt
+           pilnuje spojnosci i toku rozumowania — tego, o co pyta weryfikator. -->
+      <div class="card automat-karta hidden" id="autoPrzegladKarta">
+        <div class="card-head"><div><span class="eyebrow">AUTOMAT · PRZEGLĄD</span><h3>Co program wypełnił — sprawdź etap po etapie</h3><p>Każdy etap, w którym program coś wpisał, czeka na Twoje sprawdzenie. Pola wypełnione przez program mają znacznik „AUTO" — znika, gdy pole poprawisz. Po sprawdzeniu wszystkich etapów zatwierdzasz operat.</p></div><button id="autoZatwierdz" type="button" class="btn primary">Zatwierdzam operat</button></div>
+        <div id="autoPrzeglad" class="auto-przeglad"></div>
+        <p class="hint" id="autoPrzegladStan"></p>
+      </div>
+      <div class="card automat-karta" id="perWszystkieKarta">
+        <div class="card-head"><div><span class="eyebrow">PER</span><h3>Napisz wszystkie puste opisy</h3><p>PER przechodzi przez cały operat i pisze każde puste pole opisowe z danych, które już w nim są: stan prawny, ewidencja, plan, lokalizacja, budynek, lokal, rynek, uzasadnienia. Pól, które wypełniłeś sam, nie rusza.</p></div><button id="perWszystkieBtn" type="button" class="btn primary">Napisz puste opisy (PER)</button></div>
+        <div id="perWszystkieWynik" class="automat-wynik hidden" aria-live="polite"></div>
+      </div>
+      <div class="card audyt-karta" id="audytKarta">
+        <div class="card-head">
+          <div>
+            <h3>Audyt przed podpisem</h3>
+            <p>Osiem działów kontroli: daty i stan prawny, opis nieruchomości, opis rynku, tabela
+               transakcyjna, arkusz obliczeń, uzasadnienie wyniku, zgodność tekstu z tabelami
+               i załączniki. Program sprawdza spójność, a nie samą kompletność pól.</p>
+          </div>
+          <div class="button-row">
+            <button id="audytUruchom" class="btn primary" type="button">Sprawdź operat</button>
+            <button id="audytPer" class="btn gold-outline" type="button">✦ Sprawdź tekst (PER)</button>
+          </div>
+        </div>
+        <div class="audyt-stan hidden" id="audytStan"></div>
+        <div class="audyt-dzialy" id="audytDzialy"></div>
+        <div class="audyt-per hidden" id="audytPerWynik"></div>
+      </div>
+
+      <div class="card final-check"><div class="card-head"><div><h3>Kontrola przed PDF</h3><p>Jeżeli brakuje danych krytycznych, generator pozostaje zablokowany, a lista poniżej wskaże dokładnie co należy poprawić.</p></div><button id="finalPdfBtn" class="btn primary">Generuj PDF</button></div><div id="finalIssues"></div></div>
+      <div class="report-editor card">
+        <div class="card-head"><div><h3>Edytor końcowego raportu</h3><p>Na tym etapie zmieniasz wyłącznie wygląd i skład dokumentu. Obliczenia pozostają powiązane z danymi źródłowymi i nie są ręcznie nadpisywane.</p></div><div class="button-row"><button id="refreshReportPreview" class="btn ghost">Odśwież podgląd</button><button id="openReportPreview" class="btn gold-outline">Pełny podgląd</button><button id="editorDocxBtn" class="btn" type="button">Eksport do Worda</button><button id="editorPdfBtn" class="btn primary">Eksport PDF</button></div></div>
+        <div class="szata-wybor">
+          <div class="szata-wybor-glowa"><b>Zacznij od gotowego układu</b><span>Wybrany: <b id="szataNazwa">—</b></span></div>
+          <div class="szata-kafelki" id="szataKafelki"></div>
+          <p class="hint">Kafelek ustawia wszystkie pola poniżej naraz. Dalej zmieniasz, co chcesz — czcionki, linie, marginesy, kolor i okładkę — a podgląd A4 obok pokazuje efekt.</p>
+          <div class="uklady-wlasne" id="ukladyWlasne">
+            <div class="szata-wybor-glowa"><b>Moje układy</b><span id="ukladyDomyslnyOpis"></span></div>
+            <div class="uklady-lista" id="ukladyLista"></div>
+            <div class="uklady-pasek">
+              <input id="ukladNazwa" type="text" maxlength="60" placeholder="Nazwa układu, np. „Bank PKO” albo „Sąd”" aria-label="Nazwa własnego układu" autocomplete="off">
+              <button id="ukladZapisz" type="button" class="btn primary">Zapisz bieżący układ</button>
+              <button id="ukladPrzywroc" type="button" class="btn ghost">Cofnij moje zmiany</button>
+            </div>
+            <p class="hint" id="ukladyStan">Ustaw wygląd tak, jak lubisz, nadaj mu nazwę i zapisz — będzie pod ręką w każdym następnym operacie.</p>
+          </div>
+        </div>
+        <div class="report-editor-grid">
+          <div class="report-editor-controls form-grid cols-2">
+            <label>Styl okładki<select data-path="appearance.coverStyle"><option value="classic">Klasyczna OPERO</option><option value="minimal">Minimalistyczna</option><option value="photo">Fotograficzna</option></select></label>
+            <label>Motyw<select data-path="appearance.theme"><option value="gold">Złoty OPERO</option><option value="navy">Granat profesjonalny</option><option value="graphite">Grafit minimalistyczny</option><option value="forest">Zieleń ekspercka</option></select></label>
+            <label>Kolor akcentu<input type="color" data-path="appearance.accent"></label>
+            <label>Font<select data-path="appearance.fontFamily"><option value="Georgia, 'Times New Roman', serif">Georgia</option><option value="'Times New Roman', serif">Times New Roman</option><option value="Cambria, Georgia, serif">Cambria</option><option value="Arial, sans-serif">Arial</option><option value="Calibri, Arial, sans-serif">Calibri</option><option value="Verdana, sans-serif">Verdana</option></select></label>
+            <label>Wielkość tekstu [pt]<input type="number" min="8" max="13" step="0.1" data-path="appearance.bodyFontSize"></label>
+            <label>Interlinia<input type="number" min="1.15" max="1.8" step="0.05" data-path="appearance.lineHeight"></label>
+            <label>Margines [mm]<input type="number" min="10" max="30" step="1" data-path="appearance.pageMarginMm"></label>
+            <label>Gęstość tabel<select data-path="appearance.tableDensity"><option value="compact">Kompaktowa</option><option value="normal">Normalna</option><option value="comfortable">Luźna</option></select></label>
+            <label>Zdjęcia w wierszu<select data-path="appearance.photoColumns"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label>
+            <label>Styl nagłówków<select data-path="appearance.headingStyle"><option value="line">Linia + kolor</option><option value="band">Pełny pas</option><option value="minimal">Minimalistyczny</option></select></label>
+            <label class="check"><input type="checkbox" data-path="appearance.showToc"> Spis treści</label>
+            <label class="check"><input type="checkbox" data-path="appearance.showIndexes"> Spis tabel i rysunków</label>
+            <label class="check span-2"><input type="checkbox" data-path="appearance.showHeaderFooter"> Nagłówek i stopka na stronach</label>
+            <label class="span-2">Nagłówek<input data-path="appearance.headerText"></label>
+            <label class="span-2">Stopka<input data-path="appearance.footerText"></label>
+            <div class="span-2 editor-note">Zmiana układu nie modyfikuje Cmin, Cśr, Cmax, wag, Ui ani wartości końcowej. Jeżeli chcesz zmienić dane merytoryczne, wróć do sekcji <b>Operaty</b>.</div>
+          </div>
+          <div class="report-preview-wrap"><div class="report-preview-toolbar"><span>Podgląd A4</span><small id="reportPreviewStamp">—</small></div><iframe id="reportPreviewFrame" title="Podgląd raportu OPERO"></iframe></div>
+        </div>
+      </div>
+    </details>
+    </section>
+
+  </main>
+
+  <div id="contextCoach" class="context-coach hidden" role="status" aria-live="polite">
+    <div class="context-piorek-stage"><div id="contextPiorek" class="piorek-character state-idle" aria-hidden="true">
+      <span class="piorek-ground-shadow"></span>
+      <svg class="piorek-svg" viewBox="0 0 120 190" focusable="false">
+      <!-- PER: pion rzeczoznawcy. Rysowany plaskimi warstwami, bez serwerow farb
+           (url(#...)), bo te nie rozwiazuja sie, gdy kopia postaci stoi w ukrytym
+           poddrzewie dokumentu. Kazdy polysk i cien to osobny ksztalt. -->
+      <g class="per-wahadlo">
+        <path class="per-sznur" d="M60 4 L60 46"/>
+        <circle class="per-wezel" cx="60" cy="47" r="3.4"/>
+
+        <g class="per-korpus">
+
+          <!-- mosiezna glowica: trapez + obrecz -->
+          <path class="per-glowica" d="M52 50 L68 50 L71 60 L49 60 Z"/>
+          <rect class="per-obrecz" x="44" y="59" width="32" height="9" rx="4.5"/>
+          <rect class="per-obrecz-blask" x="47" y="61" width="13" height="2.6" rx="1.3"/>
+
+          <!-- korpus: beczulka przechodzaca w stozek -->
+          <path class="per-cialo" d="M41 68 L79 68 L79 114 C79 136 70 153 60 168 C50 153 41 136 41 114 Z"/>
+          <path class="per-cialo-cien" d="M67 68 L79 68 L79 114 C79 136 70 153 60 168 C66.5 151 69.5 135 69.5 114 Z"/>
+          <path class="per-cialo-swiatlo" d="M46 74 C44 94 44.6 118 48.6 136"/>
+          <path class="per-cialo-swiatlo cienki" d="M74 76 C74.8 94 74.4 110 73 124"/>
+          <path class="per-przewiazka" d="M42.6 112 L77.4 112"/>
+
+          <!-- ostrze i linia pionu -->
+          <path class="per-ostrze" d="M56.6 164 L60 180 L63.4 164 Z"/>
+          <path class="per-pion" d="M60 182 L60 189"/>
+
+          <!-- twarz: osadzona na gornej, szerokiej czesci korpusu -->
+          <g class="per-twarz">
+            <g class="per-oczy">
+              <ellipse class="per-oko" cx="51" cy="95" rx="8.6" ry="9.4"/>
+              <ellipse class="per-oko" cx="69" cy="95" rx="8.6" ry="9.4"/>
+              <g class="per-wzrok">
+                <circle class="per-zrenica" cx="52.5" cy="96.5" r="4.1"/>
+                <circle class="per-zrenica" cx="70.5" cy="96.5" r="4.1"/>
+                <circle class="per-blik" cx="54.4" cy="93.4" r="1.7"/>
+                <circle class="per-blik" cx="72.4" cy="93.4" r="1.7"/>
+                <circle class="per-blik maly" cx="50.6" cy="98.6" r="0.9"/>
+                <circle class="per-blik maly" cx="68.6" cy="98.6" r="0.9"/>
+              </g>
+              <path class="per-powieka per-powieka-l" d="M42.4 95 A8.6 9.4 0 0 1 59.6 95 Z"/>
+              <path class="per-powieka per-powieka-p" d="M60.4 95 A8.6 9.4 0 0 1 77.6 95 Z"/>
+            </g>
+            <path class="per-brew per-brew-l" d="M44 82 Q51 78.2 58 81.6"/>
+            <path class="per-brew per-brew-p" d="M62 81.6 Q69 78.2 76 82"/>
+            <ellipse class="per-rumieniec" cx="44.4" cy="104.5" rx="4.4" ry="2.7"/>
+            <ellipse class="per-rumieniec" cx="75.6" cy="104.5" rx="4.4" ry="2.7"/>
+            <path class="per-usmiech" d="M53 105 Q60 112.5 67 105"/>
+          </g>
+
+          <g class="per-pierscienie" aria-hidden="true">
+            <ellipse class="per-pierscien" cx="60" cy="118" rx="30" ry="8"/>
+            <ellipse class="per-pierscien wolny" cx="60" cy="128" rx="37" ry="10"/>
+          </g>
+        </g>
+      </g>
+
+      <g class="per-iskry" aria-hidden="true">
+        <path d="M22 44 L24.4 49.4 L29.8 51.8 L24.4 54.2 L22 59.6 L19.6 54.2 L14.2 51.8 L19.6 49.4 Z"/>
+        <path d="M98 56 L99.7 59.8 L103.5 61.5 L99.7 63.2 L98 67 L96.3 63.2 L92.5 61.5 L96.3 59.8 Z"/>
+        <circle cx="16" cy="66" r="2"/>
+        <circle cx="105" cy="44" r="1.7"/>
+      </g>
+
+      <g class="per-odznaka" aria-hidden="true">
+        <circle cx="94" cy="132" r="15"/>
+        <path class="per-ptaszek" d="M86.5 132 L92 138 L102.5 125"/>
+      </g>
+      </svg>
+    </div></div>
+    <div class="context-coach-copy">
+      <div class="context-coach-meta"><span id="contextCoachStep">ETAP 1 Z 10</span><i>→</i><b id="contextCoachField">MIasto</b></div>
+      <span id="contextCoachEyebrow">OPERO · PROWADZENIE</span><b id="contextCoachTitle">Teraz uzupełnij: Miasto</b><p id="contextCoachText"></p>
+      <small class="context-coach-anchor-note">Pole ma złotą obwódkę i znacznik „PER → TU” — podpowiedź niczego nie zasłania.</small>
+      <div class="context-coach-actions"><button id="contextCoachDoneBtn" class="text-action" type="button">Ukryj podpowiedź</button><button id="contextCoachNextBtn" class="btn primary small" type="button">Przejdź do pola →</button></div>
+    </div>
+    <button id="contextCoachCloseBtn" class="context-coach-close" type="button" aria-label="Zamknij">×</button>
+    <i id="contextCoachArrow" class="context-coach-arrow"></i>
+  </div>
+  <div id="contextCoachLink" class="context-coach-link hidden" aria-hidden="true"><i></i></div>
+  <div id="fieldHelpPopover" class="field-help-popover hidden" role="dialog" aria-label="Wyjaśnienie pola"><div><span>CO TO ZNACZY?</span><b id="fieldHelpTitle">Pole</b><p id="fieldHelpText"></p></div><button id="fieldHelpClose" type="button" aria-label="Zamknij">×</button><i></i></div>
+
+  <div id="stepSuccess" class="step-success hidden" aria-live="polite"><div class="step-success-piorek"><div id="successPiorek" class="piorek-character state-success" aria-hidden="true">
+      <span class="piorek-ground-shadow"></span>
+      <svg class="piorek-svg" viewBox="0 0 120 190" focusable="false">
+      <!-- PER: pion rzeczoznawcy. Rysowany plaskimi warstwami, bez serwerow farb
+           (url(#...)), bo te nie rozwiazuja sie, gdy kopia postaci stoi w ukrytym
+           poddrzewie dokumentu. Kazdy polysk i cien to osobny ksztalt. -->
+      <g class="per-wahadlo">
+        <path class="per-sznur" d="M60 4 L60 46"/>
+        <circle class="per-wezel" cx="60" cy="47" r="3.4"/>
+
+        <g class="per-korpus">
+
+          <!-- mosiezna glowica: trapez + obrecz -->
+          <path class="per-glowica" d="M52 50 L68 50 L71 60 L49 60 Z"/>
+          <rect class="per-obrecz" x="44" y="59" width="32" height="9" rx="4.5"/>
+          <rect class="per-obrecz-blask" x="47" y="61" width="13" height="2.6" rx="1.3"/>
+
+          <!-- korpus: beczulka przechodzaca w stozek -->
+          <path class="per-cialo" d="M41 68 L79 68 L79 114 C79 136 70 153 60 168 C50 153 41 136 41 114 Z"/>
+          <path class="per-cialo-cien" d="M67 68 L79 68 L79 114 C79 136 70 153 60 168 C66.5 151 69.5 135 69.5 114 Z"/>
+          <path class="per-cialo-swiatlo" d="M46 74 C44 94 44.6 118 48.6 136"/>
+          <path class="per-cialo-swiatlo cienki" d="M74 76 C74.8 94 74.4 110 73 124"/>
+          <path class="per-przewiazka" d="M42.6 112 L77.4 112"/>
+
+          <!-- ostrze i linia pionu -->
+          <path class="per-ostrze" d="M56.6 164 L60 180 L63.4 164 Z"/>
+          <path class="per-pion" d="M60 182 L60 189"/>
+
+          <!-- twarz: osadzona na gornej, szerokiej czesci korpusu -->
+          <g class="per-twarz">
+            <g class="per-oczy">
+              <ellipse class="per-oko" cx="51" cy="95" rx="8.6" ry="9.4"/>
+              <ellipse class="per-oko" cx="69" cy="95" rx="8.6" ry="9.4"/>
+              <g class="per-wzrok">
+                <circle class="per-zrenica" cx="52.5" cy="96.5" r="4.1"/>
+                <circle class="per-zrenica" cx="70.5" cy="96.5" r="4.1"/>
+                <circle class="per-blik" cx="54.4" cy="93.4" r="1.7"/>
+                <circle class="per-blik" cx="72.4" cy="93.4" r="1.7"/>
+                <circle class="per-blik maly" cx="50.6" cy="98.6" r="0.9"/>
+                <circle class="per-blik maly" cx="68.6" cy="98.6" r="0.9"/>
+              </g>
+              <path class="per-powieka per-powieka-l" d="M42.4 95 A8.6 9.4 0 0 1 59.6 95 Z"/>
+              <path class="per-powieka per-powieka-p" d="M60.4 95 A8.6 9.4 0 0 1 77.6 95 Z"/>
+            </g>
+            <path class="per-brew per-brew-l" d="M44 82 Q51 78.2 58 81.6"/>
+            <path class="per-brew per-brew-p" d="M62 81.6 Q69 78.2 76 82"/>
+            <ellipse class="per-rumieniec" cx="44.4" cy="104.5" rx="4.4" ry="2.7"/>
+            <ellipse class="per-rumieniec" cx="75.6" cy="104.5" rx="4.4" ry="2.7"/>
+            <path class="per-usmiech" d="M53 105 Q60 112.5 67 105"/>
+          </g>
+
+          <g class="per-pierscienie" aria-hidden="true">
+            <ellipse class="per-pierscien" cx="60" cy="118" rx="30" ry="8"/>
+            <ellipse class="per-pierscien wolny" cx="60" cy="128" rx="37" ry="10"/>
+          </g>
+        </g>
+      </g>
+
+      <g class="per-iskry" aria-hidden="true">
+        <path d="M22 44 L24.4 49.4 L29.8 51.8 L24.4 54.2 L22 59.6 L19.6 54.2 L14.2 51.8 L19.6 49.4 Z"/>
+        <path d="M98 56 L99.7 59.8 L103.5 61.5 L99.7 63.2 L98 67 L96.3 63.2 L92.5 61.5 L96.3 59.8 Z"/>
+        <circle cx="16" cy="66" r="2"/>
+        <circle cx="105" cy="44" r="1.7"/>
+      </g>
+
+      <g class="per-odznaka" aria-hidden="true">
+        <circle cx="94" cy="132" r="15"/>
+        <path class="per-ptaszek" d="M86.5 132 L92 138 L102.5 125"/>
+      </g>
+      </svg>
+    </div></div><div><small>PER · ETAP UKOŃCZONY</small><b id="stepSuccessTitle">Gotowe</b><p id="stepSuccessText">Przechodzę do kolejnego kroku.</p></div></div>
+
+  <div id="commandPalette" class="command-overlay hidden" role="dialog" aria-modal="true" aria-label="Szybkie działania">
+    <div class="command-palette">
+      <div class="command-search"><span>⌕</span><input id="commandSearch" autocomplete="off" placeholder="Wpisz działanie, np. wynik, historia, nowy operat…"><kbd>ESC</kbd></div>
+      <div class="command-context"><span>OPERO 3.3.0</span><b id="commandProjectContext">Aktualny projekt</b></div>
+      <div id="commandResults" class="command-results premium-scroll"></div>
+      <div class="command-footer"><span>↑↓ wybór</span><span>Enter uruchom</span><span>Ctrl+K otwórz</span></div>
+    </div>
+  </div>
+
+  
+<!-- Szukanie transakcji: JEDNO okno, w ktorym etapy zapalaja sie i gasna.
+     Rzeczoznawca w kazdej chwili widzi, w ktorym zrodle program jest, co w nim
+     znalazl i dlaczego z niego zeszedl. Nie cztery okna i nie cisza. -->
+<div id="szukOverlay" class="rcn-overlay hidden" role="dialog" aria-modal="true" aria-label="Szukanie transakcji">
+  <div class="rcn-okno szuk-okno">
+    <div class="rcn-head">
+      <div><span class="eyebrow">SZUKANIE TRANSAKCJI</span><b>Program pyta wszystkie źródła naraz</b></div>
+      <div class="szuk-glowa-akcje">
+        <button id="szukZwin" class="szuk-zwin" type="button" aria-expanded="true"
+          title="Zwiń kryteria i etapy — więcej miejsca na transakcje">⌃ Zwiń górę</button>
+        <button id="szukPelny" class="szuk-pelny" type="button" aria-pressed="false"
+          title="Powiększ okno na cały ekran">⤢ Cały ekran</button>
+        <button id="szukZamknij" type="button" aria-label="Zamknij">×</button>
+      </div>
+    </div>
+
+    <div class="szuk-kryteria">
+      <label>Miejscowość<input id="szukMiasto" type="text" autocomplete="off" placeholder="np. Gdańsk"></label>
+      <label title="Szukam w tej dzielnicy i w jej sąsiedztwie — to ona tworzy rynek lokalny.">Dzielnica<input id="szukDzielnica" type="text" autocomplete="off" placeholder="np. Osowa"></label>
+      <label title="Ta sama ulica liczy się najmocniej przy ocenie położenia.">Ulica<input id="szukUlica" type="text" autocomplete="off" placeholder="np. Siedleckiego"></label>
+      <label>Powierzchnia [m²]<input id="szukPow" type="text" inputmode="decimal" placeholder="np. 54,30"></label>
+      <label>Odchyłka [%]<input id="szukOdchylka" type="text" inputmode="decimal" value="20"></label>
+      <label>Pokoje<input id="szukPokoje" type="text" inputmode="numeric" placeholder="np. 3"></label>
+      <label title="Parter ma własny rynek — program traktuje go osobno.">Piętro<input id="szukPietro" type="text" inputmode="numeric" placeholder="np. 2"></label>
+      <label>Okres [mies.]<input id="szukOkres" type="text" inputmode="numeric" value="24"></label>
+      <label>Promień [m]<input id="szukPromien" type="text" inputmode="numeric" value="1500"></label>
+      <label title="Źródła pytam o pas szerszy o tyle procent. To, co wpadnie dopiero dzięki zapasowi, pokażę osobno i nie zaznaczę samo.">Zapas [%]<input id="szukZapas" type="text" inputmode="numeric" value="25"></label>
+      <button id="szukStart" class="btn primary" type="button">Szukaj</button>
+    </div>
+    <p id="szukOpisKryteriow" class="szuk-opis-kryteriow"></p>
+
+    <div class="szuk-zdrowie" id="szukZdrowie">
+      <button id="szukSprawdzZrodla" class="btn ghost" type="button">Sprawdź źródła</button>
+      <div class="szuk-zdrowie-lista" id="szukZdrowieLista"></div>
+      <span class="szuk-zdrowie-opis" id="szukZdrowieOpis">Źródła nie były jeszcze sprawdzane w tej sesji.</span>
+    </div>
+
+    <div class="szuk-etapy" id="szukEtapy"></div>
+
+    <div class="szuk-serwisy hidden" id="szukSerwisy">
+      <div class="szuk-serwisy-glowa">
+        <div>
+          <b>Krok 1 — Deweloperuch.pl</b>
+          <p id="szukSerwisyDlaczego"></p>
+        </div>
+        <div class="button-row">
+          <button id="szukSerwisOkno" class="btn primary" type="button">Otwórz Deweloperuch w oknie programu</button><button id="szukSerwisCzytaj" class="btn gold-outline" type="button">Wczytaj z otwartej strony</button><button id="szukOtworzSerwis" class="btn ghost" type="button">Otwórz w przeglądarce</button>
+        </div>
+      </div>
+      <label class="szuk-wklej">Wklej tutaj wiersze zaznaczone w serwisie
+        <textarea id="szukWklejenie" rows="4" placeholder="Zaznacz tabelę w serwisie, skopiuj (Ctrl+C) i wklej tutaj (Ctrl+V)."></textarea>
+      </label>
+      <div class="button-row">
+        <button id="szukZeSchowka" class="btn primary" type="button">Wczytaj ze schowka</button>
+        <button id="szukWczytajWklejone" class="btn gold-outline" type="button">Wczytaj z pola wyżej</button>
+        <button id="szukSerwisNic" class="btn ghost" type="button">Nic stąd nie biorę — sprawdzone</button>
+        <small id="szukWklejenieStan" class="szuk-wklejenie-stan"></small>
+      </div>
+    </div>
+
+    <!-- OSTATECZNOSC. Inne portale to CENY OFERTOWE z ogloszen, a nie ceny
+         transakcyjne. Panel jest zwiniety i otwiera sie dopiero wtedy, gdy
+         rzeczoznawca sam po niego siegnie — zeby nie wygladal na rownorzedne
+         zrodlo obok rejestru. -->
+    <details class="szuk-portale" id="szukPortale">
+      <summary>
+        <b>Inne portale ogłoszeniowe</b>
+        <i>ostateczność — ceny ofertowe, nie transakcyjne</i>
+      </summary>
+      <p id="szukPortaleDlaczego" class="szuk-portale-dlaczego"></p>
+      <div class="button-row">
+        <select id="szukPortalWybor" aria-label="Portal ogłoszeniowy"><option value="otodom">Otodom</option><option value="olx">OLX</option></select>
+        <button id="szukPortalOkno" class="btn primary" type="button">Otwórz portal w oknie programu</button>
+        <button id="szukPortalCzytaj" class="btn gold-outline" type="button">Wczytaj oferty z otwartej strony</button>
+        <button id="szukOtworzPortal" class="btn ghost" type="button">Otwórz w przeglądarce</button>
+        <button id="szukPortaleNic" class="btn ghost" type="button">Nie korzystam — sprawdzone</button>
+      </div>
+      <label class="szuk-wklej">Wklej tutaj wiersze z portalu
+        <textarea id="szukWklejeniePortal" rows="3" placeholder="Zaznacz tabelę ogłoszeń, skopiuj (Ctrl+C) i wklej tutaj (Ctrl+V)."></textarea>
+      </label>
+      <div class="button-row">
+        <button id="szukWczytajPortal" class="btn" type="button">Wczytaj wklejone</button>
+        <small id="szukPortalStan" class="szuk-wklejenie-stan"></small>
+      </div>
+    </details>
+
+    <div class="szuk-przyjete hidden" id="szukPrzyjete">
+      <div>
+        <b id="szukPrzyjeteTytul">Najlepiej pasujące weszły do operatu</b>
+        <p id="szukPrzyjeteOpis"></p>
+      </div>
+      <button id="szukCofnij" class="btn ghost" type="button">Cofnij dodanie</button>
+    </div>
+
+    <div class="szuk-kolejka hidden" id="szukKolejka">
+      <div class="szuk-kolejka-glowa">
+        <span class="eyebrow" id="szukKolejkaLicznik">1 z 1 do decyzji</span>
+        <b id="szukKolejkaTytul"></b>
+        <p id="szukKolejkaPowod"></p>
+      </div>
+      <div class="szuk-kolejka-dane" id="szukKolejkaDane"></div>
+      <div class="szuk-kolejka-akcje">
+        <button id="szukKolejkaPrzyjmij" class="btn primary" type="button">Przyjmij do operatu</button>
+        <button id="szukKolejkaOdrzuc" class="btn ghost" type="button">Odrzuć</button>
+        <button id="szukKolejkaWszystkie" class="btn ghost" type="button">Przyjmij wszystkie pozostałe</button>
+        <button id="szukKolejkaKoniec" class="btn ghost" type="button">Zostaw resztę na później</button>
+      </div>
+    </div>
+
+    <div class="szuk-wyniki-glowa">
+      <b id="szukWynikiNaglowek">Znalezione pozycje</b>
+      <label class="check"><input type="checkbox" id="szukTylkoTransakcje"> Pokaż tylko transakcje (ukryj oferty)</label>
+    </div>
+    <div class="szuk-wyniki">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th><input type="checkbox" id="szukWszystkie" title="Zaznacz wszystkie"></th><th>#</th><th>Data</th><th>Adres</th><th>Pow.</th><th>Cena</th><th>zł/m²</th><th>Źródło</th><th title="Ocena podobieństwa do wycenianego lokalu: położenie 40, powierzchnia 25, pokoje 10, piętro 10, czas 15">Dopas.</th><th>Dlaczego</th></tr></thead>
+          <tbody id="szukTabela"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="szuk-uchwyt" id="szukUchwyt" title="Przeciągnij, żeby powiększyć okno" aria-hidden="true"></div>
+
+    <div class="rcn-stopa szuk-stopa">
+      <p id="szukPodsumowanie" class="szuk-podsumowanie"></p>
+      <div class="button-row">
+        <span id="szukStopkaStan" class="szuk-stopka-stan hidden"></span><button id="szukDodaj" class="btn primary" type="button" disabled>Dodaj do operatu</button>
+        <button id="szukDoBazy" class="btn gold-outline" type="button" disabled>Dopisz do mojej bazy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="rcnOverlay" class="rcn-overlay hidden" role="dialog" aria-modal="true" aria-label="Import wyciągu RCiWN">
+  <div class="rcn-okno">
+    <div class="rcn-head">
+      <div><span class="eyebrow">OPERO · OD WYCIĄGU DO OPERATU</span><b id="rcnTytul">Wczytaj wyciąg z rejestru cen</b></div>
+      <button id="rcnZamknij" class="icon-btn" type="button" aria-label="Zamknij">✕</button>
+    </div>
+    <ol class="rcn-kroki">
+      <li data-rcn-krok="plik" class="aktywny"><b>1</b> Plik</li>
+      <li data-rcn-krok="kolumny"><b>2</b> Kolumny</li>
+      <li data-rcn-krok="dobor"><b>3</b> Dobór</li>
+      <li data-rcn-krok="koniec"><b>4</b> Do operatu</li>
+    </ol>
+
+    <section id="rcnKrokPlik" class="rcn-krok">
+      <p class="hint">Wskaż wyciąg ze starostwa — XLSX albo CSV. OPERO czyta plik na tym komputerze, bez Excela i bez wysyłania go gdziekolwiek.</p>
+      <div class="button-row"><button id="rcnWybierz" class="btn primary" type="button">Wybierz plik wyciągu…</button></div>
+      <div id="rcnPlikInfo" class="hint"></div>
+    </section>
+
+    <section id="rcnKrokKolumny" class="rcn-krok hidden">
+      <p class="hint">OPERO rozpoznało kolumny. Sprawdź dopasowanie — wyciągi różnią się między powiatami. Pola, których nie ma w pliku, zostaw puste.</p>
+      <div id="rcnMapowanie" class="rcn-mapowanie"></div>
+      <div class="rcn-podglad-wrap"><table class="edit-table rcn-podglad"><thead id="rcnPodgladHead"></thead><tbody id="rcnPodgladBody"></tbody></table></div>
+      <div class="button-row"><button id="rcnDoDoboru" class="btn primary" type="button">Dalej — dobór transakcji →</button></div>
+    </section>
+
+    <section id="rcnKrokDobor" class="rcn-krok hidden">
+      <div id="rcnStatystyka" class="rcn-statystyka"></div>
+      <p class="hint">Zaznaczone trafią do operatu. Odrzucone zostawiam na liście razem z powodem — dobór zbioru porównawczego jest Twoją decyzją i musi dać się obronić.</p>
+      <div class="rcn-filtry">
+        <label class="check"><input type="checkbox" id="rcnPokazOdrzucone" checked> Pokaż odrzucone (możesz je przypisać sam)</label>
+        <p id="rcnMimoInfo" class="rcn-mimo-info hidden"></p>
+        <button id="rcnZaznaczNaj" class="text-action" type="button">Zaznacz 10 najlepiej dopasowanych</button>
+        <button id="rcnOdznacz" class="text-action" type="button">Odznacz wszystkie</button>
+      </div>
+      <div class="table-wrap rcn-tabela-wrap"><table class="edit-table"><thead><tr>
+        <th></th><th>Wiersz</th><th>Data</th><th>Adres</th><th>Pow. m²</th><th>Cena zł</th><th>zł/m²</th><th>Dopasowanie</th><th>Uwagi / powód</th>
+      </tr></thead><tbody id="rcnTabela"></tbody></table></div>
+      <div class="button-row"><button id="rcnPrzenies" class="btn primary" type="button">Przenieś do operatu →</button></div>
+    </section>
+
+    <section id="rcnKrokKoniec" class="rcn-krok hidden">
+      <div id="rcnPodsumowanie" class="rcn-podsumowanie"></div>
+      <div class="button-row">
+        <button id="rcnDoObliczen" class="btn primary" type="button">Przejdź do wyniku →</button>
+        <button id="rcnDoPER" class="btn" type="button">Zapytaj PER o dobór</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<aside id="kontrolaPanel" class="kontrola-panel hidden" role="dialog" aria-label="Kontrola operatu">
+  <div class="kontrola-head">
+    <div><span class="eyebrow">OPERO · KONTROLA OPERATU</span><b id="kontrolaTytul">Sprawdzam operat…</b></div>
+    <button id="kontrolaZamknij" class="icon-btn" type="button" aria-label="Zamknij">✕</button>
+  </div>
+  <div class="kontrola-filtry">
+    <button type="button" class="aktywny" data-kontrola-filtr="wszystko">Wszystko</button>
+    <button type="button" data-kontrola-filtr="blad">Do poprawy</button>
+    <button type="button" data-kontrola-filtr="uwaga">Uwagi</button>
+    <button type="button" data-kontrola-filtr="ok">Zrobione dobrze</button>
+  </div>
+  <div id="kontrolaLista" class="kontrola-lista premium-scroll"></div>
+  <div class="kontrola-stopka">
+    <button id="kontrolaDoPER" class="btn small" type="button">Zapytaj PER, co poprawić</button>
+  </div>
+</aside>
+
+
+  <button id="scrollTopBtn" class="scroll-top-btn hidden" type="button" title="Na górę">↑</button>
+</div>
+
+<datalist id="rightsList"><option>prawo odrębnej własności lokalu mieszkalnego</option><option>spółdzielcze własnościowe prawo do lokalu mieszkalnego</option></datalist>
+<datalist id="buildingTypeList"><option>budynek mieszkalny wielorodzinny niski</option><option>budynek mieszkalny wielorodzinny średniowysoki</option><option>budynek mieszkalny wielorodzinny wysoki</option><option>kamienica</option><option>apartamentowiec</option></datalist>
+<datalist id="constructionList"><option>tradycyjna murowana</option><option>wielka płyta / prefabrykowana</option><option>monolityczna żelbetowa</option><option>szkieletowa żelbetowa</option><option>mieszana</option></datalist>
+<datalist id="liftList"><option>brak</option><option>tak — dźwig osobowy</option><option>tak — dźwig osobowy i towarowy</option></datalist>
+<datalist id="conditionList"><option>bardzo dobry</option><option>dobry</option><option>przeciętny</option><option>słaby</option></datalist>
+<datalist id="roofList"><option>płaski</option><option>dwuspadowy</option><option>wielospadowy</option></datalist>
+<datalist id="facadeList"><option>ocieplona, tynkowana</option><option>tynkowana</option><option>ceglana</option><option>okładzina elewacyjna</option></datalist>
+<datalist id="commonAreasList"><option>bardzo dobry stan</option><option>dobry stan</option><option>przeciętny stan</option><option>wymagają remontu</option></datalist>
+<datalist id="parkingList"><option>miejsca ogólnodostępne</option><option>parking naziemny</option><option>hala garażowa</option><option>garaże indywidualne</option><option>brak dedykowanych miejsc</option></datalist>
+<datalist id="installationsList"><option>wod.-kan., elektryczna, c.o., telekomunikacyjna</option><option>wod.-kan., elektryczna, gazowa, c.o., telekomunikacyjna</option></datalist>
+<datalist id="localStandardList"><option>bardzo dobry</option><option>dobry</option><option>przeciętny</option><option>podstawowy</option><option>do remontu</option></datalist>
+<datalist id="localConditionList"><option>bardzo dobry — bez istotnych nakładów</option><option>dobry</option><option>przeciętny — możliwe nakłady</option><option>słaby — wymaga remontu</option></datalist>
+
+<script src="calc.bundle.js"></script>
+<script src="report.bundle.js"></script>
+<!-- Modul dochodowy w osobnych plikach: calc.bundle.js i report.bundle.js sa
+     zamrozone bajt w bajt wzgledem 1.4.1 i nie wolno ich ruszac. -->
+<script src="calc-income.js"></script>
+<script src="report-income.js"></script>
+<script src="calc-modules.js"></script>
+<script src="report-modules.js"></script>
+<script src="kontrola.js"></script><script src="rcn.js"></script><script src="kw.js"></script><script src="listy.js"></script><script src="liczby.js"></script><script src="audyt.js"></script><script src="podobienstwo.js"></script><script src="zrodla-kontrola.js"></script>
+    <script src="szukanie.js"></script><script src="cechy.js"></script><script src="pola.js"></script><script src="podpowiedzi.js"></script><script src="zrodla-cen.js"></script><script src="okno-odpowiedzi.js"></script><script src="adres-jedno.js"></script><script src="adres-osm.js"></script><script src="otoczenie.js"></script><script src="ekw-tresc.js"></script><script src="ocr-uklad.js"></script><script src="portal-czytaj.js"></script><script src="siec-szukaj.js"></script><script src="szybka-wycena.js"></script><script src="oferty-dane-gov.js"></script><script src="operat-pisanie.js"></script><script src="rcn-geoportal.js"></script><script src="podrecznik.js"></script><script src="baza.js"></script><script src="dzialka.js"></script><script src="szata-pdf.js"></script><script src="opis-operatu.js"></script><script src="agenci.js"></script><script src="rozumowanie.js"></script><script src="weryfikator.js"></script><script src="whatsapp.js"></script><script src="model-chmura.js"></script><script src="pamiec-wzorcow.js"></script><script src="wiedza-podrecznik.js"></script>
+<script src="wzorce.js"></script><script src="express.js"></script>
+<script src="geoportal-agent.js"></script>
+<script src="oceny-transakcji.js"></script>
+<script src="studio.js"></script>
+<script src="wsad.js"></script>
+<!-- =========================================================================
+     Panel PER MUSI stac PRZED skryptem app.js. Skrypt podpina przyciski
+     panelu zaraz po wczytaniu, a przegladarka czyta dokument od gory: gdy panel
+     lezal nizej, przy podpinaniu jeszcze nie istnial i ZADEN przycisk w nim nie
+     reagowal — ani „Zapytaj", ani zadne dzialanie. Nie przenos tego bloku nizej.
+     ========================================================================= -->
+<div id="piorekPanel" class="piorek-panel hidden" role="dialog" aria-label="PER — asystent OPERO">
+      <div class="piorek-panel-head"><div class="piorek-head-stage"><div id="panelPiorek" class="piorek-character state-idle mini" aria-hidden="true"><span class="piorek-ground-shadow"></span><svg class="piorek-svg" viewBox="0 0 120 190" focusable="false">
+      <!-- PER: pion rzeczoznawcy. Rysowany plaskimi warstwami, bez serwerow farb
+           (url(#...)), bo te nie rozwiazuja sie, gdy kopia postaci stoi w ukrytym
+           poddrzewie dokumentu. Kazdy polysk i cien to osobny ksztalt. -->
+      <g class="per-wahadlo">
+        <path class="per-sznur" d="M60 4 L60 46"/>
+        <circle class="per-wezel" cx="60" cy="47" r="3.4"/>
+
+        <g class="per-korpus">
+
+          <!-- mosiezna glowica: trapez + obrecz -->
+          <path class="per-glowica" d="M52 50 L68 50 L71 60 L49 60 Z"/>
+          <rect class="per-obrecz" x="44" y="59" width="32" height="9" rx="4.5"/>
+          <rect class="per-obrecz-blask" x="47" y="61" width="13" height="2.6" rx="1.3"/>
+
+          <!-- korpus: beczulka przechodzaca w stozek -->
+          <path class="per-cialo" d="M41 68 L79 68 L79 114 C79 136 70 153 60 168 C50 153 41 136 41 114 Z"/>
+          <path class="per-cialo-cien" d="M67 68 L79 68 L79 114 C79 136 70 153 60 168 C66.5 151 69.5 135 69.5 114 Z"/>
+          <path class="per-cialo-swiatlo" d="M46 74 C44 94 44.6 118 48.6 136"/>
+          <path class="per-cialo-swiatlo cienki" d="M74 76 C74.8 94 74.4 110 73 124"/>
+          <path class="per-przewiazka" d="M42.6 112 L77.4 112"/>
+
+          <!-- ostrze i linia pionu -->
+          <path class="per-ostrze" d="M56.6 164 L60 180 L63.4 164 Z"/>
+          <path class="per-pion" d="M60 182 L60 189"/>
+
+          <!-- twarz: osadzona na gornej, szerokiej czesci korpusu -->
+          <g class="per-twarz">
+            <g class="per-oczy">
+              <ellipse class="per-oko" cx="51" cy="95" rx="8.6" ry="9.4"/>
+              <ellipse class="per-oko" cx="69" cy="95" rx="8.6" ry="9.4"/>
+              <g class="per-wzrok">
+                <circle class="per-zrenica" cx="52.5" cy="96.5" r="4.1"/>
+                <circle class="per-zrenica" cx="70.5" cy="96.5" r="4.1"/>
+                <circle class="per-blik" cx="54.4" cy="93.4" r="1.7"/>
+                <circle class="per-blik" cx="72.4" cy="93.4" r="1.7"/>
+                <circle class="per-blik maly" cx="50.6" cy="98.6" r="0.9"/>
+                <circle class="per-blik maly" cx="68.6" cy="98.6" r="0.9"/>
+              </g>
+              <path class="per-powieka per-powieka-l" d="M42.4 95 A8.6 9.4 0 0 1 59.6 95 Z"/>
+              <path class="per-powieka per-powieka-p" d="M60.4 95 A8.6 9.4 0 0 1 77.6 95 Z"/>
+            </g>
+            <path class="per-brew per-brew-l" d="M44 82 Q51 78.2 58 81.6"/>
+            <path class="per-brew per-brew-p" d="M62 81.6 Q69 78.2 76 82"/>
+            <ellipse class="per-rumieniec" cx="44.4" cy="104.5" rx="4.4" ry="2.7"/>
+            <ellipse class="per-rumieniec" cx="75.6" cy="104.5" rx="4.4" ry="2.7"/>
+            <path class="per-usmiech" d="M53 105 Q60 112.5 67 105"/>
+          </g>
+
+          <g class="per-pierscienie" aria-hidden="true">
+            <ellipse class="per-pierscien" cx="60" cy="118" rx="30" ry="8"/>
+            <ellipse class="per-pierscien wolny" cx="60" cy="128" rx="37" ry="10"/>
+          </g>
+        </g>
+      </g>
+
+      <g class="per-iskry" aria-hidden="true">
+        <path d="M22 44 L24.4 49.4 L29.8 51.8 L24.4 54.2 L22 59.6 L19.6 54.2 L14.2 51.8 L19.6 49.4 Z"/>
+        <path d="M98 56 L99.7 59.8 L103.5 61.5 L99.7 63.2 L98 67 L96.3 63.2 L92.5 61.5 L96.3 59.8 Z"/>
+        <circle cx="16" cy="66" r="2"/>
+        <circle cx="105" cy="44" r="1.7"/>
+      </g>
+
+      <g class="per-odznaka" aria-hidden="true">
+        <circle cx="94" cy="132" r="15"/>
+        <path class="per-ptaszek" d="M86.5 132 L92 138 L102.5 125"/>
+      </g>
+      </svg></div></div><div><b>Asystent PER</b><small id="agrafekNastroj">Pod ręką</small></div><button id="piorekPanelClose" type="button" aria-label="Zamknij">×</button></div>
+      <!-- Stan modelu widoczny od razu po otwarciu panelu: kolor + jedno zdanie.
+           Nie pokazujemy, co jest wgrane i ile wazy — tylko czy jest gotowe. -->
+      <div id="perStanPanel" class="per-stan" data-stan="nieznany">
+        <span class="per-stan-kropka" aria-hidden="true"></span>
+        <b id="perStanPanelTekst">Sprawdzam model…</b>
+        <button id="perStanPobierz" class="btn gold-outline small hidden" type="button">Pobierz asystenta</button><button id="perStanNapraw" class="btn small hidden" type="button" title="Sprawdza silnik i model, i uzupełnia to, czego brakuje">Napraw</button>
+      </div>
+      <!-- Legenda kolorow. Pokazuje sie tylko wtedy, gdy kropka NIE jest zielona -
+           przy dzialajacym modelu nie ma czego tlumaczyc. -->
+      <div id="perStanLegenda" class="per-stan-legenda hidden">
+        <span><i data-kolor="brak"></i>nieaktualny</span>
+        <span><i data-kolor="nowszy"></i>do zaktualizowania</span>
+        <span><i data-kolor="aktualny"></i>aktualny</span>
+      </div>
+      <div class="piorek-panel-tresc"><div class="piorek-panel-tabs" role="tablist"><button id="piorekNavTab" class="active" type="button" data-piorek-view="nav">Prowadzenie</button><button id="piorekAskTab" type="button" data-piorek-view="ask">Zapytaj</button></div>
+      <div id="piorekNavView">
+        <p id="piorekPanelText">Jestem pod ręką. Mogę wskazać następne pole, wyjaśnić bieżący etap albo pokazać braki.</p>
+        <div class="piorek-panel-actions">
+          <button type="button" data-piorek-action="next"><span>➜</span><div><b>Co mam zrobić dalej?</b><small>Wskaż następne wymagane pole</small></div></button>
+          <button type="button" data-piorek-action="explain"><span>?</span><div><b>Wyjaśnij aktualny krok</b><small>Co robimy i dlaczego</small></div></button>
+          <button type="button" data-piorek-action="missing"><span>!</span><div><b>Pokaż braki</b><small>Sprawdź kompletność etapu</small></div></button>
+          <button type="button" data-piorek-action="ask"><span>✒</span><div><b>Zadaj pytanie</b><small>Metody, wzory, źródła i trudne pytania</small></div></button>
+          <button type="button" data-piorek-action="quiet"><span>◌</span><div><b>Tryb cichy / Ekspert</b><small>Ogranicz proaktywne podpowiedzi</small></div></button>
+        </div>
+      </div>
+      <div id="piorekAskView" class="piorek-ask-view hidden">
+        <div class="agrafek-kontekst">
+          <span class="ak-etykieta">Pracujesz nad</span>
+          <b id="agrafekKontekst">—</b>
+          <span id="agrafekZnacznikLokalny" class="ak-znacznik" title="Pytanie i dane operatu nie opuszczają tego komputera">tryb lokalny</span>
+        </div>
+        <div id="asystentPasek" class="asystent-pasek" data-stan="wait">
+          <span class="ap-kropka" aria-hidden="true"></span>
+          <div class="ap-tresc"><b id="asystentPasekTekst">Sprawdzam asystenta…</b><span class="ap-pasek hidden" id="asystentPasekPostep"><i></i></span></div>
+          <button id="asystentWlacz" class="ap-akcja hidden" type="button">Włącz asystenta</button>
+        </div>
+        <div class="agrafek-zaawansowane hidden">
+        <div id="agrafekTrybInfo" class="agrafek-info hidden">
+          <span class="ai-ikona">◍</span>
+          <div><b id="agrafekTrybInfoTytul">Tryb wbudowany — bez modelu</b>
+          <p id="agrafekTrybInfoTresc">Odpowiedzi powstają z Biblii OPERO leżącej w folderze programu. Do sieci nic nie wychodzi. Model językowy dodaje własne zdanie dopiero wtedy, gdy sam go podłączysz.</p></div>
+        </div>
+        <div class="agrafek-tryby" role="group" aria-label="Jak głęboko PER ma szukać">
+          <span class="at-etykieta">Tryb</span>
+          <button type="button" class="at-chip" data-agrafek-tryb="szybki" title="Same cytaty z Biblii OPERO — najszybciej i całkiem bez modelu">Szybki</button>
+          <button type="button" class="at-chip active" data-agrafek-tryb="standard" title="Biblia plus model językowy, który układa z niej odpowiedź">Standard</button>
+          <button type="button" class="at-chip" data-agrafek-tryb="gleboki" title="Jak Standard, ale PER zagląda też w dane operatu, wynik i kontrolę">Głęboki</button>
+        </div>
+        <div class="agrafek-wskazniki" role="group" aria-label="Stan PER"><button type="button" class="agrafek-chip" data-agrafek-chip="biblia" aria-expanded="false"><span id="chipBibliaDot" class="kropka"></span><b>Biblia</b><small id="chipBibliaInfo">—</small></button><button type="button" class="agrafek-chip" data-agrafek-chip="egzamin" aria-expanded="false"><span id="chipEgzaminDot" class="kropka"></span><b>Egzamin</b><small id="chipEgzaminInfo">—</small></button><button type="button" class="agrafek-chip" data-agrafek-chip="model" aria-expanded="false"><span id="chipModelDot" class="kropka"></span><b>Model</b><small id="chipModelInfo">—</small></button></div><div id="agrafekSzczegoly" class="agrafek-szczegoly hidden"><div class="piorek-kb-status"><span id="piorekKbDot"></span><div><b id="piorekKbTitle">Biblia OPERO</b><small id="piorekKbMeta">Sprawdzam snapshot wiedzy…</small></div><button id="piorekKbRefresh" type="button" title="Odśwież status">↻</button></div><div class="agrafek-kb-local"><span id="bibliaDot"></span><div><b id="bibliaTytul">Biblia w folderze programu</b><small id="bibliaMeta">Sprawdzam…</small></div><button id="bibliaPobierz" class="btn ghost small" type="button">Pobierz na dysk</button></div>
+        <div class="agrafek-model-status"><span id="agrafekModelDot"></span><div><b id="agrafekModelTitle">Model PER</b><small id="agrafekModelMeta">Sprawdzam, gdzie PER myśli…</small></div><button id="agrafekModelSetup" type="button" title="Ustawienia modelu">⚙</button></div></div>
+        <!-- Ustawienia modelu usuniete w 1.18.0: model jedzie w instalatorze i nie wymaga konfiguracji. -->
+        </div>
+        <div id="agrafekChat" class="agrafek-chat hidden" aria-live="polite"></div>
+        <label class="piorek-question"><span>Twoje pytanie</span><textarea id="piorekQuestion" rows="3" maxlength="2000" placeholder="Np. Skąd mam wziąć WAULT? Czy mogę użyć prime yield z raportu? Dlaczego ta metoda?"></textarea></label>
+        <div class="piorek-quick-questions"><button type="button" data-piorek-question="Dlaczego w tym operacie stosujemy tę metodę?">Dlaczego ta metoda?</button><button type="button" data-piorek-question="Gdzie znaleźć dane potrzebne do tego etapu?">Gdzie znaleźć dane?</button><button type="button" data-piorek-question="Jak odtworzyć tok obliczeń i skąd bierze się wynik?">Skąd wynik?</button><button type="button" data-piorek-question="Jak sprawdzić aktualną podstawę prawną dla tego typu wyceny?">Aktualne prawo</button><button type="button" data-piorek-question="Czego jeszcze brakuje w tym operacie do wygenerowania PDF?">Czego brakuje?</button><button type="button" data-piorek-question="Sprawdź moje dane wejściowe i powiedz, co budzi wątpliwości.">Sprawdź dane</button><button type="button" data-piorek-question="Jak uzasadnić dobór transakcji porównawczych w tym operacie?">Uzasadnij dobór</button><button type="button" data-piorek-question="Wypisz kroki obliczeń dla tego rodzaju wyceny wraz ze wzorami.">Wzory krok po kroku</button></div>
+        <div class="piorek-ask-actions"><button id="piorekAskBtn" class="btn primary small" type="button">Zapytaj →</button><button id="piorekClearAnswer" class="text-action" type="button">Wyczyść</button></div>
+        <div id="piorekAnswer" class="piorek-answer hidden" aria-live="polite"></div>
+        <div class="agrafek-zaawansowane hidden">
+        <button id="piorekExamBtn" class="piorek-exam-btn hidden" type="button">Egzamin PER · 149 testów</button>
+        <div id="piorekExamProgress" class="agrafek-postep hidden"><i></i><div><b id="piorekExamOpis">Egzamin…</b><div class="agrafek-pasek"><span id="piorekExamPasek"></span></div><small id="piorekExamLiczby"></small></div></div><div id="piorekExamResult" class="piorek-exam-result hidden"></div>
+        <div id="agrafekPasekModelu" class="agrafek-pasek-modelu hidden"><span class="apm-kropka"></span><small id="agrafekPasekModeluTekst"></small><button id="agrafekPasekModeluAkcja" class="apm-akcja hidden" type="button"></button></div>
+        </div>
+        <div class="agrafek-stopka">
+          <button id="agrafekZaawansowaneBtn" class="agrafek-wiecej" type="button" aria-expanded="false">Ustawienia zaawansowane</button>
+        </div>
+        <p class="piorek-privacy">Wszystko dzieje się na tym komputerze. Dane operatu nie wychodzą do sieci, a numery telefonu, e-maile i PESEL są usuwane, zanim cokolwiek trafi do asystenta.</p>
+      </div>
+    </div>
+      </div>
+<script src="app.js"></script>
+
+</body>
+</html>

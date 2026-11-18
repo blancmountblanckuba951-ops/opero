@@ -1,0 +1,12 @@
+node_modules/
+instalator/
+wynik/
+out/
+*.log
+OPERO-Setup-*.exe
+OPERO-Setup-*.exe.sha256
+# Klucze i sekrety — NIGDY do repozytorium
+*.pem
+*klucz-prywatny*
+*.key
+.env

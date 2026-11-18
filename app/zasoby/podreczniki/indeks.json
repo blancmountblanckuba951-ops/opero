@@ -1,0 +1,590 @@
+{
+ "tytul": "Podręcznik operatów szacunkowych",
+ "wydanie": "wydanie robocze 2026, stan prawny 1.09.2026",
+ "plik": "Podrecznik-operatow-szacunkowych-2026.pdf",
+ "stron": 567,
+ "rozdzialy": [
+  {
+   "nr": "I.1",
+   "tytul": "Czym jest operat szacunkowy",
+   "strona": 4
+  },
+  {
+   "nr": "I.2",
+   "tytul": "Rodzaje wartości",
+   "strona": 5
+  },
+  {
+   "nr": "I.3",
+   "tytul": "Daty w operacie",
+   "strona": 6
+  },
+  {
+   "nr": "I.4",
+   "tytul": "Stan prawny",
+   "strona": 7
+  },
+  {
+   "nr": "I.5",
+   "tytul": "Stan techniczno-użytkowy",
+   "strona": 8
+  },
+  {
+   "nr": "I.6",
+   "tytul": "Oględziny",
+   "strona": 9
+  },
+  {
+   "nr": "I.7",
+   "tytul": "Przeznaczenie",
+   "strona": 10
+  },
+  {
+   "nr": "I.8",
+   "tytul": "Rynek właściwy",
+   "strona": 11
+  },
+  {
+   "nr": "I.9",
+   "tytul": "Nieruchomość podobna",
+   "strona": 12
+  },
+  {
+   "nr": "I.10",
+   "tytul": "Cena transakcyjna",
+   "strona": 13
+  },
+  {
+   "nr": "I.11",
+   "tytul": "Aktualizacja cen w czasie",
+   "strona": 14
+  },
+  {
+   "nr": "I.12",
+   "tytul": "Jednostka porównawcza",
+   "strona": 15
+  },
+  {
+   "nr": "I.13",
+   "tytul": "Cechy rynkowe",
+   "strona": 16
+  },
+  {
+   "nr": "I.14",
+   "tytul": "Wagi cech",
+   "strona": 17
+  },
+  {
+   "nr": "I.15",
+   "tytul": "Ocena jakości danych",
+   "strona": 18
+  },
+  {
+   "nr": "I.16",
+   "tytul": "Podejście porównawcze",
+   "strona": 19
+  },
+  {
+   "nr": "I.17",
+   "tytul": "Podejście dochodowe",
+   "strona": 20
+  },
+  {
+   "nr": "I.18",
+   "tytul": "Podejście kosztowe",
+   "strona": 21
+  },
+  {
+   "nr": "I.19",
+   "tytul": "Podejście mieszane",
+   "strona": 22
+  },
+  {
+   "nr": "I.20",
+   "tytul": "Uzasadnienie wyboru metody",
+   "strona": 23
+  },
+  {
+   "nr": "I.21",
+   "tytul": "Niepewność wyceny",
+   "strona": 24
+  },
+  {
+   "nr": "I.22",
+   "tytul": "Zaokrąglenia",
+   "strona": 25
+  },
+  {
+   "nr": "I.23",
+   "tytul": "VAT i podatki",
+   "strona": 26
+  },
+  {
+   "nr": "I.24",
+   "tytul": "Klauzule i założenia",
+   "strona": 27
+  },
+  {
+   "nr": "I.25",
+   "tytul": "Załączniki",
+   "strona": 28
+  },
+  {
+   "nr": "I.26",
+   "tytul": "Aktualność operatu",
+   "strona": 29
+  },
+  {
+   "nr": "I.27",
+   "tytul": "Odpowiedzialność zawodowa",
+   "strona": 30
+  },
+  {
+   "nr": "I.28",
+   "tytul": "Etyka i niezależność",
+   "strona": 31
+  },
+  {
+   "nr": "I.29",
+   "tytul": "AI i automatyzacja",
+   "strona": 32
+  },
+  {
+   "nr": "I.30",
+   "tytul": "Kontrola arytmetyczna",
+   "strona": 33
+  },
+  {
+   "nr": "I.31",
+   "tytul": "Kontrola logiczna",
+   "strona": 34
+  },
+  {
+   "nr": "I.32",
+   "tytul": "Kontrola formalna",
+   "strona": 35
+  },
+  {
+   "nr": "I.33",
+   "tytul": "Ścieżka audytowa",
+   "strona": 36
+  },
+  {
+   "nr": "I.34",
+   "tytul": "Analiza wrażliwości",
+   "strona": 37
+  },
+  {
+   "nr": "I.35",
+   "tytul": "Porządek redakcyjny operatu",
+   "strona": 38
+  },
+  {
+   "nr": "I.36",
+   "tytul": "Język operatu",
+   "strona": 39
+  },
+  {
+   "nr": "I.37",
+   "tytul": "Tabele i wykresy",
+   "strona": 40
+  },
+  {
+   "nr": "I.38",
+   "tytul": "Dokumentowanie odrzuceń",
+   "strona": 41
+  },
+  {
+   "nr": "I.39",
+   "tytul": "Zasada spójności",
+   "strona": 42
+  },
+  {
+   "nr": "I.40",
+   "tytul": "Zasada minimalnej koniecznej złożoności",
+   "strona": 43
+  },
+  {
+   "nr": "IV.1",
+   "tytul": "Checklista danych z księgi wieczystej",
+   "strona": 526
+  },
+  {
+   "nr": "IV.2",
+   "tytul": "Checklista EGiB",
+   "strona": 527
+  },
+  {
+   "nr": "IV.3",
+   "tytul": "Checklista planistyczna",
+   "strona": 528
+  },
+  {
+   "nr": "IV.4",
+   "tytul": "Checklista oględzin lokalu",
+   "strona": 529
+  },
+  {
+   "nr": "IV.5",
+   "tytul": "Checklista oględzin gruntu",
+   "strona": 530
+  },
+  {
+   "nr": "IV.6",
+   "tytul": "Checklista obiektu dochodowego",
+   "strona": 531
+  },
+  {
+   "nr": "IV.7",
+   "tytul": "Checklista kosztowa",
+   "strona": 532
+  },
+  {
+   "nr": "IV.8",
+   "tytul": "Checklista porównawcza",
+   "strona": 533
+  },
+  {
+   "nr": "IV.9",
+   "tytul": "Checklista dochodowa",
+   "strona": 534
+  },
+  {
+   "nr": "IV.10",
+   "tytul": "Checklista residual",
+   "strona": 535
+  },
+  {
+   "nr": "IV.11",
+   "tytul": "Matryca źródeł danych",
+   "strona": 536
+  },
+  {
+   "nr": "IV.12",
+   "tytul": "Matryca ryzyk prawnych",
+   "strona": 537
+  },
+  {
+   "nr": "IV.13",
+   "tytul": "Matryca ryzyk technicznych",
+   "strona": 538
+  },
+  {
+   "nr": "IV.14",
+   "tytul": "Matryca ryzyk rynkowych",
+   "strona": 539
+  },
+  {
+   "nr": "IV.15",
+   "tytul": "Słownik: cena vs wartość",
+   "strona": 540
+  },
+  {
+   "nr": "IV.16",
+   "tytul": "Słownik: PGI, EGI, NOI",
+   "strona": 541
+  },
+  {
+   "nr": "IV.17",
+   "tytul": "Słownik: stopa kapitalizacji i dyskontowa",
+   "strona": 542
+  },
+  {
+   "nr": "IV.18",
+   "tytul": "Słownik: zużycie",
+   "strona": 543
+  },
+  {
+   "nr": "IV.19",
+   "tytul": "Tabela: porównywanie parami vs KCM",
+   "strona": 544
+  },
+  {
+   "nr": "IV.20",
+   "tytul": "Tabela: kapitalizacja prosta vs DCF",
+   "strona": 545
+  },
+  {
+   "nr": "IV.21",
+   "tytul": "Tabela: odtworzenie vs zastąpienie",
+   "strona": 546
+  },
+  {
+   "nr": "IV.22",
+   "tytul": "Tabela: wartość rynkowa vs",
+   "strona": 547
+  },
+  {
+   "nr": "IV.23",
+   "tytul": "Formuły szybkiej kontroli",
+   "strona": 548
+  },
+  {
+   "nr": "IV.24",
+   "tytul": "Formuły praw",
+   "strona": 549
+  },
+  {
+   "nr": "IV.25",
+   "tytul": "Formuły rolne i leśne",
+   "strona": 550
+  },
+  {
+   "nr": "IV.26",
+   "tytul": "Formuły opłat",
+   "strona": 551
+  },
+  {
+   "nr": "IV.27",
+   "tytul": "Lista czerwonych flag",
+   "strona": 552
+  },
+  {
+   "nr": "IV.28",
+   "tytul": "Lista pytań do zamawiającego",
+   "strona": 553
+  },
+  {
+   "nr": "IV.29",
+   "tytul": "Lista pytań do zarządcy",
+   "strona": 554
+  },
+  {
+   "nr": "IV.30",
+   "tytul": "Lista pytań do projektanta/dewelopera",
+   "strona": 555
+  },
+  {
+   "nr": "IV.31",
+   "tytul": "Kontrola tabel transakcyjnych",
+   "strona": 556
+  },
+  {
+   "nr": "IV.32",
+   "tytul": "Kontrola arkusza kalkulacyjnego",
+   "strona": 557
+  },
+  {
+   "nr": "IV.33",
+   "tytul": "Kontrola tekstu",
+   "strona": 558
+  },
+  {
+   "nr": "IV.34",
+   "tytul": "Kontrola załączników",
+   "strona": 559
+  },
+  {
+   "nr": "IV.35",
+   "tytul": "Schemat opisu rynku",
+   "strona": 560
+  },
+  {
+   "nr": "IV.36",
+   "tytul": "Schemat opisu nieruchomości",
+   "strona": 561
+  },
+  {
+   "nr": "IV.37",
+   "tytul": "Schemat uzasadnienia wyniku",
+   "strona": 562
+  },
+  {
+   "nr": "IV.38",
+   "tytul": "Schemat recenzji koleżeńskiej",
+   "strona": 563
+  },
+  {
+   "nr": "IV.39",
+   "tytul": "Archiwizacja",
+   "strona": 564
+  },
+  {
+   "nr": "IV.40",
+   "tytul": "Poufność",
+   "strona": 565
+  }
+ ],
+ "typyWycen": [
+  {
+   "nazwa": "Lokal mieszkalny - prawo własności",
+   "odStrony": 44,
+   "kart": 6
+  },
+  {
+   "nazwa": "Dom jednorodzinny z gruntem",
+   "odStrony": 56,
+   "kart": 6
+  },
+  {
+   "nazwa": "Działka budowlana niezabudowana",
+   "odStrony": 62,
+   "kart": 6
+  },
+  {
+   "nazwa": "Biuro na wynajem",
+   "odStrony": 68,
+   "kart": 6
+  },
+  {
+   "nazwa": "Lokal handlowy / retail",
+   "odStrony": 74,
+   "kart": 6
+  },
+  {
+   "nazwa": "Magazyn / logistyka",
+   "odStrony": 80,
+   "kart": 6
+  },
+  {
+   "nazwa": "Hotel",
+   "odStrony": 86,
+   "kart": 6
+  },
+  {
+   "nazwa": "Stacja paliw",
+   "odStrony": 92,
+   "kart": 6
+  },
+  {
+   "nazwa": "Nieruchomość rolna - rynek transakcyjny",
+   "odStrony": 98,
+   "kart": 6
+  },
+  {
+   "nazwa": "Nieruchomość leśna - rynek transakcyjny",
+   "odStrony": 110,
+   "kart": 6
+  },
+  {
+   "nazwa": "Drzewostan i drzewa",
+   "odStrony": 122,
+   "kart": 6
+  },
+  {
+   "nazwa": "Budynek - koszt odtworzenia",
+   "odStrony": 128,
+   "kart": 6
+  },
+  {
+   "nazwa": "Budynek - koszt zastąpienia",
+   "odStrony": 134,
+   "kart": 6
+  },
+  {
+   "nazwa": "Obiekt w budowie",
+   "odStrony": 140,
+   "kart": 6
+  },
+  {
+   "nazwa": "Nieruchomość do likwidacji zabudowy",
+   "odStrony": 146,
+   "kart": 6
+  },
+  {
+   "nazwa": "Grunt deweloperski",
+   "odStrony": 152,
+   "kart": 6
+  },
+  {
+   "nazwa": "Prawo użytkowania wieczystego",
+   "odStrony": 158,
+   "kart": 6
+  },
+  {
+   "nazwa": "wieczystego",
+   "odStrony": 164,
+   "kart": 6
+  },
+  {
+   "nazwa": "Służebność gruntowa - czas oznaczony",
+   "odStrony": 170,
+   "kart": 6
+  },
+  {
+   "nazwa": "Służebność gruntowa - czas nieoznaczony",
+   "odStrony": 176,
+   "kart": 6
+  },
+  {
+   "nazwa": "Służebność przesyłu",
+   "odStrony": 188,
+   "kart": 6
+  },
+  {
+   "nazwa": "Odszkodowanie drogowe",
+   "odStrony": 206,
+   "kart": 6
+  },
+  {
+   "nazwa": "Odszkodowanie kolejowe",
+   "odStrony": 212,
+   "kart": 6
+  },
+  {
+   "nazwa": "planistyczne",
+   "odStrony": 218,
+   "kart": 6
+  },
+  {
+   "nazwa": "Opłata adiacencka - infrastruktura",
+   "odStrony": 224,
+   "kart": 6
+  },
+  {
+   "nazwa": "Opłata adiacencka - podział",
+   "odStrony": 230,
+   "kart": 6
+  },
+  {
+   "nazwa": "Opłata adiacencka - scalenie i podział",
+   "odStrony": 236,
+   "kart": 6
+  },
+  {
+   "nazwa": "Trwały zarząd",
+   "odStrony": 248,
+   "kart": 6
+  },
+  {
+   "nazwa": "Wycena dla zabezpieczenia wierzytelności",
+   "odStrony": 254,
+   "kart": 6
+  },
+  {
+   "nazwa": "Wycena na potrzeby podatkowe",
+   "odStrony": 260,
+   "kart": 6
+  },
+  {
+   "nazwa": "Nieruchomość zabytkowa",
+   "odStrony": 266,
+   "kart": 6
+  },
+  {
+   "nazwa": "Nieruchomość na złożu kopalin",
+   "odStrony": 272,
+   "kart": 6
+  },
+  {
+   "nazwa": "Nakłady na nieruchomość",
+   "odStrony": 290,
+   "kart": 6
+  },
+  {
+   "nazwa": "Szkody na nieruchomości",
+   "odStrony": 296,
+   "kart": 6
+  },
+  {
+   "nazwa": "Wartość dla indywidualnego inwestora",
+   "odStrony": 302,
+   "kart": 6
+  },
+  {
+   "nazwa": "nieruchomością",
+   "odStrony": 320,
+   "kart": 6
+  }
+ ]
+}

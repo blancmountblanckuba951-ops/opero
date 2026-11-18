@@ -1,0 +1,247 @@
+name: OPERO Windows Release
+
+# Buduje GOTOWY instalator OPERO na maszynie Windows GitHuba i wystawia go do
+# pobrania. Dzięki temu nie musisz nic budować u siebie — pobierasz plik .exe.
+#
+# Jak uruchomić:
+#   1. Zakładka Actions → „OPERO Windows Release" → „Run workflow".
+#   2. Po kilkunastu minutach instalator jest w sekcji „Artifacts" tego przebiegu.
+#
+# Wydanie publiczne: wypchnij tag zaczynający się od „v", np. `git tag v1.23.0`
+# i `git push origin v1.23.0`. Workflow utworzy wtedy dodatkowo GitHub Release
+# z instalatorem, paczką portable i sumami SHA-256.
+#
+# WAŻNE od 1.18.0 — model PER nie jedzie przez GitHuba.
+# Model językowy waży ok. 4,5 GB. Pojedynczy plik w GitHub Release może mieć
+# najwyżej 2 GB, a instalator NSIS ma własny limit ok. 2 GB, więc pełnej paczki
+# z modelem w środku fizycznie nie da się tu wystawić. Dlatego CI buduje
+# instalator LEKKI (OPERO_BEZ_MODELU=1): program, Biblia OPERO, wszystko oprócz
+# modelu. Pełną paczkę `OPERO-Setup-<wersja>-pelny.exe` (instalator + silnik +
+# model, złożone przez samorozpakowujące się archiwum 7-Zip) robi się jednym
+# uruchomieniem `buduj.ps1` na komputerze z Windows — tam nie ma limitu 2 GB.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-installer:
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Co mamy na maszynie
+        shell: pwsh
+        run: |
+          Write-Host "Node:      $(node --version)"
+          Write-Host "PowerShell: $($PSVersionTable.PSVersion)"
+          $nsis = Get-Command makensis.exe -ErrorAction SilentlyContinue
+          Write-Host "NSIS:      $(if ($nsis) { $nsis.Source } else { 'brak w PATH - buduj.ps1 pobierze przenosna kopie' })"
+          Write-Host "Pliki w korzeniu:"
+          Get-ChildItem -Name | ForEach-Object { Write-Host "  $_" }
+
+      # Czesta przyczyna niepowodzenia: na GitHubie siedzi STARA paczka zrodel.
+      # Lepiej powiedziec to wprost, niz dac sie wywalic pol godziny pozniej
+      # na niezrozumialym bledzie.
+      - name: Czy paczka zrodel jest aktualna
+        shell: pwsh
+        run: |
+          $brakujace = @()
+          if (-not (Test-Path 'app/package.json'))  { $brakujace += 'app/package.json' }
+          if (-not (Test-Path 'narzedzia/buduj.ps1')) { $brakujace += 'narzedzia/buduj.ps1' }
+          if ($brakujace) { throw "Brakuje plikow: $($brakujace -join ', '). Rozpakuj paczke zrodel jeszcze raz, z podfolderami." }
+          $t = Get-Content 'test/licencja_test.js' -Raw
+          if ($t -notmatch 'APP_DIR') {
+            $m  = "STARA PACZKA ZRODEL.`n"
+            $m += "Testy w tym repozytorium szukaja programu w build\app\, a paczka trzyma go w app\.`n"
+            $m += "Rozpakuj NOWA paczke OPERO-...-github-build.zip (nadpisz folder) i kliknij`n"
+            $m += "ZAINSTALUJ OPERO.bat jeszcze raz - skrypt wysle poprawione zrodla."
+            throw $m
+          }
+          Write-Host "Paczka zrodel wyglada poprawnie."
+
+      - name: Odczytaj wersję z package.json
+        id: meta
+        shell: pwsh
+        run: |
+          $v = (Get-Content app/package.json -Raw | ConvertFrom-Json).version
+          "version=$v" >> $env:GITHUB_OUTPUT
+          Write-Host "Wersja: $v"
+
+      # Testy logiki - te same, ktore uruchamiasz u siebie. Widokowe wymagaja
+      # Chromium i Linuksa, wiec tutaj ich nie ma.
+      # Konce linii musza zostac takie, jakie sa w paczce. Jeden zamieniony bajt
+      # zmienia sume SHA-256 silnikow, a wtedy testy i kontrola sumy
+      # w buduj.ps1 wywalaja sie bez zadnej winy kodu.
+      - name: Czy pliki nie zostaly przerobione przy pobraniu
+        shell: pwsh
+        run: |
+          $crlf = @()
+          foreach ($p in @('app\renderer\calc.bundle.js','app\renderer\report.bundle.js','app\renderer\app.js','app\main.js')) {
+            $b = [System.IO.File]::ReadAllBytes($p)
+            for ($i = 0; $i -lt $b.Length - 1; $i++) {
+              if ($b[$i] -eq 13 -and $b[$i+1] -eq 10) { $crlf += $p; break }
+            }
+          }
+          if ($crlf) {
+            $m  = "PLIKI ZOSTALY PRZEROBIONE PRZY POBRANIU (CRLF): $($crlf -join ', ').`n"
+            $m += "To robi git na Windows, gdy w repozytorium brakuje pliku .gitattributes.`n"
+            $m += "Rozpakuj nowa paczke zrodel (ma juz .gitattributes), zrob commit i push."
+            throw $m
+          }
+          Write-Host "Pliki sa nietkniete - konce linii w porzadku."
+
+      - name: Testy
+        shell: pwsh
+        run: |
+          $zle = @()
+          foreach ($t in @('licencja_test.js','bez_serwera_test.js','biblia_test.js','kontrola_test.js','opinia_test.js','rcn_test.js','per_postac_test.js','zrodlo_modelu_test.js','express_test.js','budowa_test.js')) {
+            Write-Host "--- $t"
+            $wyjscie = node (Join-Path 'test' $t) 2>&1
+            $wyjscie | ForEach-Object { Write-Host $_ }
+            if ($LASTEXITCODE -ne 0) {
+              $zle += [pscustomobject]@{ plik = $t; linie = ($wyjscie | Select-String -Pattern 'BLAD|NIE ' | ForEach-Object { $_.ToString().Trim() }) }
+            }
+          }
+          if ($zle) {
+            Write-Host ""
+            Write-Host "=============== CO DOKLADNIE NIE PRZESZLO ==============="
+            foreach ($z in $zle) {
+              Write-Host ("[" + $z.plik + "]")
+              foreach ($l in $z.linie) { Write-Host ("   " + $l) }
+            }
+            Write-Host "========================================================"
+            throw "$($zle.Count) zestawow testow nie przeszlo - lista powyzej."
+          }
+
+      # Ten sam skrypt, ktorego uzywasz lokalnie - wynik z CI i z Twojego
+      # komputera powstaje dokladnie tak samo. OPERO_TYLKO_BUDUJ wylacza
+      # instalowanie i pytania.
+      # OPERO_BEZ_MODELU pomija krok pobierania silnika i modelu (4,5 GB).
+      # Na CI to jedyna sensowna droga: limit pliku w Release to 2 GB, a NSIS
+      # i tak nie zbuduje instalatora wiekszego. Pelna paczka powstaje lokalnie.
+      - name: Build instalatora (bez modelu - patrz uwaga na gorze pliku)
+        shell: pwsh
+        env:
+          OPERO_TYLKO_BUDUJ: '1'
+          # Klucz publiczny licencji z generatora kluczy (jawny tekst). Ustaw go
+          # w repozytorium: Settings -> Secrets and variables -> Actions -> Variables.
+          OPERO_KLUCZ_PUBLICZNY: ${{ vars.OPERO_KLUCZ_PUBLICZNY }}
+          OPERO_BEZ_MODELU: '1'
+        run: |
+          New-Item -ItemType Directory -Force -Path 'diagnostyka' | Out-Null
+          ./narzedzia/buduj.ps1 2>&1 | Tee-Object -FilePath 'diagnostyka\buduj.log'
+          if ($LASTEXITCODE -ne 0) { throw "narzedzia/buduj.ps1 zakonczyl sie kodem $LASTEXITCODE - log w diagnostyka\buduj.log" }
+
+      # Paczka portable to dodatek. Gdyby pakowanie 360 MB sie nie powiodlo,
+      # instalator i tak jest gotowy - nie przerywamy z tego powodu calego builda.
+      - name: Paczka portable (bez instalacji)
+        continue-on-error: true
+        shell: pwsh
+        env:
+          OPERO_VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          $dir = Join-Path $env:LOCALAPPDATA ("OPERO-budowa\OPERO-" + $env:OPERO_VERSION)
+          if (-not (Test-Path $dir)) { throw "Nie znalazlem zbudowanego programu w $dir" }
+          New-Item -ItemType Directory -Force -Path 'wynik' | Out-Null
+          $zip = Join-Path 'wynik' ("OPERO_" + $env:OPERO_VERSION + "_PORTABLE_WIN64.zip")
+          Compress-Archive -Path $dir -DestinationPath $zip -Force
+          Copy-Item ("OPERO-Setup-" + $env:OPERO_VERSION + ".exe") 'wynik' -Force
+          Write-Host "Portable: $zip"
+
+      - name: Zbiorcze sumy SHA-256
+        shell: pwsh
+        run: |
+          Get-ChildItem 'wynik' -File | Where-Object { $_.Extension -in '.exe', '.zip' } |
+            ForEach-Object {
+              $h = (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash.ToLower()
+              "$h  $($_.Name)"
+            } | Set-Content -Encoding ASCII 'wynik\SHA256SUMS.txt'
+          Get-Content 'wynik\SHA256SUMS.txt'
+
+      - name: Kontrola wyniku
+        shell: pwsh
+        env:
+          OPERO_VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          $exe = Join-Path 'wynik' ("OPERO-Setup-" + $env:OPERO_VERSION + ".exe")
+          if (-not (Test-Path $exe)) { throw "Brak instalatora: $exe" }
+          $mb = [math]::Round((Get-Item $exe).Length / 1MB, 1)
+          if ($mb -lt 40) { throw "Instalator ma tylko $mb MB - to za malo, build jest niekompletny." }
+          Write-Host "Instalator gotowy: $exe ($mb MB)"
+
+      - name: Instalator do pobrania
+        uses: actions/upload-artifact@v4
+        with:
+          name: OPERO-Setup-${{ steps.meta.outputs.version }}
+          path: |
+            wynik/*.exe
+            wynik/*.zip
+            wynik/SHA256SUMS.txt
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Diagnostyka po nieudanym buildzie
+        if: failure()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path 'diagnostyka' | Out-Null
+          "OPERO - diagnostyka builda" | Set-Content 'diagnostyka\OPERO_DIAGNOSTYKA.txt'
+          "data: $(Get-Date -Format o)" | Add-Content 'diagnostyka\OPERO_DIAGNOSTYKA.txt'
+          "node: $(node --version)" | Add-Content 'diagnostyka\OPERO_DIAGNOSTYKA.txt'
+          "--- pliki w korzeniu ---" | Add-Content 'diagnostyka\OPERO_DIAGNOSTYKA.txt'
+          Get-ChildItem -Name | Add-Content 'diagnostyka\OPERO_DIAGNOSTYKA.txt'
+          "--- pamiec podreczna budowy ---" | Add-Content 'diagnostyka\OPERO_DIAGNOSTYKA.txt'
+          $b = Join-Path $env:LOCALAPPDATA 'OPERO-budowa'
+          if (Test-Path $b) { Get-ChildItem $b -Recurse -Depth 1 -Name | Add-Content 'diagnostyka\OPERO_DIAGNOSTYKA.txt' }
+          else { "brak $b" | Add-Content 'diagnostyka\OPERO_DIAGNOSTYKA.txt' }
+          if (Test-Path 'diagnostyka\buduj.log') { "--- ostatnie 60 linii buduj.log ---" | Add-Content 'diagnostyka\OPERO_DIAGNOSTYKA.txt'; Get-Content 'diagnostyka\buduj.log' -Tail 60 | Add-Content 'diagnostyka\OPERO_DIAGNOSTYKA.txt' }
+          Get-Content 'diagnostyka\OPERO_DIAGNOSTYKA.txt'
+
+      - name: Diagnostyka do pobrania
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: OPERO-diagnostyka
+          path: diagnostyka/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      # Publiczne wydanie powstaje wylacznie z tagu, zeby reczne uruchomienia
+      # nie zasmiecaly listy wydan.
+      - name: GitHub Release (tylko dla tagu)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: OPERO ${{ steps.meta.outputs.version }}
+          body: |
+            Instalator Windows x64 dla OPERO ${{ steps.meta.outputs.version }}.
+
+            - `OPERO-Setup-${{ steps.meta.outputs.version }}.exe` — instalator, bez uprawnień administratora.
+            - `OPERO_${{ steps.meta.outputs.version }}_PORTABLE_WIN64.zip` — wersja bez instalacji.
+            - `SHA256SUMS.txt` — sumy kontrolne.
+
+            Asystent PER działa na modelu uruchamianym na Twoim komputerze. Te pliki
+            są wersją bez modelu (limit pliku w GitHub Release to 2 GB, a model waży
+            ok. 4,5 GB). Pełną paczkę z modelem w środku — `OPERO-Setup-${{ steps.meta.outputs.version }}-pelny.exe` —
+            tworzy jedno uruchomienie `buduj.ps1` na Windows; program sam pobiera
+            wtedy silnik i model i pakuje je razem z instalatorem.
+
+            Paczka nie jest podpisana certyfikatem Code Signing, więc SmartScreen może pokazać ostrzeżenie.
+          files: |
+            wynik/*.exe
+            wynik/*.zip
+            wynik/SHA256SUMS.txt

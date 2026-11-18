@@ -1,0 +1,36 @@
+{
+ "standard": "Korzystna",
+ "standardUzasadnienie": "Wykończenie wysokiej jakości, niedawne: łazienki z płytkami wielkoformatowymi, ceramiką podwieszaną i podświetlanymi lustrami, kuchnia w zabudowie do sufitu, oświetlenie liniowe i szynowe, schody z balustradą szklaną, zabudowy na wymiar.",
+ "oceny": {
+  "stan": "Korzystna",
+  "garaz": "Korzystna",
+  "ogrodek": "Przeciętna"
+ },
+ "stanTechniczny": "Stan techniczny bardzo dobry: budynek nowy, na zdjęciach brak śladów zużycia, zawilgoceń i uszkodzeń.",
+ "budynek": "Budynek jednorodzinny w zabudowie bliźniaczej, dwukondygnacyjny z poddaszem użytkowym, nakryty stromym dachem dwuspadowym z pokryciem w kolorze grafitowym. Elewacja jasna, tynkowana, z wstawkami okładziny w kolorze grafitowym; stolarka okienna w kolorze antracytu, brama garażowa segmentowa, drzwi wejściowe w kolorze czarnym. Przed budynkiem dojście z płyt, podjazd żwirowy, trawnik i ogrodzenie panelowe.",
+ "lokal": "Lokal dwupoziomowy. Na parterze wiatrołap, hol z wejściem do pomieszczenia gospodarczego i WC oraz pokój dzienny z aneksem kuchennym i wyjściem do ogrodu; z holu prowadzą schody na piętro. Na piętrze korytarz, trzy sypialnie, w tym sypialnia główna z własną łazienką, oraz łazienka z wanną; pomieszczenia piętra mają skosy dachu. Podłogi wyłożone panelami w kolorze dębu, ściany malowane, częściowo tapetowane i wykończone okładziną drewnopodobną. Garaż wbudowany w bryłę budynku, z posadzką z płytek.",
+ "instalacje": "Na zdjęciach widoczne: kocioł gazowy wiszący w pomieszczeniu gospodarczym, rozdzielnica elektryczna, grzejniki płytowe w pokojach na piętrze, oświetlenie LED (szynowe, liniowe i podświetlenie stopni schodów).",
+ "wyposazenie": "Kuchnia w zabudowie bezuchwytowej do sufitu z płytą indukcyjną i zlewozmywakiem podblatowym. Łazienka na piętrze z wanną przyścienną i umywalką nablatową na szafce, łazienka przy sypialni głównej z kabiną prysznicową bez brodzika, WC na parterze z ceramiką podwieszaną. Szafy wnękowe i regał na wymiar.",
+ "uwagi": [
+  "rodzaj ogrzewania parteru (ogrzewanie podłogowe czy grzejniki)",
+  "pokrycie dachu i zakres ocieplenia budynku",
+  "które meble i sprzęty zostają w lokalu – nie wchodzą do wartości",
+  "powierzchnia pomieszczeń – rzut nie ma zestawienia powierzchni",
+  "położenie względem obszaru ograniczonego użytkowania lotniska"
+ ],
+ "pola": {
+  "building.type": "budynek mieszkalny jednorodzinny w zabudowie bliźniaczej, z dwoma lokalami",
+  "building.storeys": "dwie kondygnacje nadziemne (parter, piętro z poddaszem użytkowym)",
+  "building.roof": "dach dwuspadowy, stromy; pokrycie w kolorze grafitowym (rodzaj pokrycia do potwierdzenia)",
+  "building.facade": "tynk w jasnym kolorze, wstawki okładziny w kolorze grafitowym",
+  "building.condition": "bardzo dobry – budynek nowy, bez widocznych śladów zużycia",
+  "building.parking": "garaż w bryle budynku z bramą segmentową; miejsce postojowe na podjeździe",
+  "building.lift": "nie dotyczy (budynek jednorodzinny)",
+  "local.kitchenType": "aneks kuchenny w pokoju dziennym, zabudowa meblowa do sufitu, płyta indukcyjna",
+  "local.bathrooms": "dwie łazienki na piętrze (z wanną; przy sypialni głównej z kabiną prysznicową) i WC na parterze",
+  "local.floors": "panele w kolorze dębu; płytki w łazienkach, WC i garażu",
+  "local.walls": "ściany malowane, częściowo tapeta i okładzina drewnopodobna; w łazienkach płytki wielkoformatowe",
+  "local.windows": "okna w ramach białych od wewnątrz i antracytowych od zewnątrz; drzwi tarasowe w pokoju dziennym",
+  "local.standardLevel": "wysoki"
+ }
+}

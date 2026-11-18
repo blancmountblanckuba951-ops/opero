@@ -1,0 +1,5 @@
+Tu leży biblia.json — cała Biblia OPERO, która jedzie razem z programem.
+
+Plik powstaje narzędziem narzedzia/eksport-biblii.js i jest wgrywany do folderu
+danych przy pierwszym uruchomieniu. Dopóki go nie ma, Agrafek odpowiada tylko
+tym, co użytkownik ma już u siebie na dysku.

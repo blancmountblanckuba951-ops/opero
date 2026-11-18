@@ -1,0 +1,5 @@
+Silnik odczytu pisma w OPERO (offline):
+- tesseract.js 5.1.1 (dist/tesseract.min.js, dist/worker.min.js) — Apache License 2.0 (LICENSE.md)
+- tesseract.js-core 5.1.1 (core/*.wasm.js) — Apache License 2.0 (core/LICENSE)
+- model języka polskiego: @tesseract.js-data/pol 1.0.0, wariant 4.0.0_best_int (tessdata_best, Google) — Apache License 2.0
+Pobrane z cdn.jsdelivr.net (pakiety npm) 18.11.2026.

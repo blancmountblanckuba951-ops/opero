@@ -1,0 +1,12 @@
+# Git na Windows domyslnie zamienia konce linii na CRLF przy pobraniu plikow.
+# Dla OPERO to katastrofa: zmieniony bajt to zmieniona suma SHA-256, wiec
+# silniki calc.bundle.js i report.bundle.js przestaja sie zgadzac z odciskiem,
+# a app.asar spakowany z takich plikow ma inna sume niz ta w buduj.ps1.
+# Dlatego: nie ruszaj NICZEGO. Pliki maja trafic na dysk bajt w bajt.
+* -text
+
+app.asar  binary
+*.ico     binary
+*.exe     binary
+*.png     binary
+*.xlsx    binary
