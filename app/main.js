@@ -3009,6 +3009,13 @@ async function chmuraWywolaj(wiadomosci, opcje){
   if (!s.gotowosc.aktywny) throw new Error('Model w chmurze nie jest włączony.');
   const z = chmuraLogika.zadanie(s.ustawienia, sekretOdczytaj(CHMURA_KLUCZ_STAN), wiadomosci, opcje);
   if (!z) throw new Error('Nie udało się złożyć zapytania do modelu w chmurze.');
+  if (z.wymagaLicencji) {
+    // Mózg OPERO wpuszcza tylko program z ważną licencją — wysyłamy klucz licencji (nie klucz prywatny).
+    const row = safeJsonRead(licenseStatePath(), null);
+    z.body.licencja = String(row?.klucz || '');
+    z.body.program = `OPERO ${app.getVersion()}`;
+    if (!z.body.licencja) throw new Error('Mózg OPERO wymaga aktywnej licencji OPERO.');
+  }
   let odp;
   try { odp = await zapytanieRaz(z.url, { method: 'POST', headers: z.naglowki, body: JSON.stringify(z.body) }, 240000); }
   catch (e) { logToFile('WARN', 'Model w chmurze', String(e?.message || e)); throw new Error(`Model w chmurze: ${String(e?.message || e)}.`); }
@@ -3066,6 +3073,33 @@ ipcMain.handle('chmura:zdjecia', async (_e, z) => {
     return { ok: true, text: w.text, zdjec: obrazy.length };
   } catch (e) { return { ok: false, powod: String(e?.message || e) }; }
 });
+/* 3.4: WIZJA — Claude czyta obrazy dokumentów i zdjęcia (zrzuty i skany ksiąg,
+   rzuty, zdjęcia elewacji i wnętrz, mapy). Obraz: ścieżka pliku albo data URL. */
+function wizjaObraz(zrodlo, krawedz){
+  let img = null;
+  const t = String(zrodlo || '');
+  const m = /^data:image\/(?:png|jpeg|webp);base64,(.+)$/.exec(t);
+  if (m) img = nativeImage.createFromBuffer(Buffer.from(m[1], 'base64'));
+  else if (t && fs.existsSync(t)) img = nativeImage.createFromPath(t);
+  if (!img || img.isEmpty()) return null;
+  const r = img.getSize(), k = Math.max(256, Math.min(2000, Number(krawedz) || 1568));
+  if (Math.max(r.width, r.height) > k) img = r.width >= r.height ? img.resize({ width: k, quality: 'best' }) : img.resize({ height: k, quality: 'best' });
+  return `data:image/jpeg;base64,${img.toJPEG(82).toString('base64')}`;
+}
+ipcMain.handle('chmura:wizja', async (_e, z) => {
+  requireActiveLicense();
+  if (!chmuraAktywna()) return { ok: false, brakChmury: true, powod: 'Mózg AI jest wyłączony — włącz go w Ustawieniach (Mózg OPERO, Claude).' };
+  const obrazy = (Array.isArray(z?.obrazy) ? z.obrazy : []).slice(0, 20).map(o => wizjaObraz(o, z?.krawedz)).filter(Boolean).map(dataUrl => ({ type: 'image', dataUrl }));
+  if (!obrazy.length && !String(z?.polecenie || '').trim()) return { ok: false, powod: 'Brak obrazów i polecenia.' };
+  const wiadomosci = [];
+  if (z?.system) wiadomosci.push({ role: 'system', content: String(z.system).slice(0, 20000) });
+  wiadomosci.push({ role: 'user', content: [...obrazy, { type: 'text', text: String(z?.polecenie || '').slice(0, 150000) }] });
+  try {
+    const w = await chmuraWywolaj(wiadomosci, { maks: Math.min(8000, Number(z?.maks) || 3000) });
+    return { ok: true, text: w.text, obrazow: obrazy.length };
+  } catch (e) { return { ok: false, powod: String(e?.message || e) }; }
+});
+
 ipcMain.handle('chmura:probuj', async () => {
   requireActiveLicense();
   try { const w = await chmuraWywolaj([{ role: 'user', content: 'Odpowiedz jednym słowem: działa.' }], { maks: 200 }); return { ok: true, tekst: w.text.slice(0, 120) }; }
@@ -3288,6 +3322,8 @@ async function wsadJeden(plik, postep){
     if (WSAD_OBRAZY.test(plik)){
       const img = nativeImage.createFromBuffer(fs.readFileSync(plik));
       if (img.isEmpty()) return { nazwa, ok: false, powod: 'nieobsługiwany format obrazu' };
+      // 3.4: przy włączonym mózgu AI obraz rozpoznaje Claude (rodzaj, treść, okładka) — bez lokalnego OCR.
+      if (chmuraAktywna()) return { nazwa, ok: true, rodzaj: 'obraz', sciezka: plik, zdjecie: preparePhoto(plik) };
       const ocena = wsadCzyDokument(img);
       const nazwaMowi = /kw|ksi[eę]g|ekw|rzut|plan|szkic|wypis|mapa/i.test(nazwa);
       if (ocena.dokument || nazwaMowi || ext === '.png'){
@@ -3444,6 +3480,13 @@ async function pdfCzytaj(dane, { postep = null, maksStron = 900 } = {}){
     let zrodlo = 'tekst';
     if (tekst.replace(/\s/g, '').length < 40){
       const img = await pdfObrazStrony(pdfjs, strona);
+      // 3.4: krótkie skany (księga, wypis, decyzja) czyta Claude — strona idzie jako obraz.
+      if (img && chmuraAktywna() && doc.numPages <= 12){
+        const r = img.getSize(); const k = 1568; const m = Math.max(r.width, r.height) > k ? (r.width >= r.height ? img.resize({ width: k, quality: 'best' }) : img.resize({ height: k, quality: 'best' })) : img;
+        strony.push({ nr, tekst, zrodlo: 'obraz', obraz: `data:image/jpeg;base64,${m.toJPEG(82).toString('base64')}` });
+        strona.cleanup();
+        continue;
+      }
       if (img){
         postep && postep(`odczyt pisma: strona ${nr} z ${ile}`);
         const o = await ocrDwaPrzebiegi(img, { tylkoOryginal: true });

@@ -17,7 +17,11 @@
  */
 'use strict';
 
+/** 3.4: Mózg OPERO — Claude przez serwer automatyzacji n8n autora programu.
+ *  Klient nie potrzebuje własnego klucza: wpuszcza go ważna licencja OPERO. */
+const CH_MOZG_OPERO = 'https://matio.app.n8n.cloud/webhook/opero-mozg';
 const CH_DOSTAWCY = [
+  { id: 'opero', nazwa: 'Mózg OPERO (Claude, bez własnego klucza)', baza: CH_MOZG_OPERO, stalaBaza: true, bezKlucza: true, strona: '' },
   { id: 'anthropic', nazwa: 'Anthropic (Claude)', baza: 'https://api.anthropic.com', stalaBaza: true, strona: 'https://console.anthropic.com/' },
   { id: 'zgodny', nazwa: 'Inny dostawca (format OpenAI)', baza: 'https://api.openai.com', stalaBaza: false, strona: '' },
 ];
@@ -35,18 +39,19 @@ function chBaza(dostawca, adres){
 
 function chUstawieniaCzyste(u){
   const x = u && typeof u === 'object' ? u : {};
-  const dostawca = chDostawca(x.dostawca) ? x.dostawca : 'anthropic';
+  const dostawca = chDostawca(x.dostawca) ? x.dostawca : 'opero';
   return {
-    wlaczony: x.wlaczony === true, zgoda: x.zgoda === true, dostawca,
+    // 3.4: agenci pracują wyłącznie modelem w chmurze — domyślnie włączony (zgodę daje człowiek).
+    wlaczony: x.wlaczony !== false, zgoda: x.zgoda === true, dostawca,
     baza: chBaza(dostawca, x.baza), model: String(x.model || '').trim().replace(/[^A-Za-z0-9._:\/\-]/g, '').slice(0, 120),
   };
 }
 
 /** Model w chmurze pracuje tylko wtedy, gdy WSZYSTKIE warunki sa spelnione. */
 function chGotowosc(u, jestKlucz){
-  const x = chUstawieniaCzyste(u), brak = [];
-  if (!jestKlucz) brak.push('klucz');
-  if (!x.model) brak.push('nazwa modelu');
+  const x = chUstawieniaCzyste(u), brak = [], d = chDostawca(x.dostawca) || {};
+  if (!d.bezKlucza && !jestKlucz) brak.push('klucz');
+  if (!d.bezKlucza && !x.model) brak.push('nazwa modelu');
   if (!x.baza) brak.push('adres serwera (https)');
   if (!x.zgoda) brak.push('zgoda na wysyłanie treści operatu');
   return { aktywny: x.wlaczony && !brak.length, wlaczony: x.wlaczony, brak, dostawca: x.dostawca, model: x.model };
@@ -61,6 +66,7 @@ function chNaglowki(dostawca, klucz){
 /** Zadanie napisania tekstu. `wiadomosci`: [{role:'system'|'user'|'assistant', content}] */
 function chZadanie(u, klucz, wiadomosci, opcje){
   const x = chUstawieniaCzyste(u), o = opcje || {};
+  if (x.dostawca === 'opero') return chZadanieOpero(wiadomosci, o);
   if (!x.baza || !x.model || !klucz) return null;
   // Tresc moze byc tekstem albo lista czesci: {type:'text', text} i {type:'image', dataUrl}.
   const czesci = (c, format) => {
@@ -90,6 +96,25 @@ function chZadanie(u, klucz, wiadomosci, opcje){
   return { url: `${x.baza}/v1/chat/completions`, metoda: 'POST', naglowki: chNaglowki('zgodny', klucz), body: { model: x.model, messages: lista, max_tokens: maks } };
 }
 
+/** Mózg OPERO: { licencja, system, polecenie, obrazy[], maks } — licencję dokłada proces główny. */
+function chZadanieOpero(wiadomosci, o){
+  const lista = Array.isArray(wiadomosci) ? wiadomosci : [];
+  const system = lista.filter(m => m.role === 'system').map(m => String(m.content || '')).join('\n\n');
+  const teksty = [], obrazy = [];
+  for (const m of lista.filter(m => m.role !== 'system')){
+    if (Array.isArray(m.content)){
+      for (const c of m.content){
+        if (c?.type === 'text' && c.text) teksty.push(String(c.text));
+        else if (c?.type === 'image' && /^data:image\/(jpeg|png|webp);base64,/.test(String(c.dataUrl || ''))) obrazy.push(c.dataUrl);
+      }
+    } else if (m.content) teksty.push((m.role === 'assistant' ? 'Twoja wcześniejsza odpowiedź: ' : '') + String(m.content));
+  }
+  const polecenie = teksty.join('\n\n').trim();
+  if (!polecenie) return null;
+  const maks = Math.min(8000, Math.max(200, Number(o.maks) || 2500));
+  return { url: CH_MOZG_OPERO, metoda: 'POST', naglowki: { 'content-type': 'application/json' }, body: { system, polecenie, obrazy: obrazy.slice(0, 20), maks }, wymagaLicencji: true };
+}
+
 function chZadanieListy(u, klucz){
   const x = chUstawieniaCzyste(u);
   if (!x.baza || !klucz) return null;
@@ -114,6 +139,14 @@ function chKomunikatBledu(status, tekst){
 
 /** Tekst z odpowiedzi – w obu formatach. */
 function chZOdpowiedzi(dostawca, status, tekst){
+  if (dostawca === 'opero'){
+    let j = null; try { j = JSON.parse(String(tekst || '')); } catch {}
+    if (Array.isArray(j)) j = j[0];
+    if (status === 401 || (j && j.ok === false)) return { ok: false, powod: `Mózg OPERO: ${j?.powod || 'odmowa dostępu (licencja)'}` };
+    if (!(status >= 200 && status < 300)) return { ok: false, powod: `Mózg OPERO nie odpowiedział poprawnie (kod ${status}). Spróbuj za chwilę.` };
+    const t = String(j?.text || '').trim().replace(/^```[a-z]*\n?|\n?```$/g, '').trim();
+    return t ? { ok: true, text: t, uciety: false } : { ok: false, powod: 'Mózg OPERO nie zwrócił tekstu.' };
+  }
   if (!(status >= 200 && status < 300)) return { ok: false, powod: chKomunikatBledu(status, tekst) };
   let j = null; try { j = JSON.parse(String(tekst || '')); } catch { return { ok: false, powod: 'Dostawca modelu zwrócił odpowiedź, której nie da się odczytać.' }; }
   let wynik = '';
@@ -125,6 +158,7 @@ function chZOdpowiedzi(dostawca, status, tekst){
 }
 
 const API_CHMURA = {
+  MOZG_OPERO: CH_MOZG_OPERO, zadanieOpero: chZadanieOpero,
   DOSTAWCY: CH_DOSTAWCY, dostawca: chDostawca, baza: chBaza, ustawienia: chUstawieniaCzyste, gotowosc: chGotowosc,
   zadanie: chZadanie, zadanieListy: chZadanieListy, zListy: chZListy, zOdpowiedzi: chZOdpowiedzi, komunikatBledu: chKomunikatBledu,
 };

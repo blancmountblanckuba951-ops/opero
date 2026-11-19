@@ -184,7 +184,7 @@ function studioCzasRysuj(){
 function studioZnaczki(){
   const ustaw = (id, t, stan) => { const e = $(id); if (e){ e.textContent = t; e.dataset.stan = stan || ''; } };
   const g = studioMozg?.gotowosc;
-  ustaw('#agenciMozg', g?.aktywny ? `Mózg: chmura · ${g.model}` : 'Mózg: model lokalny PER', g?.aktywny ? 'chmura' : '');
+  ustaw('#agenciMozg', g?.aktywny ? (g.dostawca === 'opero' ? 'Mózg: Claude (Mózg OPERO)' : `Mózg: Claude · ${g.model}`) : 'Mózg AI: wyłączony — kliknij, by włączyć', g?.aktywny ? 'chmura' : '');
   const ile = (studioPamiec?.wzorce || []).length;
   ustaw('#agenciWzorce', ile && studioPamiec.uzywaj ? `Wzorce: ${ile} ${ile === 1 ? 'operat' : ile < 5 ? 'operaty' : 'operatów'}` : ile ? 'Wzorce: wyłączone' : 'Wzorce: brak', ile && studioPamiec.uzywaj ? 'jest' : '');
   const w = studioWa?.gotowosc;
@@ -238,7 +238,7 @@ function studioRaportRysuj(){
   el.innerHTML = `
     <div class="raport-glowa">
       <div><span class="eyebrow">${p.stan === 'gotowe' ? 'RAPORT ZESPOŁU' : 'PRACA ZATRZYMANA'}</span><h3>${p.stan === 'gotowe' ? (zatw ? 'Operat zatwierdzony' : 'Operat gotowy do Twojej weryfikacji') : 'Zespół nie dokończył pracy'}</h3>
-        <p>${escapeHTML(studioAdres() || 'Operat bez adresu')} · czas pracy ${escapeHTML(r.czasTekst)} · ${r.przebiegi} ${A.odmien(r.przebiegi, 'przebieg', 'przebiegi', 'przebiegów')} · ${r.mozg === 'chmura' ? 'model w chmurze' : 'model lokalny PER'}</p></div>
+        <p>${escapeHTML(studioAdres() || 'Operat bez adresu')} · czas pracy ${escapeHTML(r.czasTekst)} · ${r.przebiegi} ${A.odmien(r.przebiegi, 'przebieg', 'przebiegi', 'przebiegów')} · ${r.mozg === 'chmura' ? 'Claude (AI w chmurze)' : 'bez AI'}</p></div>
       <div class="raport-wartosc"><span>Wartość</span><b>${studioZl(wartosc)}</b><small>${jedn > 0 ? `${studioZl(jedn)}/m²` : 'brak wyniku — zobacz, czego zabrakło'}</small></div>
     </div>
     ${s.werdykt ? `<div class="raport-werdykt ${s.werdykt.zatwierdzony ? 'ok' : 'uwaga'}"><b>${s.werdykt.zatwierdzony ? '✓' : '!'}</b><div><span class="eyebrow">WERDYKT ZESPOŁU NADZORU · ${s.werdykt.rund} ${A.odmien(s.werdykt.rund, 'narada', 'narady', 'narad')}</span><p>${escapeHTML(s.werdykt.tekst)}</p></div></div>` : ''}
@@ -470,6 +470,12 @@ const AGENCI_PRACA = {
         $('#opisKwPole')?.classList.add('hidden');
       } else if (wklejone.length >= 20) braki.push('Wklejony tekst nie wygląda na księgę wieczystą — skopiuj całą stronę działu z EKW razem z nagłówkiem.');
     }
+    // 3.4: pola odczytane przez Claude z obrazów księgi uzupełniają to, czego nie przeczytał parser.
+    const zWizji = studioStan().kwZWizji;
+    if (zWizji && window.OperoWizja){
+      const w = window.OperoWizja.ksiegaDoProjektu(project, zWizji);
+      if (w.length) zrobione.push(`Claude odczytał z księgi i wpisał w puste pola: ${w.join(', ')} (oznaczone „ze zrzutu księgi — porównaj z księgą").`);
+    }
     k.krok('sprawdzam cyfrę kontrolną');
     const nr = String(project.legal?.kwLocal || '').trim();
     if (nr){
@@ -479,7 +485,7 @@ const AGENCI_PRACA = {
     } else braki.push('Brak numeru księgi wieczystej.');
     k.krok('oceniam stan prawny');
     const ocena = A.ocenStanPrawny(project.legal);
-    if (ocena.stan === 'brak') braki.push(nr ? 'Mam numer, ale nie mam treści księgi — otwórz ją w EKW, skopiuj działy (Ctrl+A, Ctrl+C) i wklej w oknie „Treść księgi". Program nie pobiera ksiąg sam.' : 'Nie dostałem treści księgi — stanu prawnego nie oceniam.');
+    if (ocena.stan === 'brak') braki.push(nr ? 'Mam numer, ale nie mam treści księgi — wrzuć zrzuty/PDF księgi albo kliknij „⚖ Księga z EKW" i otwórz działy.' : 'Nie dostałem treści księgi — wrzuć zrzuty, PDF albo użyj „⚖ Księga z EKW".');
     else {
       (ocena.stan === 'nieokreslony' ? braki : zrobione).push(`Ocena stanu prawnego: ${ocena.tekst}`);
       for (const d of ocena.dobrze) zrobione.push(d);
@@ -935,9 +941,27 @@ async function agenciWykonaj(id, kontekst){
   return x;
 }
 
+/** 3.4: mózg AI (Claude) jest warunkiem pracy agentów — jednorazowa zgoda na wysyłanie treści. */
+async function studioZgodaMozg(){
+  if (!studioAPI('chmuraStan') || !studioAPI('chmuraZapisz')) return true;
+  if (!studioMozg) { try { studioMozg = await window.operatAPI.chmuraStan(); } catch {} }
+  if (studioMozg?.gotowosc?.aktywny) return true;
+  const u = studioMozg?.ustawienia || {};
+  if ((u.dostawca || 'opero') !== 'opero' && (studioMozg?.gotowosc?.brak || []).some(b => /klucz|model|adres/.test(b))) {
+    studioMowi(`Mózg AI nie jest gotowy — brakuje: ${studioMozg.gotowosc.brak.join(', ')}. Uzupełnij w Ustawieniach albo wybierz „Mózg OPERO”.`, 'pytanie'); return false;
+  }
+  if (!confirm('Agenci OPERO pracują modelem Claude (AI w chmurze): czytają zrzuty i PDF-y ksiąg, rozpoznają zdjęcia, piszą i sprawdzają operat.\n\nTreść dokumentów i operatu zostanie wysłana do modelu. Zgadzasz się?')) {
+    studioMowi('Bez zgody na mózg AI agenci nie mogą czytać dokumentów ani pisać operatu.', 'pytanie'); return false;
+  }
+  try { studioMozg = await window.operatAPI.chmuraZapisz({ ustawienia: { ...u, wlaczony: true, zgoda: true, dostawca: u.dostawca || 'opero' } }); } catch (e) { studioMowi(cleanRemoteError(e), 'uwaga'); return false; }
+  if (typeof mozgOdswiez === 'function') await mozgOdswiez();
+  return !!studioMozg?.gotowosc?.aktywny;
+}
+
 async function agenciUruchom(){
   const O = window.OperoOpis, A = window.OperoAgenci;
   if (!O || !A || agenciTrwa) return null;
+  if (!(await studioZgodaMozg())) return null;
   const opis = String($('#opisTekst')?.value || '').trim();
   studioZlecenieStart = studioZlecenieZPol();
   const kwTekst = String($('#opisKwTekst')?.value || '').trim();
@@ -1110,9 +1134,9 @@ async function mozgOdswiez(){
   try { studioMozg = await window.operatAPI.chmuraStan(); } catch { return; }
   const u = studioMozg.ustawienia, g = studioMozg.gotowosc;
   const stan = $('#mozgStan');
-  if (stan) stan.textContent = g.aktywny ? `model w chmurze · ${g.model}` : u.wlaczony ? `model lokalny PER (chmura czeka na: ${g.brak.join(', ')})` : 'model lokalny PER';
-  const radio = document.querySelector(`input[name="mozgTryb"][value="${u.wlaczony ? 'chmura' : 'lokalny'}"]`); if (radio) radio.checked = true;
-  $('#mozgChmura')?.classList.toggle('hidden', !u.wlaczony);
+  if (stan) stan.textContent = g.aktywny ? (u.dostawca === 'opero' ? 'Mózg OPERO · Claude' : `Claude · ${g.model}`) : `wyłączony — brakuje: ${g.brak.join(', ') || 'włączenia'}`;
+  const wlasny = u.dostawca !== 'opero';
+  ['#mozgKluczPole', '#mozgModelPole', '#mozgModele', '#mozgUsunKlucz'].forEach(id => $(id)?.classList.toggle('hidden', !wlasny));
   if ($('#mozgDostawca')) $('#mozgDostawca').value = u.dostawca;
   if ($('#mozgBaza') && document.activeElement !== $('#mozgBaza')) $('#mozgBaza').value = u.dostawca === 'zgodny' ? u.baza : '';
   $('#mozgBazaPole')?.classList.toggle('hidden', u.dostawca !== 'zgodny');
@@ -1123,20 +1147,19 @@ async function mozgOdswiez(){
 }
 
 function mozgZFormularza(){
-  const chmura = document.querySelector('input[name="mozgTryb"]:checked')?.value === 'chmura';
-  return { wlaczony: chmura, zgoda: !!$('#mozgZgoda')?.checked, dostawca: $('#mozgDostawca')?.value || 'anthropic', baza: $('#mozgBaza')?.value || '', model: $('#mozgModel')?.value || '' };
+  return { wlaczony: true, zgoda: !!$('#mozgZgoda')?.checked, dostawca: $('#mozgDostawca')?.value || 'opero', baza: $('#mozgBaza')?.value || '', model: $('#mozgModel')?.value || '' };
 }
 
 async function mozgZapisz({ cicho = false } = {}){
   if (!studioAPI('chmuraZapisz')) return false;
   const kom = $('#mozgKomunikat'), u = mozgZFormularza(), klucz = String($('#mozgKlucz')?.value || '').trim();
-  if (u.wlaczony && !u.zgoda){ if (kom) kom.textContent = 'Żeby włączyć model w chmurze, zaznacz zgodę na wysyłanie treści operatu do dostawcy.'; return false; }
+  if (!u.zgoda){ if (kom) kom.textContent = 'Zaznacz zgodę — bez niej agenci nie mogą czytać dokumentów ani pisać operatu.'; return false; }
   try {
     studioMozg = await window.operatAPI.chmuraZapisz({ ustawienia: u, klucz });
     if ($('#mozgKlucz')) $('#mozgKlucz').value = '';
     await mozgOdswiez();
     const g = studioMozg.gotowosc;
-    if (kom && !cicho) kom.textContent = g.aktywny ? `Zapisane. Agenci piszą i oceniają modelem ${g.model}.` : u.wlaczony ? `Zapisane, ale model w chmurze jeszcze nie pracuje — brakuje: ${g.brak.join(', ')}.` : 'Zapisane. Agenci pracują na modelu lokalnym PER — nic nie wychodzi z komputera.';
+    if (kom && !cicho) kom.textContent = g.aktywny ? `Zapisane. Agenci pracują modelem Claude${u.dostawca === 'opero' ? ' (Mózg OPERO)' : ` (${g.model})`}.` : `Zapisane, ale mózg jeszcze nie pracuje — brakuje: ${g.brak.join(', ')}.`;
     return true;
   } catch (e) { if (kom) kom.textContent = cleanRemoteError(e); return false; }
 }
@@ -1400,7 +1423,7 @@ function hookStudio(){
   });
   // Ustawienia agentow
   document.querySelectorAll('input[name="mozgTryb"]').forEach(r => r.addEventListener('change', () => $('#mozgChmura')?.classList.toggle('hidden', mozgZFormularza().wlaczony !== true)));
-  $('#mozgDostawca')?.addEventListener('change', () => $('#mozgBazaPole')?.classList.toggle('hidden', $('#mozgDostawca').value !== 'zgodny'));
+  $('#mozgDostawca')?.addEventListener('change', () => { const v = $('#mozgDostawca').value; $('#mozgBazaPole')?.classList.toggle('hidden', v !== 'zgodny'); ['#mozgKluczPole', '#mozgModelPole', '#mozgModele', '#mozgUsunKlucz'].forEach(id => $(id)?.classList.toggle('hidden', v === 'opero')); });
   $('#mozgZapisz')?.addEventListener('click', () => mozgZapisz());
   $('#mozgModele')?.addEventListener('click', mozgModele);
   $('#mozgProbuj')?.addEventListener('click', mozgProbuj);

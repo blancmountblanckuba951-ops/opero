@@ -1,3 +1,51 @@
+OPERO 3.4.0 — AGENCI MYŚLĄ CLAUDE'EM: CZYTAJĄ KSIĘGI, ZDJĘCIA I PDF-Y
+====================================================================
+
+Silnik obliczeń i generator raportu bez zmian (te same sumy kontrolne).
+
+MÓZG AGENTÓW = CLAUDE (MODEL LOKALNY USUNIĘTY Z PRACY AGENTÓW)
+--------------------------------------------------------------
+Wszyscy agenci, pisanie opisów, weryfikacja i rozmowa z asystentem idą do
+modelu Claude. Model lokalny PER nie jest już używany (karta PER i jej
+przycisk zniknęły z programu).
+Dwie drogi:
+  1. Mózg OPERO (domyślnie) — Claude przez Twój serwer n8n
+     (matio.app.n8n.cloud, przepływ „OPERO — Mózg AI (Claude)”).
+     Klient NIE potrzebuje własnego klucza: serwer wpuszcza tylko program
+     z ważną licencją OPERO (sprawdza podpis Twoim kluczem publicznym
+     i datę ważności). Za AI płacisz Ty, centralnie, jednym kluczem.
+  2. Własny klucz Anthropic albo inny dostawca — w Ustawieniach.
+Przy pierwszym uruchomieniu program prosi o zgodę na wysyłanie treści
+dokumentów do modelu (dane z ksiąg to dane osobowe).
+
+CLAUDE CZYTA WSZYSTKO, CO WRZUCISZ
+---------------------------------
+  - Każdy obraz (PNG, JPG): Claude rozpoznaje, czy to zrzut księgi, rzut,
+    elewacja domu, wnętrze (i jakie pomieszczenie), otoczenie, mapa czy
+    dokument; nadaje podpis do dokumentacji fotograficznej.
+  - Księga ze zrzutów/skanów: Claude przepisuje działy znak w znak
+    (tekst idzie do Agenta Ksiąg) i wypisuje pola: numer, sąd, adres,
+    powierzchnię, udział, księgę macierzystą, właścicieli, działy III i IV.
+    Pola trafiają tylko do PUSTYCH rubryk, oznaczone „porównaj z księgą”.
+  - PDF ze skanem do 12 stron (wydruk księgi, wypis z planu, z ewidencji,
+    akt, decyzja): Claude rozpoznaje rodzaj i przepisuje treść; wypis
+    z planu trafia też do opisu planistycznego. Długie skany (podręcznik)
+    czyta lokalny silnik pisma, żeby nie wysyłać setek stron.
+  - OKŁADKA: Claude wskazuje najlepsze zdjęcie budynku z zewnątrz; to ono
+    jest na stronie tytułowej (wcześniej było nią pierwsze wrzucone
+    zdjęcie — bywał nim zrzut księgi).
+
+CO MUSISZ ZROBIĆ JEDEN RAZ (n8n)
+--------------------------------
+Darmowe kredyty AI w n8n nie obsługują tych zapytań (sprawdziłem —
+„Gateway credits don't currently support this operation”). Dlatego:
+  1. W n8n: Credentials → Add credential → Anthropic → wklej SWÓJ klucz
+     API z console.anthropic.com (klucza nie podawaj mnie).
+  2. Daj znać — podepnę go do przepływu „OPERO — Mózg AI (Claude)”,
+     sprawdzę na żywo i opublikuję. Do tego czasu Mózg OPERO odpowiada
+     błędem, a w Ustawieniach możesz wybrać „Anthropic — mój klucz”.
+
+
 OPERO 3.3.0 — SPRAWDZONE NA ŻYWO: REJESTR CEN, GEOPORTAL, EKW, ODCZYT PISMA
 ========================================================================
 

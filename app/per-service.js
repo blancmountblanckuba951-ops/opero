@@ -124,10 +124,9 @@ function utworz(pomoc) {
   const chmura = pomoc.chmura || null;
   const wChmurze = () => { try { return !!chmura?.aktywna(); } catch { return false; } };
   async function modelDoPisania(wiadomosci) {
+    // 3.4: agenci piszą wyłącznie modelem w chmurze (Claude). Model lokalny nie jest już używany.
     if (wChmurze()) { const w = await chmura.wywolaj(wiadomosci, { maks: 3000 }); return { content: w.text, zrodlo: 'chmura' }; }
-    await dopilnujSilnika();
-    const w = await wywolajModel(wiadomosci, false);
-    return { content: w.content, zrodlo: 'PER' };
+    throw new Error('Mózg AI jest wyłączony albo brak zgody na wysyłanie treści — włącz go w Ustawieniach → Mózg agentów (Mózg OPERO, Claude).');
   }
   const biblia = pomoc.biblia || null;
 
@@ -299,6 +298,12 @@ function utworz(pomoc) {
   }
 
   async function pytajModel(pytanie, historia, kontekst) {
+    // 3.4: rozmowa też idzie do Claude (bez modelu lokalnego).
+    if (wChmurze()) {
+      const w = await chmura.wywolaj([{ role: 'system', content: wiadomoscStartowa(kontekst) }, ...(historia || []).filter(m => m && m.content), { role: 'user', content: pytanie }], { maks: 3000 });
+      return { text: w.text, model: 'Claude', toolTrace: [], rounds: 1, engine: 'CHMURA' };
+    }
+    throw new Error('Mózg AI jest wyłączony — włącz go w Ustawieniach → Mózg agentów (Mózg OPERO, Claude).');
     await dopilnujSilnika();
     const wiadomosci = [{ role: 'system', content: wiadomoscStartowa(kontekst) }, ...historia, { role: 'user', content: pytanie }];
     const slad = [];

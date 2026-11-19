@@ -632,10 +632,24 @@ function renderPairComparisons(){
 
 // Generator dokumentu zalezny od rodzaju wyceny. `report.bundle.js` jest zamrozony,
 // wiec operat dochodowy sklada osobny plik, pozyczajac z niego wylacznie styl (buildCSS).
+/* 3.4: okładka. Generator raportu bierze zdjęcie z kategorii „Okładka", a gdy jej
+   nie ma — PIERWSZE zdjęcie (bywał nim zrzut księgi). Do wydruku podajemy kopię
+   projektu, w której pierwsze jest zdjęcie wybrane na okładkę (elewacja domu). */
+function okladkaZdjecie(p){
+  const ph=(p&&p.photos)||[];
+  const dok=x=>['kw','dokument','rzut','mapa','legenda'].includes(x.rodzajDokumentu)||['Dokumenty','Załącznik'].includes(x.category);
+  return ph.find(x=>x.category==='Okładka')||ph.find(x=>x.cover&&!dok(x))||ph.find(x=>x.category==='Budynek'&&!dok(x))||ph.find(x=>!dok(x))||null;
+}
+function projektDoWydruku(){
+  const c=okladkaZdjecie(project); const ph=project.photos||[];
+  if(!c||ph[0]===c||ph.some(x=>x.category==='Okładka')) return project;
+  return {...project,photos:[c,...ph.filter(x=>x!==c)]};
+}
 function zbudujRaportSurowy(){
-  if(jestModulOgolny()&&window.OperoModulyRaport) return window.OperoModulyRaport.buildHTML(project,moduleCode());
-  if(moduleCode()==='income'&&window.OperoIncomeReport) return window.OperoIncomeReport.buildHTML(project,calc);
-  return getReport().buildHTML(project,calc);
+  const p=projektDoWydruku();
+  if(jestModulOgolny()&&window.OperoModulyRaport) return window.OperoModulyRaport.buildHTML(p,moduleCode());
+  if(moduleCode()==='income'&&window.OperoIncomeReport) return window.OperoIncomeReport.buildHTML(p,calc);
+  return getReport().buildHTML(p,calc);
 }
 // Operat przygotowany przez agentow ma na wydruku znak wodny az do zatwierdzenia
 // (studio.js). Sam generator raportu pozostaje nietkniety.
@@ -2915,7 +2929,7 @@ function pokazBlokadePDF(braki){
   el.scrollIntoView({block:'center'});
 }
 function ukryjBlokadePDF(){ document.getElementById('pdfBlokada')?.classList.add('hidden'); }
-async function exportPDF(){try{const issues=allCriticalIssues();if(issues.length){renderFinalIssues();if(!document.querySelector('#tab-result')?.classList.contains('active'))switchTab('result');pokazBlokadePDF(issues);showValidationBubble(issues);showStatus(`PDF zablokowany: brakuje ${issues.length} danych krytycznych. Uzupełnij listę kontroli końcowej.`,'error',8500);return;}ukryjBlokadePDF();calc=obliczProjekt();await ensureMapsQR(false);const R=getReport();let html=R.buildHTML(project,calc);if(!html||html.length<500)throw new Error('Generator raportu zwrócił pustą treść.');if(typeof studioZnakWodny==='function')html=studioZnakWodny(html);const p=project.property||{};const defaultName=`Operat_${p.city||'lokal'}_${(p.street||'').replace(/\s+/g,'_')}_${p.buildingNo||''}_${p.localNo||''}.pdf`.replace(/[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ_.-]/g,'_');showStatus('Generowanie PDF…','info',0);const r=await window.operatAPI.exportPDF({html,defaultName,meta:{accent:project.appearance.accent,headerText:project.appearance.headerText,footerText:project.appearance.footerText,showHeaderFooter:project.appearance.showHeaderFooter}});if(!r.canceled){await saveCurrentToHistory(r.filePath);showStatus(`PDF zapisany: ${r.filePath}`,'info',7000);}else $('#statusBar').classList.add('hidden');}catch(e){console.error(e);showStatus(`Nie udało się wygenerować PDF: ${cleanRemoteError(e)}`,'error',10000);}}
+async function exportPDF(){try{const issues=allCriticalIssues();if(issues.length){renderFinalIssues();if(!document.querySelector('#tab-result')?.classList.contains('active'))switchTab('result');pokazBlokadePDF(issues);showValidationBubble(issues);showStatus(`PDF zablokowany: brakuje ${issues.length} danych krytycznych. Uzupełnij listę kontroli końcowej.`,'error',8500);return;}ukryjBlokadePDF();calc=obliczProjekt();await ensureMapsQR(false);let html=zbudujRaportSurowy();if(!html||html.length<500)throw new Error('Generator raportu zwrócił pustą treść.');if(typeof studioZnakWodny==='function')html=studioZnakWodny(html);const p=project.property||{};const defaultName=`Operat_${p.city||'lokal'}_${(p.street||'').replace(/\s+/g,'_')}_${p.buildingNo||''}_${p.localNo||''}.pdf`.replace(/[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ_.-]/g,'_');showStatus('Generowanie PDF…','info',0);const r=await window.operatAPI.exportPDF({html,defaultName,meta:{accent:project.appearance.accent,headerText:project.appearance.headerText,footerText:project.appearance.footerText,showHeaderFooter:project.appearance.showHeaderFooter}});if(!r.canceled){await saveCurrentToHistory(r.filePath);showStatus(`PDF zapisany: ${r.filePath}`,'info',7000);}else $('#statusBar').classList.add('hidden');}catch(e){console.error(e);showStatus(`Nie udało się wygenerować PDF: ${cleanRemoteError(e)}`,'error',10000);}}
 
 // Samouczek 1.8.0 zyje w module na koncu pliku (PRZEWODNIK/pokazPrzewodnik).
 
@@ -3190,7 +3204,7 @@ function hookPanelPeraDelegacja(){
 }
 
 /* ===========================================================
-   USTAWIENIA 3.3.1 — profil, wlasny model, zywe tlo
+   USTAWIENIA 3.4.0 — profil, wlasny model, zywe tlo
    =========================================================== */
 
 /**

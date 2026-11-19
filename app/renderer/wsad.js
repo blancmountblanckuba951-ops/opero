@@ -62,7 +62,13 @@ async function wsadPdf(p, kom){
   kom(`Czytam PDF: ${p.nazwa}…`);
   const r = await window.operatAPI.pdfCzytaj({ sciezka: p.sciezka }).catch(e => ({ ok: false, powod: cleanRemoteError(e) }));
   if (!r?.ok) return { rodzaj: 'blad', opis: r?.powod || 'nie udało się odczytać' };
-  const strony = r.strony || [], calosc = strony.map(s => s.tekst).join('\n');
+  const strony = r.strony || [];
+  const zObrazami = strony.filter(x => x.obraz);
+  if (zObrazami.length && studioAPI('chmuraWizja') && window.OperoWizja){
+    const w = await wsadWizjaDokument(p, zObrazami, kom);
+    if (w) return w;
+  }
+  const calosc = strony.map(s => s.tekst).join('\n');
   const W = window.OperoWiedza;
   if (W && W.czyPodrecznik(strony)){
     await window.operatAPI.podrecznikDodaj({ nazwa: p.nazwa.replace(/\.pdf$/i, ''), strony, zrodlo: r.zOcr ? 'ocr' : 'tekst' });
@@ -82,11 +88,12 @@ async function wsadPdf(p, kom){
 async function wsadPrzyjmij(pliki){
   const O = window.OperoOcr;
   const kom = t => { const e = $('#wsadStan'); if (e) e.textContent = t; };
-  const kw = [];
+  const kw = [], obrazy = [];
   let zdjec = 0;
   for (const p of (pliki || [])){
     try {
       if (!p.ok){ wsadDopisz('blad', p.nazwa, p.powod); continue; }
+      if (p.rodzaj === 'obraz'){ obrazy.push(p); continue; }
       if (p.rodzaj === 'kw'){ kw.push({ nazwa: p.nazwa, ok: true, ...p.ocr }); if (p.zdjecie) wsadDodajZdjecie(p.zdjecie, { kategoria: 'Dokumenty', podpis: `Zrzut księgi wieczystej — ${p.nazwa}`, rodzajDokumentu: 'kw' }); wsadDopisz('kw', p.nazwa, 'zrzut ekranu – odczyt pisma'); continue; }
       if (p.rodzaj === 'rzut'){
         wsadDodajZdjecie(p.zdjecie, { kategoria: 'Dokumenty', podpis: `Rzut lokalu — ${p.nazwa}`, rodzajDokumentu: 'rzut' });
@@ -126,6 +133,7 @@ async function wsadPrzyjmij(pliki){
     } catch (e){ console.error(e); wsadDopisz('blad', p.nazwa, cleanRemoteError(e)); }
   }
   if (kw.length && O){ wsadDodajKsiege(O.zrzutyNaTekst(kw), true); }
+  if (obrazy.length) zdjec += await wsadWizjaObrazy(obrazy, kom);
   changed({ fullDynamic: true }); renderPhotos(); renderFiles();
   studioPodpis = ''; studioRysuj(); wsadRysuj();
   const ile = (pliki || []).length;
@@ -134,8 +142,87 @@ async function wsadPrzyjmij(pliki){
   wsadRysuj();
 }
 
+/* 3.4: Claude ogląda obrazy — rozpoznaje rodzaj, przepisuje księgę, wybiera okładkę. */
+async function wsadWizjaObrazy(lista, kom){
+  const V = window.OperoWizja, zabud = typeof isPairModule === 'function' && isPairModule();
+  let klasy = [];
+  for (let i = 0; i < lista.length; i += 10){
+    const partia = lista.slice(i, i + 10);
+    kom(`Claude ogląda obrazy ${i + 1}–${i + partia.length} z ${lista.length}…`);
+    const r = await window.operatAPI.chmuraWizja({ obrazy: partia.map(p => p.zdjecie?.dataUrl || p.sciezka), system: V.SYSTEM, polecenie: V.polecenieKlasyfikacji(partia.map(p => p.nazwa)), krawedz: 1000, maks: 3000 }).catch(e => ({ ok: false, powod: cleanRemoteError(e) }));
+    if (!r?.ok) wsadDopisz('blad', `obrazy ${i + 1}–${i + partia.length}`, `Claude nie obejrzał obrazów: ${r?.powod || 'błąd'} — dodałem je jako zdjęcia`);
+    klasy = klasy.concat(V.klasyfikacja(r?.ok ? r.text : '', partia.length).map(k => (r?.ok ? k : { ...k, rodzaj: 'inne', zModelu: false })));
+  }
+  // Księga: wszystkie strony razem, w pełnej rozdzielczości.
+  const kwy = lista.filter((_, i) => klasy[i]?.rodzaj === 'kw');
+  if (kwy.length){
+    kom(`Claude przepisuje księgę wieczystą (${kwy.length} ${kwy.length === 1 ? 'obraz' : 'obrazy'})…`);
+    const r = await window.operatAPI.chmuraWizja({ obrazy: kwy.slice(0, 12).map(p => p.sciezka || p.zdjecie?.dataUrl), system: V.SYSTEM, polecenie: V.polecenieKsiegi(), krawedz: 1568, maks: 8000 }).catch(e => ({ ok: false, powod: cleanRemoteError(e) }));
+    const k = r?.ok ? V.ksiega(r.text) : { ok: false };
+    if (k.ok){
+      if (k.tekst) wsadDodajKsiege(k.tekst, true);
+      studioStan().kwZWizji = k.pola;
+      kwy.forEach(p => wsadDopisz('kw', p.nazwa, `księga przepisana przez Claude${k.pola.numerKsiegi ? ` (${k.pola.numerKsiegi})` : ''}`));
+    } else kwy.forEach(p => wsadDopisz('blad', p.nazwa, `księga nieodczytana: ${r?.powod || 'model nie zwrócił treści'}`));
+  }
+  let zdjec = 0;
+  const dodane = [];
+  lista.forEach((p, i) => {
+    const k = klasy[i] || { rodzaj: 'inne' };
+    if (!p.zdjecie) return;
+    if (k.rodzaj === 'kw'){ wsadDodajZdjecie(p.zdjecie, { kategoria: 'Dokumenty', podpis: `Księga wieczysta — ${p.nazwa}`, rodzajDokumentu: 'kw' }); return; }
+    if (k.rodzaj === 'rzut'){
+      wsadDodajZdjecie(p.zdjecie, { kategoria: 'Dokumenty', podpis: k.podpis || `Rzut — ${p.nazwa}`, rodzajDokumentu: 'rzut' });
+      project.attachments = Array.isArray(project.attachments) ? project.attachments : [];
+      if (!project.attachments.some(a => /rzut/i.test(a))) project.attachments.push('Rzut lokalu');
+      wsadDopisz('rzut', p.nazwa, 'rzut — rozpoznany przez Claude'); return;
+    }
+    if (k.rodzaj === 'mapa' || k.rodzaj === 'dokument'){
+      wsadDodajZdjecie(p.zdjecie, { kategoria: k.rodzaj === 'mapa' ? 'Załącznik' : 'Dokumenty', podpis: k.podpis || p.nazwa, rodzajDokumentu: k.rodzaj === 'mapa' ? 'mapa' : 'dokument' });
+      wsadDopisz('zalacznik', p.nazwa, k.rodzaj === 'mapa' ? 'mapa' : 'dokument'); return;
+    }
+    const kategoria = k.rodzaj === 'inne' ? (zabud ? 'Budynek' : 'Lokal') : V.kategoria(k.rodzaj, zabud);
+    if (wsadDodajZdjecie(p.zdjecie, { kategoria, podpis: k.podpis || wsadPodpisZdjecia(p.nazwa) })){
+      zdjec++; dodane.push({ p, k, foto: project.photos[project.photos.length - 1] });
+      if (k.uwagi) studioStan().uwagiZeZdjec = [...(studioStan().uwagiZeZdjec || []), `${k.podpis || p.nazwa}: ${k.uwagi}`].slice(-40);
+    }
+    wsadDopisz('zdjecie', p.nazwa, k.zModelu ? `${k.rodzaj === 'elewacja' ? 'elewacja' : k.rodzaj === 'otoczenie' ? 'otoczenie' : k.rodzaj === 'wnetrze' ? `wnętrze${k.pomieszczenie ? ' — ' + k.pomieszczenie : ''}` : 'zdjęcie'}` : 'zdjęcie');
+  });
+  // Okładka: najlepsza elewacja wskazana przez Claude.
+  const nr = V.okladka(dodane.map(d => d.k));
+  if (nr >= 0){
+    (project.photos || []).forEach(f => { f.cover = false; });
+    dodane[nr].foto.cover = true;
+    wsadDopisz('zdjecie', dodane[nr].p.nazwa, 'wybrane na okładkę operatu (elewacja)');
+  }
+  return zdjec;
+}
+
+/** Krótki skan PDF (księga, wypis, akt) — Claude rozpoznaje i przepisuje. */
+async function wsadWizjaDokument(p, strony, kom){
+  const V = window.OperoWizja;
+  kom(`Claude czyta „${p.nazwa}” (${strony.length} str.)…`);
+  const r = await window.operatAPI.chmuraWizja({ obrazy: strony.slice(0, 12).map(s => s.obraz), system: V.SYSTEM, polecenie: V.polecenieDokumentu(p.nazwa), krawedz: 1568, maks: 8000 }).catch(e => ({ ok: false, powod: cleanRemoteError(e) }));
+  if (!r?.ok) return null;
+  const j = V.json(r.text) || {};
+  const tekst = String(j.tekst || '').trim(), rodzaj = String(j.rodzaj || '');
+  if (rodzaj === 'kw' || wsadCzyKsiega(tekst)){
+    const k = await window.operatAPI.chmuraWizja({ obrazy: strony.slice(0, 12).map(s => s.obraz), system: V.SYSTEM, polecenie: V.polecenieKsiegi(), krawedz: 1568, maks: 8000 }).catch(() => null);
+    const kk = k?.ok ? V.ksiega(k.text) : { ok: false };
+    wsadDodajKsiege(kk.ok && kk.tekst ? kk.tekst : tekst, true);
+    if (kk.ok) studioStan().kwZWizji = kk.pola;
+    return { rodzaj: 'kw', opis: `księga (skan PDF) przepisana przez Claude${kk.pola?.numerKsiegi ? ` — ${kk.pola.numerKsiegi}` : ''}` };
+  }
+  if (rodzaj === 'operat' && window.OperoPamiec){ await pamiecDodajTeksty([{ nazwa: p.nazwa, ok: true, tekst }]); return { rodzaj: 'wzor', opis: 'operat (skan) jako wzór stylu' }; }
+  project.files = project.files || [];
+  project.files.push({ id: newId(), name: p.nazwa, originalPath: p.sciezka, extension: 'pdf', mime: 'application/pdf', size: p.rozmiar, description: j.tytul || 'Dokument źródłowy', includeInPDF: false, tekst: tekst.slice(0, 30000), streszczenie: String(j.streszczenie || '').slice(0, 600), rodzajDokumentu: rodzaj });
+  if (/wypis_mpzp/.test(rodzaj) && tekst){ project.planning = project.planning || {}; if (!String(project.planning.description || '').trim()) project.planning.description = String(j.streszczenie || '').slice(0, 1500); }
+  return { rodzaj: 'zalacznik', opis: `${j.tytul || 'dokument'} — przeczytany przez Claude` };
+}
+
 async function wsadZSciezek(sciezki){
   if (wsadTrwa || !sciezki.length || !studioAPI('wsadSciezki')) return;
+  if (typeof studioZgodaMozg === 'function') await studioZgodaMozg();
   wsadTrwa = true; $('#wsadPole')?.classList.add('pracuje');
   try { const r = await window.operatAPI.wsadSciezki(sciezki); await wsadPrzyjmij(r?.pliki || []); }
   catch (e){ const k = $('#wsadStan'); if (k) k.textContent = cleanRemoteError(e); }
@@ -144,6 +231,7 @@ async function wsadZSciezek(sciezki){
 
 async function wsadWybierz(){
   if (wsadTrwa || !studioAPI('wsadWybierz')) return;
+  if (typeof studioZgodaMozg === 'function') await studioZgodaMozg();
   wsadTrwa = true; $('#wsadPole')?.classList.add('pracuje');
   try { const r = await window.operatAPI.wsadWybierz(); if (!r?.canceled) await wsadPrzyjmij(r.pliki || []); }
   catch (e){ const k = $('#wsadStan'); if (k) k.textContent = cleanRemoteError(e); }

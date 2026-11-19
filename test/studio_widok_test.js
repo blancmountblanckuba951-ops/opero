@@ -22,7 +22,7 @@ const T = (n, w, d) => { if (w) { ok++; console.log('  OK   ' + n); } else { zle
     raport:document.querySelector('#agenciRaport').classList.contains('hidden'), guzik:document.querySelector('#agenciStart').textContent.trim()};`);
   T('ekran Start to Studio operatu z szesnastoma agentami', start.studio && start.stan === 'opis' && start.agentow === 16, start);
   T('praca ręczna zostaje pod ręką', start.reczne);
-  T('domyślnie mózgiem jest model lokalny, WhatsApp jednym kliknięciem', /lokalny PER/.test(start.mozg) && /jednym kliknięciem/.test(start.wa), [start.mozg, start.wa]);
+  T('domyślnie mózg AI czeka na zgodę, WhatsApp jednym kliknięciem', /Mózg AI: wyłączony/.test(start.mozg) && /jednym kliknięciem/.test(start.wa), [start.mozg, start.wa]);
   T('przed pracą nie ma raportu', start.raport && /Uruchom zespół agentów/.test(start.guzik));
 
   const pusty = await p.ocen(`const r=await agenciUruchom(); return {r, kom:document.querySelector('#agenciKomunikat').textContent, przebieg:!!project.agenci?.przebieg};`);
@@ -80,7 +80,7 @@ const T = (n, w, d) => { if (w) { ok++; console.log('  OK   ' + n); } else { zle
   T('Agent Formalny wylicza braki formalne (daty); autora wziął z Ustawień', !tok.formalny.some(x => /autora/.test(x)) && tok.formalny.some(x => /Data oględzin|Brakuje dat/.test(x)) && !tok.formalny.some(x => /klauzul/.test(x)), tok.formalny);
   T('Agent Krytyk nazywa sprzeczności', tok.krytyk.some(x => /ocenach wyjściowych/.test(x)) && tok.krytyk.some(x => /nie obroni się/.test(x)), tok.krytyk);
   T('opis zlecenia jest zapisany w operacie', w.opisZapisany > 50);
-  T('zespół nie zadał żadnego pytania w trakcie', w.pytania === 0, w.pytania);
+  T('zespół zapytał tylko raz — o zgodę na mózg AI — i dalej nie pytał', w.pytania === 1, w.pytania);
 
   const sc = await p.ocen(`switchTab('result'); await new Promise(r=>setTimeout(r,300));
     const k=[...document.querySelectorAll('#wynikSciezka .sciezka-krok')].map(b=>({n:b.querySelector('b').textContent,stan:b.dataset.stan,t:b.querySelector('small').textContent}));
@@ -146,20 +146,21 @@ const T = (n, w, d) => { if (w) { ok++; console.log('  OK   ' + n); } else { zle
   T('WhatsApp: po wpisaniu danych wysyłka jest automatyczna, a token znika z pola', /automatycznie/.test(ust.b.stan) && ust.b.token === '' && /automatycznie/.test(ust.b.znaczek), ust.b);
   T('WhatsApp: zły numer odrzucony', ust.zle === false && /numer/.test(ust.c));
 
-  const mozg = await p.ocen(`document.querySelector('input[name=mozgTryb][value=chmura]').click();
-    const widac=!document.querySelector('#mozgChmura').classList.contains('hidden');
+  const mozg = await p.ocen(`window.__chmura={}; await mozgOdswiez(); const sel=document.querySelector('#mozgDostawca'); sel.value='anthropic'; sel.dispatchEvent(new Event('change'));
+    document.querySelector('#mozgZgoda').checked=false;
+    const widac=!document.querySelector('#mozgKluczPole').classList.contains('hidden');
     document.querySelector('#mozgKlucz').value='sk-test-0123456789abcdef'; document.querySelector('#mozgModel').value='model-a';
     const bezZgody=await mozgZapisz(); const k1=document.querySelector('#mozgKomunikat').textContent;
     document.querySelector('#mozgZgoda').checked=true; const zeZgoda=await mozgZapisz();
     const a={stan:document.querySelector('#mozgStan').textContent, znaczek:document.querySelector('#agenciMozg').textContent, klucz:document.querySelector('#mozgKlucz').value, aktywny:studioMozg.gotowosc.aktywny};
     await mozgModele(); const lista=document.querySelectorAll('#mozgModeleLista option').length;
     await mozgProbuj(); const proba=document.querySelector('#mozgKomunikat').textContent;
-    document.querySelector('input[name=mozgTryb][value=lokalny]').click(); await mozgZapisz();
+    sel.value='opero'; sel.dispatchEvent(new Event('change')); await mozgZapisz();
     return {widac,bezZgody,k1,zeZgoda,a,lista,proba, wrocil:document.querySelector('#mozgStan').textContent, aktywny2:studioMozg.gotowosc.aktywny};`);
   T('model w chmurze: bez zgody nie da się włączyć', mozg.widac && mozg.bezZgody === false && /zgod/.test(mozg.k1), mozg.k1);
-  T('model w chmurze: po zgodzie pracuje, klucz znika z pola', mozg.zeZgoda && mozg.a.aktywny && /chmur/.test(mozg.a.stan) && /chmura/.test(mozg.a.znaczek) && mozg.a.klucz === '', mozg.a);
+  T('własny klucz Anthropic: po zgodzie pracuje, klucz znika z pola', mozg.zeZgoda && mozg.a.aktywny && /Claude · model-a/.test(mozg.a.stan) && /Claude · model-a/.test(mozg.a.znaczek) && mozg.a.klucz === '', mozg.a);
   T('model w chmurze: lista modeli i próba połączenia', mozg.lista === 2 && /działa/.test(mozg.proba), [mozg.lista, mozg.proba]);
-  T('powrót do modelu lokalnego jednym wyborem', /lokalny PER/.test(mozg.wrocil) && mozg.aktywny2 === false, mozg.wrocil);
+  T('powrót do Mózgu OPERO jednym wyborem (bez klucza)', /Mózg OPERO/.test(mozg.wrocil) && mozg.aktywny2 === true, mozg.wrocil);
 
   const pam = await p.ocen(`const naglowki='1. PRZEDMIOT WYCENY\\n'+'Przedmiotem wyceny jest lokal mieszkalny położony w budynku wielorodzinnym. '.repeat(4)+'\\n4. Opis lokalizacji\\n'+'Nieruchomość położona jest w dzielnicy o zabudowie wielorodzinnej, w odległości 350 m od przystanku. W sąsiedztwie znajdują się szkoła oraz sklepy. '.repeat(2);
     window.__pamiecPliki={canceled:false,pliki:[{nazwa:'Zaspa 2025.docx',ok:true,tekst:naglowki},{nazwa:'zly.docx',ok:false,powod:'to nie jest dokument Word (.docx)'}]};
@@ -196,7 +197,7 @@ const T = (n, w, d) => { if (w) { ok++; console.log('  OK   ' + n); } else { zle
     return {ile:wys.length, start:/zaczynam operat/.test(wys[0]||''), koniec:/gotowy do weryfikacji/.test(wys[wys.length-1]||''), kom:document.querySelector('#agenciKomunikat').textContent,
       tr:project.market.transactions.length, znak:zbudujRaport().includes('opero-znak-wodny'), kontroler:project.agenci.przebieg.agenci.kontroler.zrobione, pytania:window.__pytania.length, model:project.agenci.weryfikacja.uwagi.filter(u=>u.zModelu).length};`);
   T('WhatsApp automatycznie: wiadomość na start i na koniec', drugi.ile === 2 && drugi.start && drugi.koniec && /wysłany/.test(drugi.kom), drugi);
-  T('ponowne uruchomienie dopisuje do tego samego operatu, bez pytania', drugi.pytania === 0 && drugi.tr >= 5, [drugi.pytania, drugi.tr]);
+  T('ponowne uruchomienie dopisuje do tego samego operatu, bez nowego pytania (jedyne było o zgodę na mózg AI)', drugi.pytania === 1 && drugi.tr >= 5, [drugi.pytania, drugi.tr]);
   T('jeden przebieg: kontroler nie powtarza', drugi.kontroler.some(x => /Jeden przebieg/.test(x)), drugi.kontroler);
   T('odpowiedź modelu „BRAK" nie tworzy uwag', drugi.model === 0);
   T('po zatwierdzeniu znak wodny znika', drugi.znak === false);

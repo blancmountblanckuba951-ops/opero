@@ -145,7 +145,7 @@ T('WhatsApp: wersja interfejsu z ustawień albo domyślna', WA.ustawienia({ wers
 // ---- model w chmurze
 const u = { wlaczony: true, zgoda: true, dostawca: 'anthropic', model: 'model-x' };
 T('chmura: aktywna tylko z kluczem, modelem i zgodą', C.gotowosc(u, true).aktywny === true && C.gotowosc(u, false).aktywny === false && C.gotowosc({ ...u, zgoda: false }, true).aktywny === false && C.gotowosc({ ...u, model: '' }, true).aktywny === false);
-T('chmura: wyłączona domyślnie', C.gotowosc({}, true).aktywny === false && C.ustawienia({}).wlaczony === false);
+T('chmura (3.4): domyślnie Mózg OPERO, czeka tylko na zgodę', C.gotowosc({}, true).aktywny === false && C.ustawienia({}).wlaczony === true && C.ustawienia({}).dostawca === 'opero' && C.gotowosc({ zgoda: true }, false).aktywny === true);
 const z1 = C.zadanie(u, 'KLUCZ', [{ role: 'system', content: 'S' }, { role: 'user', content: 'U' }]);
 T('chmura: format Anthropic – system osobno, nagłówek x-api-key', z1.url === 'https://api.anthropic.com/v1/messages' && z1.body.system === 'S' && z1.body.messages.length === 1 && z1.naglowki['x-api-key'] === 'KLUCZ' && z1.naglowki['anthropic-version'] === '2023-06-01' && z1.body.max_tokens > 0);
 const z2 = C.zadanie({ ...u, dostawca: 'zgodny', baza: 'https://api.example.com/v1/' }, 'K', [{ role: 'system', content: 'S' }, { role: 'user', content: 'U' }]);

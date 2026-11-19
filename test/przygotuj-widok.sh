@@ -90,6 +90,7 @@ window.operatAPI={
   ekwOkno:async(q)=>{window.__ekwOkno=q;return {ok:true,kw:q.kw||''};},
   onEkwTekst:(cb)=>{window.__ekwCb=cb;return ()=>{};},
   onEkwKoniec:(cb)=>{window.__ekwKoniecCb=cb;return ()=>{};},
+  chmuraWizja:async(z)=>{(window.__wizjaZapytania=window.__wizjaZapytania||[]).push(z);if(typeof window.__wizjaOdp==='function')return window.__wizjaOdp(z);return window.__wizjaOdp||{ok:false,powod:'brak stubu wizji'};},
   geoportalDzialka:async(q)=>{(window.__geoZapytania=window.__geoZapytania||[]).push(q);if(window.__geoOdpMapa)return window.__geoOdpMapa[q.id]||{ok:false,powod:'ULDK nie zna tej działki.'};return window.__geoOdp||{ok:false,powod:'brak stubu (test)'};},
   geoportalOkno:async(q)=>{window.__geoOkno=q;return window.__geoOknoOdp||{ok:false,powod:'brak stubu (test)'};},
   adresPodpowiedzi:async(f)=>(window.__adresy||[]),

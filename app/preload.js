@@ -41,6 +41,7 @@ contextBridge.exposeInMainWorld('operatAPI', {
   ekwOkno: (q) => ipcRenderer.invoke('ekw:okno', q),
   onEkwTekst: (cb) => { const f = (_e, d) => cb(d); ipcRenderer.on('ekw:tekst', f); return () => ipcRenderer.removeListener('ekw:tekst', f); },
   onEkwKoniec: (cb) => { const f = (_e, d) => cb(d); ipcRenderer.on('ekw:koniec', f); return () => ipcRenderer.removeListener('ekw:koniec', f); },
+  chmuraWizja: (z) => ipcRenderer.invoke('chmura:wizja', z),
   geoportalDzialka: (q) => ipcRenderer.invoke('geoportal:dzialka', q),
   geoportalOkno: (q) => ipcRenderer.invoke('geoportal:okno', q),
   adresPodpowiedzi: (q) => ipcRenderer.invoke('adres:podpowiedzi', q),
