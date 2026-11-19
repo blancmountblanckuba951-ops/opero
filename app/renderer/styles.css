@@ -4319,3 +4319,8 @@ label.auto-wpisane .pole-naglowek-tresc::after, label.auto-wpisane:not(:has(.pol
 .wynik-szczegoly>summary{cursor:pointer;font-weight:700;padding:12px 16px;border-radius:12px;background:var(--card,#fff);border:1px solid var(--line,#ddd)}
 .zbieracz-karta{margin-bottom:16px}
 .zbieracz-wl{display:flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap}
+/* 3.4.1: fakty odczytane przez Claude */
+.opis-zeton.claude{border-color:rgba(150,200,255,.42);background:rgba(120,170,255,.1)}
+.opis-zeton.claude small::after{content:" · Claude";color:#9cc4ff}
+#opisFakty[data-claude="czyta"]::before{content:"Claude czyta opis…";display:block;font-size:11px;color:#9cc4ff;margin:4px 0;animation:zetonWejscie .4s both}
+.opis-claude-blad{font-size:11px;color:#ffb89c;margin:6px 0 0}

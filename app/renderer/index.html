@@ -275,13 +275,13 @@
       <div class="szablony-glowa"><b>Moje szablony</b><span>Nowy operat ze stałymi elementami Twojej pracy: cel, podstawy, źródła, klauzule, cechy z wagami i układ dokumentu.</span></div>
       <div id="szablonyLista" class="szablony-lista"></div>
     </div>
-    <div class="module-roadmap-note"><b>Wersja 3.4.0</b><span>Działa osiem rodzajów wyceny: lokal / SWPL, nieruchomość zabudowana, dochodowa (kapitalizacja i DCF), kosztowa, wywłaszczenie, opłata adiacencka i planistyczna, służebność oraz nieruchomość rolna i leśna. Wzory i wymagania danych pochodzą z Biblii OPERO.</span></div>
+    <div class="module-roadmap-note"><b>Wersja 3.4.1</b><span>Działa osiem rodzajów wyceny: lokal / SWPL, nieruchomość zabudowana, dochodowa (kapitalizacja i DCF), kosztowa, wywłaszczenie, opłata adiacencka i planistyczna, służebność oraz nieruchomość rolna i leśna. Wzory i wymagania danych pochodzą z Biblii OPERO.</span></div>
   </div>
 </div>
 
 <div id="tlo" class="tlo" aria-hidden="true"><span class="tlo-warstwa tlo-w1"><span class="tlo-plama tlo-1"></span><span class="tlo-plama tlo-2"></span></span><span class="tlo-warstwa tlo-w2"><span class="tlo-plama tlo-3"></span><span class="tlo-plama tlo-4"></span><span class="tlo-horyzont"></span></span><span class="tlo-warstwa tlo-w3"><span class="tlo-siatka"></span><span class="tlo-welon"></span></span><span class="tlo-warstwa tlo-w4"><span class="tlo-pyl tlo-pyl-daleki"></span><span class="tlo-pyl tlo-pyl-bliski"></span></span><span class="tlo-fale" aria-hidden="true"><svg viewBox="0 0 1440 320" preserveAspectRatio="none" focusable="false"><path class="tlo-fala tlo-fala-1" d="M0,160 C240,96 480,224 720,176 C960,128 1200,208 1440,160 L1440,320 L0,320 Z"/><path class="tlo-fala tlo-fala-2" d="M0,200 C200,152 420,256 720,208 C1020,160 1240,248 1440,200 L1440,320 L0,320 Z"/><path class="tlo-fala tlo-fala-3" d="M0,240 C260,200 460,288 760,248 C1060,208 1230,280 1440,244 L1440,320 L0,320 Z"/><path class="tlo-fala tlo-fala-4" d="M0,272 C220,244 500,300 780,268 C1040,238 1250,296 1440,270 L1440,320 L0,320 Z"/></svg></span><span class="tlo-swiatlo"></span><span class="tlo-winieta"></span><span class="tlo-ziarno"></span></div><div id="app" class="hidden-until-auth">
   <aside class="sidebar">
-    <div class="brand"><img src="../assets/logo.svg" alt="OPERO"><div><strong>OPERO</strong><span>system operatów · 3.4.0</span></div></div>
+    <div class="brand"><img src="../assets/logo.svg" alt="OPERO"><div><strong>OPERO</strong><span>system operatów · 3.4.1</span></div></div>
     <nav id="nav" class="main-nav">
       <button class="nav-btn active" data-tab="dashboard">✦ <span>Nowy operat</span></button>
       <button class="nav-btn result-nav" data-tab="result">◆ <span>Wynik</span></button>
@@ -291,7 +291,7 @@
       <button class="nav-btn" data-tab="history">◷ <span>Historia</span></button>
       <button class="nav-btn" data-tab="settings">⚙ <span>Ustawienia</span></button>
     </nav>
-    <div class="side-footer"><span id="saveState">Autozapis do Historii aktywny</span><small>OPERO 3.4.0</small></div>
+    <div class="side-footer"><span id="saveState">Autozapis do Historii aktywny</span><small>OPERO 3.4.1</small></div>
   </aside>
 
   <main class="main">
@@ -500,14 +500,14 @@
               <span id="zlecAutor" class="zl-autor" title="Zmienisz w Ustawieniach → Profil rzeczoznawcy">Autor: z Ustawień</span>
             </div>
             <div class="studio-krok studio-krok-maly"><b>+</b><div><h3>Co jeszcze wiesz (opcjonalnie)</h3><small>Adres, księga, rodzaj nieruchomości — jeśli masz dokumenty, nie musisz nic pisać.</small></div></div>
-            <textarea id="opisTekst" class="opis-tekst" rows="4" spellcheck="true" placeholder="np. Mieszkanie 3-pokojowe 54,30 m² na 2 piętrze, ul. Ikara 97/12, Gdańsk. KW GD1G/00012345/6. Wycena pod kredyt hipoteczny. Zleceniodawca: Jan Kowalski. Cena ofertowa 650 tys. zł."></textarea>
+            <textarea id="opisTekst" class="opis-tekst" rows="4" spellcheck="true" placeholder="Pisz jak do czatu — wszystko, co wiesz, swoimi słowami. Możesz też wkleić całą treść księgi wieczystej (Ctrl+A, Ctrl+C w EKW). Claude przeczyta to i wpisze dane do operatu."></textarea>
             <div id="opisFakty" class="opis-fakty" aria-live="polite"></div>
             <div class="studio-krok"><b>2</b><div><h3>Wrzuć wszystko, co masz</h3><small>Zrzuty księgi, rzut, zdjęcia, PDF-y, wzory w Wordzie, wyciąg z rejestru cen, Twój podręcznik. Program sam rozpozna, co jest czym.</small></div></div>
             <div id="wsadPole" class="wsad-pole" role="button" tabindex="0">
               <div class="wsad-ikona" aria-hidden="true"><i></i><i></i><i></i></div>
               <div class="wsad-tekst"><b>Przeciągnij tutaj pliki</b><small>PNG · JPG · PDF (także skany) · DOCX · XLSX · TXT — nic nie wychodzi z komputera</small></div>
               <button id="wsadWybierz" class="btn gold-outline" type="button">Wybierz pliki</button>
-              <button id="wsadEkw" class="btn ghost" type="button" title="Otwiera przeglądarkę ksiąg wieczystych. Ty otwierasz działy — program przepisuje każdy do operatu.">⚖ Księga z EKW</button>
+              <button id="wsadEkw" class="btn ghost" type="button" title="Otwiera EKW w Twojej przeglądarce i kopiuje numer księgi do schowka. Treść działów wklej w opis albo zapisz jako PDF i wrzuć — Claude ją przeczyta.">⚖ Księga z EKW</button>
             </div>
             <p id="wsadStan" class="wsad-stan" aria-live="polite"></p>
             <div id="wsadLista" class="wsad-lista hidden"></div>
@@ -1300,7 +1300,7 @@
         </div>
         <div class="card settings-card"><h3>Dane lokalne i kopia zapasowa</h3><p>Operaty, zdjęcia, dokumenty i Historia pozostają na komputerze użytkownika. Klucz licencyjny jest sprawdzany na tym komputerze, bez łączenia z serwerem — program nie wysyła nigdzie danych operatów ani klientów.</p><div class="backup-note"><b>Operat to dokument, za który odpowiadasz zawodowo.</b><p>Wszystkie dane OPERO leżą na tym jednym dysku. Rób kopię zapasową regularnie — najlepiej na dysk zewnętrzny albo do folderu synchronizowanego z chmurą.</p></div><div id="backupStatus" class="backup-status hidden"></div><div class="settings-actions-row"><button id="settingsBackup" class="btn primary">Zapisz kopię zapasową danych</button><button id="settingsOpenDataFolder" class="btn ghost">Otwórz folder z danymi</button><button id="settingsOpenLog" class="btn ghost">Dziennik błędów</button></div><div class="data-local-badge">LOCAL FIRST</div></div>
 
-        <div class="card settings-card"><h3>Diagnostyka</h3><p>Przydatne, gdy coś nie działa i trzeba opisać problem.</p><div class="summary-row"><span>Wersja programu</span><b id="creatorVersionValue">3.4.0</b></div><div class="summary-row"><span>Stan klucza</span><b id="settingsAccessState">—</b></div><div class="summary-row"><span>Ważny do</span><b id="settingsAccessExpiry">—</b></div><div class="button-row"><button id="creatorDiagnosticsBtn" class="btn gold-outline" type="button">Diagnostyka systemu</button><button id="creatorRoadmapBtn" class="btn ghost" type="button">Rodzaje operatów</button></div></div>
+        <div class="card settings-card"><h3>Diagnostyka</h3><p>Przydatne, gdy coś nie działa i trzeba opisać problem.</p><div class="summary-row"><span>Wersja programu</span><b id="creatorVersionValue">3.4.1</b></div><div class="summary-row"><span>Stan klucza</span><b id="settingsAccessState">—</b></div><div class="summary-row"><span>Ważny do</span><b id="settingsAccessExpiry">—</b></div><div class="button-row"><button id="creatorDiagnosticsBtn" class="btn gold-outline" type="button">Diagnostyka systemu</button><button id="creatorRoadmapBtn" class="btn ghost" type="button">Rodzaje operatów</button></div></div>
       </div>
     </section>
 
@@ -1550,7 +1550,7 @@
   <div id="commandPalette" class="command-overlay hidden" role="dialog" aria-modal="true" aria-label="Szybkie działania">
     <div class="command-palette">
       <div class="command-search"><span>⌕</span><input id="commandSearch" autocomplete="off" placeholder="Wpisz działanie, np. wynik, historia, nowy operat…"><kbd>ESC</kbd></div>
-      <div class="command-context"><span>OPERO 3.4.0</span><b id="commandProjectContext">Aktualny projekt</b></div>
+      <div class="command-context"><span>OPERO 3.4.1</span><b id="commandProjectContext">Aktualny projekt</b></div>
       <div id="commandResults" class="command-results premium-scroll"></div>
       <div class="command-footer"><span>↑↓ wybór</span><span>Enter uruchom</span><span>Ctrl+K otwórz</span></div>
     </div>

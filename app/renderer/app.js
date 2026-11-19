@@ -3204,7 +3204,7 @@ function hookPanelPeraDelegacja(){
 }
 
 /* ===========================================================
-   USTAWIENIA 3.4.0 — profil, wlasny model, zywe tlo
+   USTAWIENIA 3.4.1 — profil, wlasny model, zywe tlo
    =========================================================== */
 
 /**

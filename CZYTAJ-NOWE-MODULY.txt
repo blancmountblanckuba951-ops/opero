@@ -1,3 +1,13 @@
+OPERO 3.4.1
+===========
+- Opis piszesz jak do czatu: Claude czyta go po chwili od ostatniego wpisanego słowa
+  i wpisuje fakty (niebieskie żetony „· Claude”). Możesz też wkleić całą treść księgi.
+- Zrzuty i zdjęcia dokumentów czyta najpierw Claude; lokalne rozpoznawanie pisma
+  zostaje tylko jako zapas. Koniec komunikatu „[object Object]”.
+- EKW otwiera się w Twojej przeglądarce (serwis EKW blokuje okna wbudowane w programy).
+  Numer księgi jest w schowku; treść działów wklej w opis albo zapisz jako PDF i wrzuć.
+- Mózg OPERO (n8n) pracuje na claude-opus-5-5; błędy Claude wracają jako czytelny powód.
+
 OPERO 3.4.0 — AGENCI MYŚLĄ CLAUDE'EM: CZYTAJĄ KSIĘGI, ZDJĘCIA I PDF-Y
 ====================================================================
 

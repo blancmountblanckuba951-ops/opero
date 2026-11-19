@@ -1,0 +1,28 @@
+'use strict';
+/** OPERO 3.4.1 — opis pisany jak do czatu czyta Claude; wzorce zostają jako zapas. */
+const O = require('/root/work/build/app/renderer/opis-operatu.js');
+let ok = 0, zle = 0;
+const T = (n, w, d) => { if (w) { ok++; console.log('  OK   ' + n); } else { zle++; console.log('  BLAD ' + n + (d !== undefined ? ' — ' + JSON.stringify(d).slice(0, 400) : '')); } };
+console.log('OPERO 3.4.1 — opis czyta Claude\n');
+const tekst = 'Dom, 4 pokojowy, Miejscowość Gdańsk ulica Ikara 97/2. powierzchnia 113,73m2. Dom w zabudowie bliźniaczej. 2 kondygnacyjny. Co najważniejsze to to że ma powierzchnie zabudoyw 233,86m2. Nowy wybudowany w 2024 roku.';
+const w = O.czytaj(tekst);
+T('wzorce: „Dom, 4 pokojowy” = dom (bez Claude)', w.fakty.find(f => f.klucz === 'rodzaj')?.wartosc === 'dom', w.fakty);
+T('wzorce: bliźniak nie myli się z lokalem', !w.fakty.some(f => f.klucz === 'rodzaj' && f.wartosc !== 'dom'));
+const pol = O.polecenieClaude(tekst);
+T('polecenie: JSON, zakaz zgadywania, opis w treści', /WYŁĄCZNIE jednym obiektem JSON/.test(pol) && /nic nie zgaduj/.test(pol) && pol.includes('Ikara 97/2'));
+const odp = 'Proszę:\n```json\n{"rodzaj":"dom","street":"Ikara","buildingNo":"97","unitNo":"2","city":"Gdańsk","usableArea":"113,73 m2","builtUpArea":233.86,"storeys":2,"rooms":4,"yearBuilt":2024,"segment":"bliźniacza","kw":"gd1g/00012345/6","floor":0,"askingPrice":"1 250 000 zł","inspectionDate":"19.11.2026","rodzajZly":1,"skad":{"rodzaj":"Dom, 4 pokojowy"}}\n```';
+const c = O.zClaude(odp);
+const f = k => c.find(x => x.klucz === k);
+T('Claude: liczby z tekstem i przecinkiem', f('usableArea')?.wartosc === 113.73 && f('askingPrice')?.wartosc === 1250000, c);
+T('Claude: numer KW normalizowany, zły format daty pominięty', f('kw')?.wartosc === 'GD1G/00012345/6' && !f('inspectionDate'));
+T('Claude: parter, zabudowa bliźniacza, źródło zdania', f('floor')?.pokaz === 'parter' && f('segment')?.pokaz === 'zabudowa bliźniacza' && f('rodzaj')?.skad === 'Dom, 4 pokojowy');
+T('Claude: nieznany rodzaj odrzucony', O.zClaude('{"rodzaj":"zamek"}').length === 0);
+T('Claude: śmieci zamiast JSON → brak faktów', O.zClaude('nie wiem').length === 0 && O.zClaude('').length === 0);
+const p = O.polacz(w, c);
+T('połączenie: brak KW znika, cel dalej brakuje', !p.braki.some(b => b.klucz === 'kw') && p.braki.some(b => b.klucz === 'cel') && p.claude === true, p.braki);
+T('połączenie bez Claude = wynik wzorców', O.polacz(w, []) === w);
+const pr = { property: { city: 'Sopot' } };
+const r = O.doProjektu(pr, p, {});
+T('do projektu: puste pola wypełnione, wpisane ręcznie nietknięte', pr.property.city === 'Sopot' && pr.building.storeys === 2 && pr.building.builtUpArea === 233.86 && pr.legal.kwLocal === 'GD1G/00012345/6' && r.pominiete.some(x => x.etykieta === 'Miejscowość'));
+console.log(`\nZaliczone: ${ok}  Niezaliczone: ${zle}`);
+process.exit(zle ? 1 : 0);

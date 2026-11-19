@@ -17,7 +17,7 @@ const OPIS_RODZAJE = [
   // [kod modulu, etykieta, wzorzec]
   ['lokal_mieszkalny', 'lokal mieszkalny', /\b(mieszkani\p{L}*|lokal\p{L}*\s+mieszkaln\p{L}*|kawalerk\p{L}*|apartament\p{L}*)/iu],
   ['lokal_uzytkowy', 'lokal użytkowy', /\b(lokal\p{L}*\s+(użytkow|uzytkow|usługow|uslugow|handlow|biurow)\p{L}*)/iu],
-  ['dom', 'nieruchomość zabudowana domem', /(?<!lokal\p{L}*[^.]{0,40})\b(dom\p{L}*\s+(jednorodzinn|wolnostoj|mieszkaln)\p{L}*|bliźniak\p{L}*|blizniak\p{L}*|szeregow\p{L}*|budyn\p{L}*\s+mieszkaln\p{L}*\s+jednorodzinn\p{L}*)/iu],
+  ['dom', 'nieruchomość zabudowana domem', /(?<!lokal\p{L}*[^.]{0,40})(?:\b(dom\p{L}*\s+(jednorodzinn|wolnostoj|mieszkaln)\p{L}*|bliźniak\p{L}*|blizniak\p{L}*|szeregow\p{L}*|budyn\p{L}*\s+mieszkaln\p{L}*\s+jednorodzinn\p{L}*|zabudow\p{L}*\s+bli[źz]niacz\p{L}*)|(?:^|[.,;!?]\s*)(dom|domu|domem)\b)/iu],
   ['grunt', 'nieruchomość gruntowa', /\b(działk\p{L}*\s+(budowlan|roln|niezabudowan|inwestycyjn|rekreacyjn)\p{L}*|grunt\p{L}*\s+(roln|niezabudowan|budowlan)\p{L}*|nieruchomość\s+gruntow\p{L}*\s+niezabudowan\p{L}*)/iu],
   ['garaz', 'garaż / miejsce postojowe', /\b(garaż\p{L}*|garaz\p{L}*|miejsc\p{L}*\s+postojow\p{L}*)/iu],
 ];
@@ -268,6 +268,8 @@ function opisDoProjektu(project, wynik, opcje){
   p.building = p.building || {}; wstaw(p.building, 'year', f('yearBuilt'));
   wstaw(p.legal, 'kwLocal', f('kw')); wstaw(p.egib, 'plotNo', f('plotNo')); wstaw(p.egib, 'district', f('obreb'));
   wstaw(p.client, 'name', f('klient'));
+  wstaw(p.building, 'storeys', f('storeys')); wstaw(p.building, 'condition', f('condition')); wstaw(p.building, 'builtUpArea', f('builtUpArea'));
+  wstaw(p.property, 'rightType', f('prawo'));
   const seg = f('segment');
   if (seg && !p.property.segmentType){ p.property.segmentType = seg.pokaz; wpisane.push({ etykieta: seg.etykieta, wartosc: seg.pokaz }); }
   // Data oględzin w nowym operacie jest dzisiejsza (domyślna) – opis ją zastępuje.
@@ -283,9 +285,74 @@ function opisDoProjektu(project, wynik, opcje){
   return { wpisane, pominiete };
 }
 
+/* ---- 3.4.1: opis czyta Claude ----
+ * Rzeczoznawca pisze jak do czatu — dowolnie, z wklejoną księgą albo bez. Claude zwraca
+ * fakty w JSON; program dokłada je tam, gdzie wzorce nic nie znalazły (albo znalazły słabiej).
+ * Zasada „nic nie zgadujemy” zostaje: pole bez źródła w tekście jest pomijane.
+ */
+const OPIS_CLAUDE_KLUCZE = ['rodzaj', 'kw', 'street', 'buildingNo', 'unitNo', 'city', 'postalCode', 'district', 'plotNo', 'obreb',
+  'usableArea', 'landArea', 'builtUpArea', 'rooms', 'floor', 'storeys', 'yearBuilt', 'inspectionDate', 'segment', 'condition',
+  'askingPrice', 'cel', 'klient', 'prawo'];
+Object.assign(OPIS_ETYKIETY, { builtUpArea: 'Powierzchnia zabudowy', storeys: 'Kondygnacje', condition: 'Stan techniczny', prawo: 'Prawo do nieruchomości' });
+
+function opisPolecenieClaude(tekst){
+  return 'Poniżej jest opis zlecenia wyceny napisany przez rzeczoznawcę majątkowego własnymi słowami '
+    + '(może zawierać literówki, skróty i wklejoną treść księgi wieczystej). Wyciągnij z niego fakty potrzebne do operatu.\n'
+    + 'Odpowiedz WYŁĄCZNIE jednym obiektem JSON, bez komentarzy, z polami (pomiń pole, którego NIE ma w tekście — nic nie zgaduj):\n'
+    + '{"rodzaj": "lokal_mieszkalny|lokal_uzytkowy|dom|grunt|garaz", "kw": "AAAA/00000000/0", "street": "nazwa ulicy bez „ul.”", '
+    + '"buildingNo": "", "unitNo": "", "city": "", "postalCode": "00-000", "district": "dzielnica", "plotNo": "nr działki", "obreb": "", '
+    + '"usableArea": liczba m2, "landArea": liczba m2 działki, "builtUpArea": liczba m2 zabudowy, "rooms": liczba, "floor": liczba (0 = parter), '
+    + '"storeys": liczba kondygnacji, "yearBuilt": rok, "inspectionDate": "RRRR-MM-DD", "segment": "wolnostojąca|bliźniacza|szeregowa", '
+    + '"condition": "krótko: stan i wykończenie", "askingPrice": liczba zł, "cel": "cel wyceny", "klient": "zleceniodawca", '
+    + '"prawo": "własność|współwłasność|użytkowanie wieczyste|spółdzielcze własnościowe", '
+    + '"skad": {"pole": "dosłowny fragment opisu, z którego pochodzi"}}\n'
+    + 'Uwaga: „X/Y” po nazwie ulicy w adresie domu to zwykle numer budynku i lokalu. „Dom”, „bliźniak”, „segment” = rodzaj „dom”.\n\n'
+    + 'OPIS:\n"""\n' + String(tekst || '').slice(0, 60000) + '\n"""';
+}
+
+function opisJson(odp){
+  const t = String(odp || ''); const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if (a < 0 || b <= a) return null;
+  try { return JSON.parse(t.slice(a, b + 1)); } catch { return null; }
+}
+
+/** Odpowiedź Claude -> fakty w tym samym kształcie, co z opisCzytaj (z flagą zClaude). */
+function opisZClaude(odp){
+  const j = opisJson(odp); if (!j || typeof j !== 'object') return [];
+  const skad = (j.skad && typeof j.skad === 'object') ? j.skad : {};
+  const fakty = [];
+  const rodzaje = Object.fromEntries(OPIS_RODZAJE.map(x => [x[0], x[1]]));
+  for (const k of OPIS_CLAUDE_KLUCZE){
+    let v = j[k]; if (v == null || v === '' || (typeof v === 'number' && !Number.isFinite(v))) continue;
+    let pokaz = String(v);
+    if (['usableArea', 'landArea', 'builtUpArea', 'askingPrice'].includes(k) || ['rooms', 'floor', 'storeys', 'yearBuilt'].includes(k)){
+      const n = typeof v === 'number' ? v : opisLiczba((/\d[\d\s\u00a0]*(?:[.,]\d+)?/.exec(String(v)) || [''])[0]); if (n == null || n < 0) continue; v = n;
+      pokaz = ['usableArea', 'landArea', 'builtUpArea'].includes(k) ? `${String(n).replace('.', ',')} m²` : k === 'askingPrice' ? `${String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} zł` : k === 'floor' && n === 0 ? 'parter' : String(n);
+    }
+    if (k === 'rodzaj'){ if (!rodzaje[v]) continue; pokaz = rodzaje[v]; }
+    if (k === 'kw'){ const kw = opisKw(String(v)); if (!kw) continue; v = kw.wartosc; pokaz = v; }
+    if (k === 'segment'){ pokaz = /szereg/i.test(v) ? 'zabudowa szeregowa' : /bli/i.test(v) ? 'zabudowa bliźniacza' : 'zabudowa wolnostojąca'; v = true; }
+    if (k === 'inspectionDate' && !/^\d{4}-\d{2}-\d{2}$/.test(String(v))) continue;
+    fakty.push({ klucz: k, etykieta: OPIS_ETYKIETY[k] || k, wartosc: v, pokaz, skad: String(skad[k] || 'odczytane przez Claude z opisu').slice(0, 200), zClaude: true });
+  }
+  return fakty;
+}
+
+/** Łączy wynik wzorców z faktami Claude: Claude uzupełnia i poprawia, braki liczone od nowa. */
+function opisPolacz(wynik, faktyClaude){
+  const w = wynik || { fakty: [], braki: [] };
+  if (!Array.isArray(faktyClaude) || !faktyClaude.length) return w;
+  const mapa = new Map(w.fakty.map(f => [f.klucz, f]));
+  for (const f of faktyClaude) mapa.set(f.klucz, f);
+  const fakty = [...mapa.values()];
+  const ma = k => mapa.has(k);
+  const braki = w.braki.filter(b => !(b.klucz === 'adres' ? ma('city') && ma('street') : b.klucz === 'powierzchnia' ? ma('usableArea') || ma('landArea') : ma(b.klucz)));
+  return { ...w, fakty, braki, wystarczy: ma('city') && ma('street'), claude: true };
+}
+
 const API_OPIS = {
   czytaj: opisCzytaj, doProjektu: opisDoProjektu, modul: opisModul, kw: opisKw, adres: opisAdres, dzialka: opisDzialka, liczby: opisLiczby,
-  rodzaj: opisRodzaj, cel: opisCel, klient: opisKlient, mianownik: opisMianownik, RODZAJE: OPIS_RODZAJE.map(x => x[0]), ETYKIETY: OPIS_ETYKIETY,
+  rodzaj: opisRodzaj, cel: opisCel, klient: opisKlient, polecenieClaude: opisPolecenieClaude, zClaude: opisZClaude, polacz: opisPolacz, mianownik: opisMianownik, RODZAJE: OPIS_RODZAJE.map(x => x[0]), ETYKIETY: OPIS_ETYKIETY,
 };
 if (typeof window !== 'undefined') window.OperoOpis = API_OPIS;
 if (typeof module !== 'undefined' && module.exports) module.exports = API_OPIS;

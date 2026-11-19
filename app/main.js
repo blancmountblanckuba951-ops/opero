@@ -2721,14 +2721,27 @@ ipcMain.handle('siec:szukaj', async (_e, zadanie) => {
         obrazu modelem (tylko za zgoda z Ustawien).
    Nic nie jest wysylane, jesli model w chmurze jest wylaczony. */
 
+/** Błąd dowolnego kształtu -> czytelne zdanie (bez „[object Object]”). */
+function bladTekst(e){
+  if (e == null) return 'nieznany błąd';
+  if (typeof e === 'string') return e;
+  if (typeof e.message === 'string' && e.message) return e.message;
+  if (e.message && typeof e.message === 'object') return bladTekst(e.message);
+  if (typeof e.powod === 'string') return e.powod;
+  if (typeof e.error === 'string') return e.error;
+  if (e.error) return bladTekst(e.error);
+  try { const j = JSON.stringify(e); return j && j !== '{}' ? j.slice(0, 200) : String(e); } catch { return String(e); }
+}
+
 function ocrPowod(kod){
-  const k = String(kod || '');
+  const k = typeof kod === 'string' ? kod : bladTekst(kod);
   if (/BRAK_SILNIKA/.test(k)) return 'Silnik pisma Windows jest niedostępny w tym systemie. Włącz model w chmurze (Ustawienia → Mózg agentów) albo wklej treść księgi tekstem. Jeśli masz Windows 10/11: sprawdź też, czy jest zainstalowane rozpoznawanie pisma dla polskiego. Dodaj je: Ustawienia → Czas i język → Język i region → Polski → Opcje języka → „Optyczne rozpoznawanie znaków".';
   if (/ZA_DUZY/.test(k)) return 'Zrzut jest za duży dla silnika rozpoznawania pisma. Zrób zrzut samego działu księgi, nie całego ekranu w powiększeniu.';
   return `Silnik rozpoznawania pisma zgłosił błąd: ${k.slice(0, 200) || 'nieznany'}.`;
 }
 
 let ocrOkno = null;
+let ocrBladChmury = '';
 async function ocrOknoGotowe(){
   if (ocrOkno && !ocrOkno.isDestroyed()) return ocrOkno;
   ocrOkno = new BrowserWindow({ show: false, width: 320, height: 240, skipTaskbar: true,
@@ -2767,6 +2780,12 @@ async function ocrPrzezChmure(plik){
 
 /** Jeden obraz → slowa z polozeniem. Bez zewnetrznych procesow. */
 async function ocrCzytajPlik(plik){
+  // 3.4.1: gdy Mózg AI jest włączony, obraz czyta Claude — najdokładniej, także tabele księgi.
+  if (chmuraAktywna()){
+    const z = await ocrPrzezChmure(plik).catch(e => { logToFile('WARN', 'OCR chmura', bladTekst(e)); return { blad: bladTekst(e) }; });
+    if (z && z.ok && (z.slowa || []).length) return z;
+    if (z && z.blad) ocrBladChmury = z.blad;
+  }
   try {
     const img = nativeImage.createFromPath(plik);
     if (img.isEmpty()) return { ok: false, powod: 'Nie mogę otworzyć tego obrazu.' };
@@ -2784,20 +2803,18 @@ async function ocrCzytajPlik(plik){
     if (w && w.ok && (w.linie || []).length >= 3) return { ok: true, jezyk: 'Windows', slowa: ocrLinieNaSlowa(w.linie) };
     // 3.3: drugi silnik — Tesseract wbudowany w program (działa bez internetu i bez Windows OCR).
     const t = await Promise.race([
-      okno.webContents.executeJavaScript(`(async () => { if (!window.operoOcr) return { ok: false, powod: 'BRAK_TESSERACT' }; return await window.operoOcr(${JSON.stringify(dane)}); })()`, true).catch(e => ({ ok: false, powod: String(e?.message || e) })),
+      okno.webContents.executeJavaScript(`(async () => { if (!window.operoOcr) return { ok: false, powod: 'BRAK_TESSERACT' }; return await window.operoOcr(${JSON.stringify(dane)}); })()`, true).catch(e => ({ ok: false, powod: bladTekst(e) })),
       new Promise(r => setTimeout(() => r({ ok: false, powod: 'CZAS' }), 120000)),
     ]);
     if (t && t.ok && (t.slowa || []).length) return { ok: true, jezyk: 'Tesseract (pol)', slowa: t.slowa.map(x => ({ t: x.t, x: x.x, y: x.y, w: x.w, h: x.h })) };
     if (w && w.ok) return { ok: true, jezyk: 'Windows', slowa: ocrLinieNaSlowa(w.linie) };
     logToFile('WARN', 'OCR', `TextDetector: ${w?.powod || (w?.linie || []).length}; Tesseract: ${t?.powod || 'pusto'}`);
-    const zChmury = await ocrPrzezChmure(plik).catch(e => { logToFile('WARN', 'OCR chmura', String(e?.message || e)); return null; });
-    if (zChmury) return zChmury;
+    if (ocrBladChmury) return { ok: false, powod: `Claude nie odczytał obrazu: ${ocrBladChmury}` };
     return { ok: false, powod: w?.powod === 'CZAS' ? 'Rozpoznawanie pisma trwało za długo i zostało przerwane.' : ocrPowod(w?.powod) };
   } catch (e) {
-    logToFile('WARN', 'OCR', String(e?.message || e));
-    const zChmury = await ocrPrzezChmure(plik).catch(() => null);
-    return zChmury || { ok: false, powod: `Rozpoznawanie pisma nie zadziałało: ${String(e?.message || e).slice(0, 160)}` };
-  }
+    logToFile('WARN', 'OCR', bladTekst(e));
+    return { ok: false, powod: ocrBladChmury ? `Claude nie odczytał obrazu: ${ocrBladChmury}` : `Rozpoznawanie pisma nie zadziałało: ${bladTekst(e).slice(0, 160)}` };
+  } finally { ocrBladChmury = ''; }
 }
 
 ipcMain.handle('ocr:zrzuty', async () => {
@@ -3640,6 +3657,9 @@ ipcMain.handle('ekw:okno', async (_e, zapytanie) => {
   const kw = normalizeKwNumber(zapytanie?.kw || '');
   const m = /^([A-Z0-9]{4})\/(\d{8})\/(\d)$/.exec(kw);
   if (m) clipboard.writeText(kw);
+  // 3.4.1: serwis EKW odrzuca wbudowane okna („Request Rejected”). Otwieramy go w zwykłej
+  // przeglądarce rzeczoznawcy; treść wraca do OPERO jako PDF/zrzuty/wklejony tekst, czyta ją Claude.
+  if (!zapytanie?.wbudowane) { await shell.openExternal(EKW_START); return { ok: true, kw, zewnetrzna: true }; }
   if (ekwOkno && !ekwOkno.isDestroyed()) { ekwOkno.focus(); return { ok: true, kw, juzOtwarte: true }; }
   ekwOkno = new BrowserWindow({
     width: 1280, height: 900, show: true, title: 'Księgi wieczyste — OPERO przepisuje każdy otwarty dział', autoHideMenuBar: true,

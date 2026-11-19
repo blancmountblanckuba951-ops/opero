@@ -90,19 +90,49 @@ function studioWzorDlaPola(sciezka){
 
 /* ------------------------------------------------------------------ opis */
 
+/* 3.4.1: opis czyta Claude — piszesz jak do czatu, fakty wyciąga model. */
+const studioOpisAI = { tekst: '', fakty: [], trwa: null, czas: null, blad: '' };
+function studioOpisWynik(tekst){
+  const O = window.OperoOpis; const t = String(tekst == null ? ($('#opisTekst')?.value || '') : tekst);
+  const w = O.czytaj(t);
+  return studioOpisAI.tekst && studioOpisAI.tekst === t.trim() && O.polacz ? O.polacz(w, studioOpisAI.fakty) : w;
+}
+async function studioOpisPrzezClaude(){
+  const O = window.OperoOpis; const t = String($('#opisTekst')?.value || '').trim();
+  if (!O?.polecenieClaude || t.length < 25 || !studioAPI('chmuraWizja')) return null;
+  if (studioOpisAI.tekst === t) return studioOpisAI.fakty;
+  if (studioOpisAI.trwa && studioOpisAI.trwa.tekst === t) return studioOpisAI.trwa.obietnica;
+  // Wklejona księga w opisie trafia też do pola księgi — Agent KW przeczyta ją w całości.
+  try { const E = window.OperoEkw, kw = $('#opisKwTekst'); if (E && kw && !String(kw.value || '').trim() && E.czytaj(t)?.ok){ kw.value = t; studioDokumentyStan(); } } catch {}
+  const znacznik = $('#opisFakty'); znacznik?.setAttribute('data-claude', 'czyta');
+  const obietnica = window.operatAPI.chmuraWizja({ obrazy: [], system: window.OperoWizja?.SYSTEM, polecenie: O.polecenieClaude(t), maks: 1500 })
+    .catch(e => ({ ok: false, powod: cleanRemoteError(e) }))
+    .then(r => {
+      if (studioOpisAI.trwa?.tekst === t) studioOpisAI.trwa = null;
+      znacznik?.removeAttribute('data-claude');
+      if (!r?.ok){ studioOpisAI.blad = r?.brakChmury ? '' : String(r?.powod || ''); return null; }
+      studioOpisAI.tekst = t; studioOpisAI.fakty = O.zClaude(r.text); studioOpisAI.blad = '';
+      if (String($('#opisTekst')?.value || '').trim() === t) studioFaktyRysuj();
+      return studioOpisAI.fakty;
+    });
+  studioOpisAI.trwa = { tekst: t, obietnica };
+  return obietnica;
+}
+
 function studioFaktyRysuj(){
   const O = window.OperoOpis, el = $('#opisFakty'); if (!O || !el) return null;
   const tekst = $('#opisTekst')?.value || '';
-  const w = O.czytaj(tekst);
+  const w = studioOpisWynik(tekst);
   if (w.dlugosc < 8){ el.innerHTML = ''; return w; }
-  const zeton = f => `<span class="opis-zeton${f.doPotwierdzenia ? ' niepewny' : ''}" title="${escapeHTML(f.skad)}"><small>${escapeHTML(f.etykieta)}</small><b>${escapeHTML(f.pokaz)}</b></span>`;
+  const zeton = f => `<span class="opis-zeton${f.doPotwierdzenia ? ' niepewny' : ''}${f.zClaude ? ' claude' : ''}" title="${escapeHTML((f.zClaude ? 'Claude: ' : '') + f.skad)}"><small>${escapeHTML(f.etykieta)}</small><b>${escapeHTML(f.pokaz)}</b></span>`;
   const brak = b => `<span class="opis-zeton brak" title="${escapeHTML(b.po)}"><small>brakuje</small><b>${escapeHTML(b.co)}</b></span>`;
   // Braki liczymy z całości: to, czego nie ma w opisie, mogą już dać dokumenty.
   const pr = project.property || {};
   const jestKw = !!String(project.legal?.kwLocal || '').trim() || String($('#opisKwTekst')?.value || '').trim().length >= 20;
-  const braki = w.braki.filter(b => !(b.klucz === 'kw' && jestKw) && !(b.klucz === 'powierzchnia' && (Number(pr.usableArea) > 0 || Number(pr.landArea) > 0 || jestKw)) && !(b.klucz === 'adres' && String(pr.city || '').trim() && String(pr.street || '').trim()));
+  const braki = w.braki.filter(b => !(b.klucz === 'cel' && String(project.valuation?.purpose || '').trim()) && !(b.klucz === 'kw' && jestKw) && !(b.klucz === 'powierzchnia' && (Number(pr.usableArea) > 0 || Number(pr.landArea) > 0 || jestKw)) && !(b.klucz === 'adres' && String(pr.city || '').trim() && String(pr.street || '').trim()));
   el.innerHTML = (w.fakty.length ? `<div class="opis-zetony">${w.fakty.map(zeton).join('')}</div>` : '')
-    + (braki.length ? `<div class="opis-zetony">${braki.map(brak).join('')}</div>` : '');
+    + (braki.length ? `<div class="opis-zetony">${braki.map(brak).join('')}</div>` : '')
+    + (studioOpisAI.blad && !w.claude ? `<p class="opis-claude-blad">Claude nie przeczytał opisu: ${escapeHTML(studioOpisAI.blad)}</p>` : '');
   return w;
 }
 
@@ -276,6 +306,10 @@ async function studioEkwOtworz(){
   const w = window.OperoOpis?.czytaj(String($('#opisTekst')?.value || '')) || { fakty: [] };
   const kw = String(w.fakty.find(f => f.klucz === 'kw')?.wartosc || project.legal?.kwLocal || '').trim();
   const r = await window.operatAPI.ekwOkno({ kw }).catch(e => ({ ok: false, powod: cleanRemoteError(e) }));
+  if (r?.ok && r.zewnetrzna){
+    studioMowi(`Otworzyłem EKW w Twojej przeglądarce${r.kw ? ` (numer ${r.kw} jest w schowku)` : ''}. Otwórz działy księgi i dla każdego: Ctrl+A, Ctrl+C i wklej tutaj w opis — albo zapisz je jako PDF (Ctrl+P → Zapisz jako PDF) lub zrzuty i wrzuć do OPERO. Claude przeczyta całość.`);
+    return;
+  }
   studioMowi(r?.ok ? `Otworzyłem przeglądarkę ksiąg${r.kw ? ` (numer ${r.kw} jest w schowku${/\//.test(r.kw) ? ' i w formularzu' : ''})` : ''}. Wyszukaj księgę i otwórz kolejno działy I-O, I-Sp, II, III i IV — każdy przepiszę sam.` : `Nie otworzyłem EKW: ${r?.powod || 'błąd'}`, r?.ok ? '' : 'uwaga');
 }
 function studioEkwPrzyjmij(d){
@@ -383,7 +417,7 @@ const AGENCI_PRACA = {
     const O = window.OperoOpis, A = window.OperoAgenci;
     const zrobione = [], braki = [];
     k.krok('czytam opis');
-    const w = O.czytaj(k.opis);
+    const w = studioOpisWynik(k.opis);
     if (k.nowyModul) zrobione.push(`Rodzaj operatu: ${moduleInfo().title} (${moduleInfo().method}).${k.modulNiepewny ? ' Przyjąłem najbliższy rodzaj — widać go w nagłówku operatu.' : ''}`);
     k.krok('wpisuję dane podstawowe');
     const cel = freshProject(moduleCode()).valuation.purpose;
@@ -964,8 +998,9 @@ async function agenciUruchom(){
   if (!(await studioZgodaMozg())) return null;
   const opis = String($('#opisTekst')?.value || '').trim();
   studioZlecenieStart = studioZlecenieZPol();
+  if (opis.length >= 25){ studioMowi('Claude czyta Twój opis…'); await studioOpisPrzezClaude(); }
   const kwTekst = String($('#opisKwTekst')?.value || '').trim();
-  const w = O.czytaj(opis);
+  const w = studioOpisWynik(opis);
   const maAdres = !!(String(project.property?.city || '').trim() && String(project.property?.street || '').trim());
   const maKsiege = kwTekst.length >= 20 || Object.values(project.legal?.ekwImport?.sections || {}).some(x => String(x || '').trim());
   const maPliki = (project.photos || []).length + (project.files || []).length > 0;
@@ -1373,7 +1408,10 @@ function studioZlecenieRysuj(){
 
 function hookStudio(){
   if (!$('#studio')) return;
-  $('#opisTekst')?.addEventListener('input', () => { clearTimeout(studioOpisCzas); studioOpisCzas = setTimeout(() => { studioFaktyRysuj(); studioMowi(''); }, 180); });
+  $('#opisTekst')?.addEventListener('input', () => {
+    clearTimeout(studioOpisCzas); studioOpisCzas = setTimeout(() => { studioFaktyRysuj(); studioMowi(''); }, 180);
+    clearTimeout(studioOpisAI.czas); studioOpisAI.czas = setTimeout(() => { studioOpisPrzezClaude(); }, 1600);
+  });
   $('#opisKwWklej')?.addEventListener('click', () => { const p = $('#opisKwPole'); p?.classList.toggle('hidden'); if (!p?.classList.contains('hidden')) $('#opisKwTekst')?.focus(); });
   $('#opisKwTekst')?.addEventListener('input', studioDokumentyStan);
   $('#opisKwZrzuty')?.addEventListener('click', async () => {
