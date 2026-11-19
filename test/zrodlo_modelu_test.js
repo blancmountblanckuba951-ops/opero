@@ -179,8 +179,24 @@ const ADRES_BOM = ADRES;
    jest lepsze zamykanie procesow, tylko zabranie instalatorowi tego pliku:
    w instalatorze jedzie PACZKA, a program rozpakowuje ja sobie sam.
    ------------------------------------------------------------------------ */
+/** Minimalny ZIP (deflate) z plikow jednego folderu — bez zewnetrznych programow. */
+function zipZPlikow(folder) {
+  const zlib = require('node:zlib');
+  const crcTab = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+  const crc32 = b => { let c = 0xFFFFFFFF; for (const x of b) c = crcTab[(c ^ x) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+  const lok = [], cent = []; let off = 0, ile = 0;
+  for (const nazwa of fs.readdirSync(folder)) {
+    const dane = fs.readFileSync(path.join(folder, nazwa)), d = zlib.deflateRawSync(dane), n = Buffer.from(nazwa), crc = crc32(dane);
+    const h = Buffer.alloc(30); h.writeUInt32LE(0x04034b50, 0); h.writeUInt16LE(20, 4); h.writeUInt16LE(8, 8); h.writeUInt32LE(crc, 14); h.writeUInt32LE(d.length, 18); h.writeUInt32LE(dane.length, 22); h.writeUInt16LE(n.length, 26);
+    const c = Buffer.alloc(46); c.writeUInt32LE(0x02014b50, 0); c.writeUInt16LE(20, 4); c.writeUInt16LE(20, 6); c.writeUInt16LE(8, 10); c.writeUInt32LE(crc, 16); c.writeUInt32LE(d.length, 20); c.writeUInt32LE(dane.length, 24); c.writeUInt16LE(n.length, 28); c.writeUInt32LE(off, 42);
+    lok.push(h, n, d); cent.push(c, n); off += 30 + n.length + d.length; ile++;
+  }
+  const cd = Buffer.concat(cent), e = Buffer.alloc(22);
+  e.writeUInt32LE(0x06054b50, 0); e.writeUInt16LE(ile, 8); e.writeUInt16LE(ile, 10); e.writeUInt32LE(cd.length, 12); e.writeUInt32LE(off, 16);
+  return Buffer.concat([...lok, cd, e]);
+}
+
 (async () => {
-  const { execFileSync } = require('node:child_process');
   const baza = fs.mkdtempSync(path.join(os.tmpdir(), 'opero-silnik-'));
   const app = path.join(baza, 'app');
   const zasoby = path.join(baza, 'zasoby');
@@ -200,7 +216,9 @@ const ADRES_BOM = ADRES;
   fs.writeFileSync(path.join(skladniki, nazwaSerwera), 'to udaje serwer modelu');
   fs.writeFileSync(path.join(skladniki, 'biblioteka.dll'), 'to udaje biblioteke');
   fs.writeFileSync(path.join(skladniki, 'LICENCJE-MODELU.txt'), 'licencja');
-  execFileSync('zip', ['-qrj', path.join(zasoby, 'silnik.zip'), skladniki]);
+  // Archiwum skladamy we wlasnym kodzie (deflate z zlib) — na Windows (CI GitHuba)
+  // nie ma programu `zip`, a test ma dzialac tak samo na kazdym systemie.
+  fs.writeFileSync(path.join(zasoby, 'silnik.zip'), zipZPlikow(skladniki));
 
   process.resourcesPath = zasoby;
   const s = require(path.join(app, 'silnik-per.js'));
