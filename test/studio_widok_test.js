@@ -20,7 +20,7 @@ const T = (n, w, d) => { if (w) { ok++; console.log('  OK   ' + n); } else { zle
   const start = await p.ocen(`return {studio:!!document.querySelector('#studio'), stan:document.querySelector('#studio').dataset.stan, agentow:document.querySelectorAll('#agenciLista .agent').length,
     reczne:!!document.querySelector('#chooseModuleBtn')&&!!document.querySelector('#startWizardBtn'), mozg:document.querySelector('#agenciMozg').textContent, wa:document.querySelector('#agenciWa').textContent,
     raport:document.querySelector('#agenciRaport').classList.contains('hidden'), guzik:document.querySelector('#agenciStart').textContent.trim()};`);
-  T('ekran Start to Studio operatu z szesnastoma agentami', start.studio && start.stan === 'opis' && start.agentow === 16, start);
+  T('ekran Start to Studio operatu z osiemnastoma agentami', start.studio && start.stan === 'opis' && start.agentow === 18, start);
   T('praca ręczna zostaje pod ręką', start.reczne);
   T('domyślnie mózg AI czeka na zgodę, WhatsApp jednym kliknięciem', /Mózg AI: wyłączony/.test(start.mozg) && /jednym kliknięciem/.test(start.wa), [start.mozg, start.wa]);
   T('przed pracą nie ma raportu', start.raport && /Uruchom zespół agentów/.test(start.guzik));

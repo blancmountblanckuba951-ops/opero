@@ -22,7 +22,7 @@ const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJA
     geo:[...document.querySelectorAll('#agenciLista .agent')].map(a=>a.textContent).some(t=>/Geoportal/.test(t))};`);
   T('Studio: pierwszy krok to „Zlecenie" z czterema polami', f.pola && f.naglowek === 'Zlecenie', f);
   T('Studio: autor podpisany z Ustawień', /Jan Kowalski/.test(f.autor) && /1234/.test(f.autor), f.autor);
-  T('Studio: Agent Geoportalu w zespole, okno geoportalu włączone', f.geo && f.agentow === 16 && f.okno === true, f);
+  T('Studio: Agent Geoportalu w zespole, okno geoportalu włączone', f.geo && f.agentow === 18 && f.okno === true, f);
 
   const w = await p.ocen(`
     const v=(id,x)=>{const e=document.querySelector(id); e.value=x; e.dispatchEvent(new Event('input'));};

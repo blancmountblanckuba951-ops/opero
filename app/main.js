@@ -3034,7 +3034,7 @@ async function chmuraWywolaj(wiadomosci, opcje){
     if (!z.body.licencja) throw new Error('Mózg OPERO wymaga aktywnej licencji OPERO.');
   }
   let odp;
-  try { odp = await zapytanieRaz(z.url, { method: 'POST', headers: z.naglowki, body: JSON.stringify(z.body) }, 240000); }
+  try { odp = await zapytanieRaz(z.url, { method: 'POST', headers: z.naglowki, body: JSON.stringify(z.body) }, 330000); }
   catch (e) { logToFile('WARN', 'Model w chmurze', String(e?.message || e)); throw new Error(`Model w chmurze: ${String(e?.message || e)}.`); }
   const w = chmuraLogika.zOdpowiedzi(s.ustawienia.dostawca, odp.status, odp.tekst);
   if (!w.ok) { logToFile('WARN', 'Model w chmurze', `${odp.status} ${w.powod}`); throw new Error(w.powod); }
@@ -3106,15 +3106,26 @@ function wizjaObraz(zrodlo, krawedz){
 ipcMain.handle('chmura:wizja', async (_e, z) => {
   requireActiveLicense();
   if (!chmuraAktywna()) return { ok: false, brakChmury: true, powod: 'Mózg AI jest wyłączony — włącz go w Ustawieniach (Mózg OPERO, Claude).' };
-  const obrazy = (Array.isArray(z?.obrazy) ? z.obrazy : []).slice(0, 20).map(o => wizjaObraz(o, z?.krawedz)).filter(Boolean).map(dataUrl => ({ type: 'image', dataUrl }));
-  if (!obrazy.length && !String(z?.polecenie || '').trim()) return { ok: false, powod: 'Brak obrazów i polecenia.' };
+  const obrazy = (Array.isArray(z?.obrazy) ? z.obrazy : []).slice(0, 40).map(o => wizjaObraz(o, z?.krawedz)).filter(Boolean).map(dataUrl => ({ type: 'image', dataUrl }));
+  // 3.5: PDF idzie do Claude w całości — model czyta tekst i skany stron sam (do 100 stron, 30 MB).
+  const dokumenty = [];
+  for (const d of (Array.isArray(z?.dokumenty) ? z.dokumenty : []).slice(0, 5)){
+    try {
+      const sc = String(d?.sciezka || '');
+      if (/^data:application\/pdf;base64,/.test(String(d?.dataUrl || ''))) { dokumenty.push({ type: 'document', dataUrl: d.dataUrl, nazwa: String(d.nazwa || 'dokument.pdf') }); continue; }
+      if (!sc || !/\.pdf$/i.test(sc) || !fs.existsSync(sc)) continue;
+      if (fs.statSync(sc).size > 30 * 1024 * 1024) continue;
+      dokumenty.push({ type: 'document', dataUrl: 'data:application/pdf;base64,' + fs.readFileSync(sc).toString('base64'), nazwa: path.basename(sc) });
+    } catch (e) { logToFile('WARN', 'Wizja PDF', bladTekst(e)); }
+  }
+  if (!obrazy.length && !dokumenty.length && !String(z?.polecenie || '').trim()) return { ok: false, powod: 'Brak obrazów i polecenia.' };
   const wiadomosci = [];
   if (z?.system) wiadomosci.push({ role: 'system', content: String(z.system).slice(0, 20000) });
-  wiadomosci.push({ role: 'user', content: [...obrazy, { type: 'text', text: String(z?.polecenie || '').slice(0, 150000) }] });
+  wiadomosci.push({ role: 'user', content: [...dokumenty, ...obrazy, { type: 'text', text: String(z?.polecenie || '').slice(0, 300000) }] });
   try {
-    const w = await chmuraWywolaj(wiadomosci, { maks: Math.min(8000, Number(z?.maks) || 3000) });
-    return { ok: true, text: w.text, obrazow: obrazy.length };
-  } catch (e) { return { ok: false, powod: String(e?.message || e) }; }
+    const w = await chmuraWywolaj(wiadomosci, { maks: Math.min(16000, Number(z?.maks) || 3000), internet: !!z?.internet, wyszukiwan: z?.wyszukiwan, tryb: z?.tryb });
+    return { ok: true, text: w.text, obrazow: obrazy.length, dokumentow: dokumenty.length, zrodla: w.zrodla || [], wyszukiwan: w.wyszukiwan || 0 };
+  } catch (e) { return { ok: false, powod: bladTekst(e) }; }
 });
 
 ipcMain.handle('chmura:probuj', async () => {
@@ -3262,7 +3273,30 @@ ipcMain.handle('pamiec:wczytaj-pliki', async () => {
      - Excel / CSV                   → wiersze (wyciąg z rejestru cen).
    Pliki nie wychodzą z komputera.
    =========================================================================== */
-const WSAD_OBRAZY = /\.(png|jpe?g|webp|bmp)$/i;
+const czytnikFormatow = require('./czytnik-formatow.js');
+const WSAD_OBRAZY = czytnikFormatow.OBRAZY;
+
+/** 3.5: obraz, którego nie zna nativeImage (WEBP, GIF, AVIF) → PNG przez silnik Chromium. Zwraca ścieżkę PNG albo ''. */
+async function obrazPrzezChromium(plik){
+  try {
+    const buf = fs.readFileSync(plik); if (buf.length > 60 * 1024 * 1024) return '';
+    const ext = path.extname(plik).slice(1).toLowerCase();
+    const mime = ext === 'gif' ? 'image/gif' : ext === 'avif' ? 'image/avif' : 'image/webp';
+    const okno = await ocrOknoGotowe();
+    const dane = `data:${mime};base64,${buf.toString('base64')}`;
+    const png = await okno.webContents.executeJavaScript(`(async () => { try {
+      const b = await createImageBitmap(await (await fetch(${JSON.stringify(dane)})).blob());
+      const c = new OffscreenCanvas(b.width, b.height); c.getContext('2d').drawImage(b, 0, 0);
+      const bl = await c.convertToBlob({ type: 'image/png' });
+      return await new Promise(ok => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(bl); });
+    } catch (e) { return ''; } })()`, true);
+    const m = /^data:image\/png;base64,(.+)$/.exec(String(png || '')); if (!m) return '';
+    const kat = path.join(app.getPath('temp'), 'opero-obrazy'); fs.mkdirSync(kat, { recursive: true });
+    const cel = path.join(kat, `${path.basename(plik, path.extname(plik))}-${crypto.randomUUID().slice(0, 8)}.png`);
+    fs.writeFileSync(cel, Buffer.from(m[1], 'base64'));
+    return cel;
+  } catch (e) { logToFile('WARN', 'Obraz przez Chromium', bladTekst(e)); return ''; }
+}
 const WSAD_LIMIT = 200 * 1024 * 1024;
 
 /** Czy obraz wygląda na dokument (jasne tło, mało koloru) – wtedy warto go czytać. */
@@ -3337,8 +3371,15 @@ async function wsadJeden(plik, postep){
   const ext = path.extname(plik).toLowerCase();
   try {
     if (WSAD_OBRAZY.test(plik)){
-      const img = nativeImage.createFromBuffer(fs.readFileSync(plik));
-      if (img.isEmpty()) return { nazwa, ok: false, powod: 'nieobsługiwany format obrazu' };
+      if (czytnikFormatow.OBRAZY_BEZ_DEKODERA.test(plik)) return { nazwa, ok: false, powod: czytnikFormatow.powodBezDekodera(nazwa) };
+      let img = nativeImage.createFromBuffer(fs.readFileSync(plik));
+      if (img.isEmpty() || czytnikFormatow.OBRAZY_CHROMIUM.test(plik)){
+        postep && postep(`przekształcam obraz: ${nazwa}`);
+        const png = await obrazPrzezChromium(plik);
+        if (!png) return { nazwa, ok: false, powod: 'nie udało się otworzyć tego obrazu — zapisz go jako JPG albo PNG' };
+        plik = png; img = nativeImage.createFromPath(png);
+        if (img.isEmpty()) return { nazwa, ok: false, powod: 'nieobsługiwany format obrazu' };
+      }
       // 3.4: przy włączonym mózgu AI obraz rozpoznaje Claude (rodzaj, treść, okładka) — bez lokalnego OCR.
       if (chmuraAktywna()) return { nazwa, ok: true, rodzaj: 'obraz', sciezka: plik, zdjecie: preparePhoto(plik) };
       const ocena = wsadCzyDokument(img);
@@ -3371,6 +3412,16 @@ async function wsadJeden(plik, postep){
       return { nazwa, ok: true, rodzaj: 'arkusz', arkusze, sciezka: plik };
     }
     if (ext === '.txt' || ext === '.md') return { nazwa, ok: true, rodzaj: 'tekst', tekst: fs.readFileSync(plik, 'utf8').slice(0, 600000) };
+    // 3.5: więcej formatów tekstowych — każdy kończy jako czysty tekst, który czyta Claude.
+    if (ext === '.odt' || ext === '.ods' || ext === '.odp'){
+      const buf = fs.readFileSync(plik); const wpis = xlsxCzytnik.katalogZip(buf).get('content.xml');
+      if (!wpis) return { nazwa, ok: false, powod: 'to nie jest dokument OpenDocument' };
+      return { nazwa, ok: true, rodzaj: 'word', tekst: czytnikFormatow.zXml(xlsxCzytnik.rozpakuj(buf, wpis).toString('utf8')).slice(0, 600000), sciezka: plik, rozmiar: st.size };
+    }
+    if (ext === '.rtf') return { nazwa, ok: true, rodzaj: 'word', tekst: czytnikFormatow.zRtf(fs.readFileSync(plik, 'latin1')).slice(0, 600000), sciezka: plik, rozmiar: st.size };
+    if (ext === '.html' || ext === '.htm' || ext === '.xml' || ext === '.gml' || ext === '.xhtml') return { nazwa, ok: true, rodzaj: 'tekst', tekst: czytnikFormatow.zXml(fs.readFileSync(plik, 'utf8')).slice(0, 600000) };
+    if (ext === '.json' || ext === '.geojson') return { nazwa, ok: true, rodzaj: 'tekst', tekst: fs.readFileSync(plik, 'utf8').slice(0, 300000) };
+    if (ext === '.eml') return { nazwa, ok: true, rodzaj: 'tekst', tekst: czytnikFormatow.zEml(fs.readFileSync(plik, 'utf8')).slice(0, 300000) };
     return { nazwa, ok: true, rodzaj: 'zalacznik', sciezka: plik, rozmiar: st.size };
   } catch (e) {
     logToFile('WARN', 'Wsad', nazwa, String(e?.message || e));
@@ -3380,12 +3431,19 @@ async function wsadJeden(plik, postep){
 
 async function wsadWiele(sciezki){
   const lista = [...new Set((sciezki || []).map(String).filter(Boolean))].slice(0, 300);
-  const wynik = [];
-  for (let i = 0; i < lista.length; i++){
-    const wyslij = (krok) => { try { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('wsad:postep', { zrobione: i, razem: lista.length, krok }); } catch {} };
-    wyslij(`czytam: ${path.basename(lista[i])}`);
-    wynik.push(await wsadJeden(lista[i], wyslij));
-  }
+  // 3.5: pliki czytamy równolegle (po 4) — kolejność wyników zostaje jak na liście.
+  const wynik = new Array(lista.length);
+  let zrobione = 0, nastepny = 0;
+  const robotnik = async () => {
+    while (nastepny < lista.length){
+      const i = nastepny++;
+      const wyslij = (krok) => { try { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('wsad:postep', { zrobione, razem: lista.length, krok }); } catch {} };
+      wyslij(`czytam: ${path.basename(lista[i])}`);
+      wynik[i] = await wsadJeden(lista[i], wyslij);
+      zrobione++;
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(4, lista.length) }, robotnik));
   try { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('wsad:postep', { zrobione: lista.length, razem: lista.length, krok: 'gotowe' }); } catch {}
   return wynik;
 }
@@ -3394,7 +3452,7 @@ ipcMain.handle('wsad:wybierz', async () => {
   requireActiveLicense();
   const r = await dialog.showOpenDialog(mainWindow, {
     title: 'Wrzuć dokumenty operatu: księgę, rzut, zdjęcia, PDF, Word, Excel', properties: ['openFile', 'multiSelections'],
-    filters: [{ name: 'Dokumenty operatu', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'pdf', 'docx', 'xlsx', 'csv', 'txt', 'md'] }, { name: 'Wszystkie pliki', extensions: ['*'] }],
+    filters: [{ name: 'Dokumenty operatu', extensions: ['pdf', 'jpg', 'jpeg', 'jfif', 'png', 'webp', 'gif', 'avif', 'bmp', 'tif', 'tiff', 'heic', 'docx', 'odt', 'rtf', 'xlsx', 'ods', 'csv', 'txt', 'md', 'html', 'htm', 'xml', 'gml', 'json', 'eml'] }, { name: 'Wszystkie pliki', extensions: ['*'] }],
   });
   if (r.canceled) return { canceled: true, pliki: [] };
   return { canceled: false, pliki: await wsadWiele(r.filePaths) };

@@ -92,6 +92,7 @@ function studioWzorDlaPola(sciezka){
 
 /* 3.4.1: opis czyta Claude — piszesz jak do czatu, fakty wyciąga model. */
 const studioOpisAI = { tekst: '', fakty: [], trwa: null, czas: null, blad: '' };
+let studioProcesId = null;
 function studioOpisWynik(tekst){
   const O = window.OperoOpis; const t = String(tekst == null ? ($('#opisTekst')?.value || '') : tekst);
   const w = O.czytaj(t);
@@ -105,13 +106,15 @@ async function studioOpisPrzezClaude(){
   // Wklejona księga w opisie trafia też do pola księgi — Agent KW przeczyta ją w całości.
   try { const E = window.OperoEkw, kw = $('#opisKwTekst'); if (E && kw && !String(kw.value || '').trim() && E.czytaj(t)?.ok){ kw.value = t; studioDokumentyStan(); } } catch {}
   const znacznik = $('#opisFakty'); znacznik?.setAttribute('data-claude', 'czyta');
+  const pid = window.OperoProces?.start('Claude czyta Twój opis', { ikona: 'ai', opis: 'wyciągam adres, powierzchnie, rodzaj nieruchomości, księgę…' });
   const obietnica = window.operatAPI.chmuraWizja({ obrazy: [], system: window.OperoWizja?.SYSTEM, polecenie: O.polecenieClaude(t), maks: 1500 })
     .catch(e => ({ ok: false, powod: cleanRemoteError(e) }))
     .then(r => {
       if (studioOpisAI.trwa?.tekst === t) studioOpisAI.trwa = null;
       znacznik?.removeAttribute('data-claude');
-      if (!r?.ok){ studioOpisAI.blad = r?.brakChmury ? '' : String(r?.powod || ''); return null; }
+      if (!r?.ok){ studioOpisAI.blad = r?.brakChmury ? '' : String(r?.powod || ''); window.OperoProces?.koniec(pid, r?.brakChmury ? 'Mózg AI wyłączony.' : `Nie udało się: ${studioOpisAI.blad}`, false); return null; }
       studioOpisAI.tekst = t; studioOpisAI.fakty = O.zClaude(r.text); studioOpisAI.blad = '';
+      window.OperoProces?.koniec(pid, `Odczytane fakty: ${studioOpisAI.fakty.length}.`);
       if (String($('#opisTekst')?.value || '').trim() === t) studioFaktyRysuj();
       return studioOpisAI.fakty;
     });
@@ -487,6 +490,7 @@ const AGENCI_PRACA = {
   async kw(k){
     const A = window.OperoAgenci, zrobione = [], braki = [];
     const wklejone = ($('#opisKwTekst')?.value || '').trim();
+    if (wklejone.length >= 20) studioStan().kwTekstPelny = wklejone;  // 3.5: dla Agenta Prawnego (pole zaraz się czyści)
     const sekcje = project.legal?.ekwImport?.sections || {};
     const saDzialy = Object.values(sekcje).some(x => String(x || '').trim());
     if (wklejone.length >= 20 || saDzialy){
@@ -531,6 +535,53 @@ const AGENCI_PRACA = {
       }
     }
     if (!String(project.valuation?.legalStateDate || '').trim() && nr) braki.push('Brak daty, na którą ustalono stan prawny (dzień badania księgi).');
+    return { zrobione, braki };
+  },
+
+  /* 3.5: super-agenci — Claude z wyszukiwarką internetową. */
+  async prawnik(k){
+    const S = window.OperoSuper, zrobione = [], braki = [];
+    if (!S || !studioAPI('chmuraWizja') || !studioMozg?.gotowosc?.aktywny) return { pominiety: true, braki: ['Agent Prawny pracuje na Claude — włącz Mózg AI w Ustawieniach.'] };
+    const sekcje = project.legal?.ekwImport?.sections || {};
+    const tresc = [studioStan().kwTekstPelny || '', ...Object.entries(sekcje).map(([d, t]) => String(t || '').trim() ? `DZIAŁ ${d}\n${t}` : ''),
+      project.legal?.sectionIII ? `DZIAŁ III\n${project.legal.sectionIII}` : '', project.legal?.sectionIV ? `DZIAŁ IV\n${project.legal.sectionIV}` : ''].filter(Boolean).join('\n\n');
+    if (tresc.replace(/\s/g, '').length < 40) return { braki: ['Agent Prawny nie ma treści księgi — wrzuć księgę (PDF, zrzuty albo wklejony tekst z EKW).'] };
+    k.krok('czytam księgę jak prawnik i sprawdzam aktualne przepisy w internecie');
+    const r = await window.operatAPI.chmuraWizja({ system: S.SYSTEM, polecenie: S.polecenieprawnik(project, tresc), internet: true, wyszukiwan: 5, maks: 5000, tryb: 'najlepszy' }).catch(e => ({ ok: false, powod: cleanRemoteError(e) }));
+    if (!r?.ok) return { braki: [`Agent Prawny: ${r?.powod || 'brak odpowiedzi'}`], powtorz: true };
+    k.krok('oceniam ryzyka');
+    const w = S.prawnik(r.text);
+    if (!w.ok) return { braki: ['Agent Prawny zwrócił odpowiedź w złym formacie — uruchom zespół jeszcze raz.'], powtorz: true };
+    k.krok('piszę stan prawny');
+    const wpisane = S.prawnikDoProjektu(project, w, r.zrodla, new Date().toISOString());
+    zrobione.push(`Analiza prawna gotowa${r.wyszukiwan ? ` (sprawdził ${r.wyszukiwan} ${r.wyszukiwan === 1 ? 'źródło' : 'źródeł'} w internecie)` : ''}.`);
+    if (wpisane.length) zrobione.push(`Wpisałem: ${wpisane.join(', ')}.`);
+    for (const p of w.podstawy.slice(0, 4)) zrobione.push(`Podstawa: ${p.akt}${p.publikator ? ` (${p.publikator})` : ''}${p.przepis ? `, ${p.przepis}` : ''}.`);
+    for (const x of w.ryzyka) (x.waga === 'niska' ? zrobione : braki).push(`Ryzyko ${x.waga === 'wysoka' ? 'WYSOKIE' : x.waga === 'srednia' ? 'średnie' : 'niskie'}: ${x.opis}${x.wplyw ? ` — ${x.wplyw}` : ''}`);
+    for (const x of w.doWyjasnienia.slice(0, 5)) braki.push(`Do wyjaśnienia: ${x}`);
+    return { zrobione, braki };
+  },
+
+  async planista(k){
+    const S = window.OperoSuper, zrobione = [], braki = [];
+    if (!S || !studioAPI('chmuraWizja') || !studioMozg?.gotowosc?.aktywny) return { pominiety: true, braki: ['Agent Planistyczny pracuje na Claude — włącz Mózg AI w Ustawieniach.'] };
+    const pl = project.planning || {};
+    if (String(pl.zoneSymbol || '').trim() && String(pl.designation || '').trim() && String(pl.planName || pl.resolution || '').trim()) return { zrobione: ['Plan miejscowy był już ustalony — nie szukałem ponownie.'] };
+    if (!String(project.property?.city || '').trim() && !String(project.egib?.plotId || '').trim()) return { braki: ['Bez adresu albo identyfikatora działki nie znajdę planu.'] };
+    k.krok('szukam planu miejscowego w internecie');
+    const r = await window.operatAPI.chmuraWizja({ system: S.SYSTEM, polecenie: S.polecenieplanista(project), internet: true, wyszukiwan: 8, maks: 3000, tryb: 'najlepszy' }).catch(e => ({ ok: false, powod: cleanRemoteError(e) }));
+    if (!r?.ok) return { braki: [`Agent Planistyczny: ${r?.powod || 'brak odpowiedzi'}`], powtorz: true };
+    k.krok('czytam uchwałę i przeznaczenie');
+    const w = S.planista(r.text);
+    if (!w.ok) return { braki: ['Agent Planistyczny nie znalazł informacji o planie dla tej działki — potrzebny wypis i wyrys z planu (albo informacja o braku planu) z urzędu gminy.'] };
+    k.krok('oceniam pewność');
+    const wpisane = S.planistaDoProjektu(project, w, r.zrodla, new Date().toISOString());
+    k.krok('wpisuję plan do operatu');
+    zrobione.push(w.jestPlan ? `Znalazłem plan: ${w.planName || w.resolution}${w.publikator ? ` (${w.publikator})` : ''}.` : `Planu miejscowego nie znalazłem${w.bezPlanu ? ` — ${w.bezPlanu}` : ''}.`);
+    if (wpisane.length) zrobione.push(`Wpisałem: ${wpisane.join('; ')}.`);
+    if (w.sourceUrl) zrobione.push(`Źródło: ${w.sourceUrl}`);
+    if (w.pewnosc !== 'wysoka') braki.push(`Pewność ustaleń planistycznych: ${w.pewnosc === 'srednia' ? 'średnia' : 'niska'} — ${w.doSprawdzenia || 'potwierdź wypisem i wyrysem z planu'}.`);
+    else if (w.doSprawdzenia) braki.push(`Do potwierdzenia: ${w.doSprawdzenia}`);
     return { zrobione, braki };
   },
 
@@ -961,10 +1012,12 @@ function studioTekstRaportu(){
 }
 
 async function agenciWykonaj(id, kontekst){
-  const A = window.OperoAgenci, p = project.agenci.przebieg;
+  const A = window.OperoAgenci, p = project.agenci.przebieg, P = window.OperoProces;
   A.zacznij(p, id); studioRysuj();
+  const nazwa = A.agent(id)?.nazwa || id;
+  if (P && studioProcesId){ P.krok(studioProcesId, `${nazwa}: zaczynam`); P.postep(studioProcesId, (Number(A.postep(p)) || 0) / 100); }
   let wynik;
-  try { wynik = await AGENCI_PRACA[id]({ ...kontekst, krok: (t) => { A.krok(p, id, t); studioRysuj(); } }); }
+  try { wynik = await AGENCI_PRACA[id]({ ...kontekst, krok: (t) => { A.krok(p, id, t); studioRysuj(); if (P && studioProcesId) P.krok(studioProcesId, `${nazwa}: ${t}`); } }); }
   catch (e) { console.error(e); wynik = { blad: cleanRemoteError(e) }; }
   A.zakoncz(p, id, wynik);
   studioRysuj();
@@ -1028,10 +1081,11 @@ async function agenciUruchom(){
   const p = s.przebieg = A.nowy({ dokladnosc, mozg: studioMozg?.gotowosc?.aktywny ? 'chmura' : 'lokalny' });
   clearInterval(agenciZegar); agenciZegar = setInterval(studioCzasRysuj, 1000);
   studioRysuj();
+  studioProcesId = window.OperoProces?.start('Zespół agentów tworzy operat', { ikona: 'agenci', opis: `${A.ZESPOL.length} agentów, Claude jako mózg` }) || null;
   await studioPowiadom('start', { agentow: A.ZESPOL.length });
   const kontekst = { opis, nowyModul, modulNiepewny: !!(mod && !mod.pewny) };
   try {
-    for (const id of ['zlecenie', 'oglednik', 'kw', 'lokalizacja', 'geoportal', 'rynek', 'analityk', 'obliczenia', 'metodyk', 'redaktor', 'formalny']){
+    for (const id of ['zlecenie', 'oglednik', 'kw', 'prawnik', 'lokalizacja', 'geoportal', 'planista', 'rynek', 'analityk', 'obliczenia', 'metodyk', 'redaktor', 'formalny']){
       if (agenciPrzerwij) break;
       await agenciWykonaj(id, kontekst);
       changed();
@@ -1080,6 +1134,7 @@ async function agenciUruchom(){
   p.koniec = new Date().toISOString(); p.stan = agenciPrzerwij ? 'przerwane' : 'gotowe';
   for (const a of Object.values(p.agenci)) if (a.stan === 'pracuje'){ a.stan = 'czeka'; a.krok = ''; }
   agenciTrwa = false;
+  if (studioProcesId){ const rr = A.raport(p); window.OperoProces?.koniec(studioProcesId, p.stan === 'gotowe' ? `Operat gotowy: ${rr.ileZrobione} zrobione, ${rr.ileBrakow} do uzupełnienia.` : 'Praca zespołu przerwana.', p.stan === 'gotowe'); studioProcesId = null; }
   calc = obliczProjekt(); changed(); renderAll();
   studioPodpis = ''; studioRysuj();
   const r = A.raport(p);
@@ -1406,8 +1461,36 @@ function studioZlecenieRysuj(){
   el.classList.toggle('brak', !imie);
 }
 
+/* 3.5: Zapytaj zespół ekspertów — Claude z wyszukiwarką, odpowiedzi ze źródłami. */
+let zespolTrwa = false;
+async function zespolZapytaj(){
+  const S = window.OperoSuper, pole = $('#zespolPytanie'), lista = $('#zespolOdpowiedzi');
+  const pytanie = String(pole?.value || '').trim();
+  if (!S || !lista || !pytanie || zespolTrwa) return;
+  if (!(await studioZgodaMozg())) return;
+  zespolTrwa = true; pole.value = '';
+  const dodaj = (klasa, html) => { const d = document.createElement('div'); d.className = `zespol-wpis ${klasa}`; d.innerHTML = html; lista.appendChild(d); lista.scrollTop = lista.scrollHeight; return d; };
+  dodaj('pytanie', escapeHTML(pytanie));
+  const czeka = dodaj('odpowiedz', '<div class="zespol-mysli"><i></i><i></i><i></i></div>');
+  const pid = window.OperoProces?.start('Zespół ekspertów odpowiada', { ikona: 'szukaj', opis: 'Claude dobiera eksperta i sprawdza źródła w internecie…' });
+  const r = await window.operatAPI.chmuraWizja({ system: S.SYSTEM, polecenie: S.polecenieZespol(pytanie, project), internet: true, wyszukiwan: 6, maks: 4000, tryb: 'najlepszy' }).catch(e => ({ ok: false, powod: cleanRemoteError(e) }));
+  if (r?.ok){
+    const zrodla = (r.zrodla || []).filter(z => !z.znalezione).concat((r.zrodla || []).filter(z => z.znalezione)).slice(0, 8);
+    czeka.innerHTML = S.markdown(r.text) + (zrodla.length ? `<div class="zespol-zrodla">${zrodla.map(z => `<a href="#" data-url="${escapeHTML(z.url)}" title="${escapeHTML(z.url)}">${escapeHTML(z.tytul || z.url.replace(/^https?:\/\//, '').slice(0, 60))}</a>`).join('')}</div>` : '');
+    window.OperoProces?.koniec(pid, r.wyszukiwan ? `Odpowiedź gotowa — sprawdzono ${r.wyszukiwan} wyszukiwań.` : 'Odpowiedź gotowa.');
+  } else {
+    czeka.className = 'zespol-wpis blad'; czeka.textContent = `Nie udało się: ${r?.brakChmury ? 'Mózg AI jest wyłączony — włącz go w Ustawieniach.' : (r?.powod || 'brak odpowiedzi')}`;
+    window.OperoProces?.koniec(pid, r?.powod || 'Brak odpowiedzi.', false);
+  }
+  lista.scrollTop = lista.scrollHeight;
+  zespolTrwa = false;
+}
+
 function hookStudio(){
   if (!$('#studio')) return;
+  $('#zespolZapytaj')?.addEventListener('click', zespolZapytaj);
+  $('#zespolPytanie')?.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); zespolZapytaj(); } });
+  $('#zespolOdpowiedzi')?.addEventListener('click', e => { const a = e.target.closest('a[data-url]'); if (!a) return; e.preventDefault(); const u = a.dataset.url; if (/^https?:\/\//.test(u) && window.operatAPI?.openExternal) window.operatAPI.openExternal(u); });
   $('#opisTekst')?.addEventListener('input', () => {
     clearTimeout(studioOpisCzas); studioOpisCzas = setTimeout(() => { studioFaktyRysuj(); studioMowi(''); }, 180);
     clearTimeout(studioOpisAI.czas); studioOpisAI.czas = setTimeout(() => { studioOpisPrzezClaude(); }, 1600);

@@ -44,8 +44,8 @@ T('opis → projekt: własny cel zostaje', pr2.valuation.purpose === 'Mój włas
 
 // ---- przebieg
 let p = A.nowy({ dokladnosc: 2, teraz: '2026-01-01T10:00:00Z' });
-T('przebieg: szesnastu agentów czeka', Object.keys(p.agenci).length === 16 && A.ZESPOL.length === 16 && A.postep(p) === 0);
-T('zespół: każdy agent ma rolę, etap i kroki', A.ZESPOL.every(a => a.rola.length > 20 && a.etap && a.kroki.length >= 3) && new Set(A.ZESPOL.map(a => a.id)).size === 16);
+T('przebieg: osiemnastu agentów czeka', Object.keys(p.agenci).length === 18 && A.ZESPOL.length === 18 && A.postep(p) === 0);
+T('zespół: każdy agent ma rolę, etap i kroki', A.ZESPOL.every(a => a.rola.length > 20 && a.etap && a.kroki.length >= 3) && new Set(A.ZESPOL.map(a => a.id)).size === 18);
 T('przebieg: dokładność w granicach 1–3', A.nowy({ dokladnosc: 9 }).dokladnosc === 3 && A.nowy({ dokladnosc: 0 }).dokladnosc === 2);
 A.zacznij(p, 'kw'); A.krok(p, 'kw', 'czytam');
 T('przebieg: pracujący agent liczy się w połowie', p.agenci.kw.stan === 'pracuje' && A.postep(p) === Math.round(50 / A.ZESPOL.length), A.postep(p));

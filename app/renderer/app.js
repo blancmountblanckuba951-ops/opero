@@ -800,9 +800,22 @@ function showStatusTlo(msg,type='info',ms=4500){
   showStatus(msg,type,ms);
   statusPierwszyPlanDo = do_;
 }
+let statusProces = null;
+/** 3.5: komunikat „trwa” (bez czasu znikania) otwiera okno procesu; następny komunikat je zamyka. */
+function statusDoProcesu(msg, type, ms){
+  const P = window.OperoProces; if (!P) return;
+  const t = String(msg ?? '').trim(); if (!t) return;
+  if (type === 'info' && !ms){
+    if (statusProces && P.aktywne().some(x => x.id === statusProces)) P.krok(statusProces, t);
+    else statusProces = P.start(t.replace(/[.…]+$/, ''), { ikona: /PDF|Word|DOCX/i.test(t) ? 'pdf' : /RCN|transakc/i.test(t) ? 'rynek' : /mapa|geoportal|dzia[łl]k/i.test(t) ? 'mapa' : 'domyslna', opis: t });
+    return;
+  }
+  if (statusProces){ P.koniec(statusProces, t, type !== 'error'); statusProces = null; }
+}
 function showStatus(msg,type='info',ms=4500){
   statusPierwszyPlanDo = Date.now() + Math.min(9000, Math.max(3500, ms || 9000));
   showStatusPasek(msg,type,ms);
+  try { statusDoProcesu(msg, type, ms); } catch {}
   // Straznik: mowi() samo wola showStatus, wiec bez tego kazdy komunikat
   // trafialby do okna dwa razy.
   if (statusWTrakcie || !window.OperoOkno || !oknoStan) return;
@@ -3204,7 +3217,7 @@ function hookPanelPeraDelegacja(){
 }
 
 /* ===========================================================
-   USTAWIENIA 3.4.1 — profil, wlasny model, zywe tlo
+   USTAWIENIA 3.5.0 — profil, wlasny model, zywe tlo
    =========================================================== */
 
 /**

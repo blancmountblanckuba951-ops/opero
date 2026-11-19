@@ -44,13 +44,15 @@ function wzPolecenieKsiegi(){
 
 /** Polecenie: rozpoznaj i przepisz dokument (strony PDF-a albo obrazy). */
 function wzPolecenieDokumentu(nazwa){
-  return `Obrazy to kolejne strony dokumentu „${String(nazwa || '').slice(0, 120)}”. Ustal:\n`
+  return `Załączony materiał to dokument „${String(nazwa || '').slice(0, 120)}” (cały PDF albo obrazy kolejnych stron). Ustal:\n`
     + '- "rodzaj": "kw" (księga wieczysta), "operat" (operat szacunkowy), "podrecznik" (podręcznik/literatura fachowa), "wypis_egib" (wypis/wyrys z ewidencji), '
     + '"wypis_mpzp" (wypis/wyrys z planu miejscowego, decyzja WZ), "akt" (akt notarialny, umowa), "rzut" (projekt, rzuty), "inne";\n'
     + '- "tytul": krótki tytuł dokumentu;\n'
     + '- "tekst": wierna transkrypcja całej treści (dla księgi — w układzie działów EKW, rubryki „Nazwa: wartość”);\n'
-    + '- "streszczenie": 1–3 zdania, co z tego dokumentu jest ważne dla operatu.\n'
-    + 'Odpowiedz JSON: {"rodzaj":"…","tytul":"…","tekst":"…","streszczenie":"…"}';
+    + '- "streszczenie": 1–3 zdania, co z tego dokumentu jest ważne dla operatu;\n'
+    + '- "fakty": tylko to, co stoi w dokumencie: {"dzialka":"nr","obreb":"","powierzchniaDzialki":liczba m2,"powierzchniaUzytkowa":liczba m2,'
+    + '"przeznaczenieMpzp":"opis","symbolMpzp":"np. MN1","uzytek":"np. B, Bp","cena":liczba zł,"dataDokumentu":"RRRR-MM-DD","numerKw":"AAAA/00000000/0"}.\n'
+    + 'Odpowiedz JSON: {"rodzaj":"…","tytul":"…","tekst":"…","streszczenie":"…","fakty":{…}}';
 }
 
 /** JSON z odpowiedzi modelu — także gdy jest owinięty tekstem albo blokiem kodu. */
@@ -143,10 +145,31 @@ function wzKsiegaDoProjektu(project, pola){
   return wpisane;
 }
 
+/** Fakty z dokumentu (wypis, wyrys, akt, decyzja) -> puste pola operatu. Zwraca listę wpisanych. */
+function wzFaktyDoProjektu(project, fakty, zrodlo){
+  const p = project || {}, f = fakty && typeof fakty === 'object' ? fakty : {};
+  p.property = p.property || {}; p.egib = p.egib || {}; p.planning = p.planning || {}; p.legal = p.legal || {};
+  const wpisane = [];
+  const liczba = v => { const m = typeof v === 'number' ? null : /\d[\d\s\u00a0]*(?:[.,]\d+)?/.exec(String(v || '')); const n = typeof v === 'number' ? v : m ? Number(m[0].replace(/[\s\u00a0]/g, '').replace(',', '.')) : NaN; return Number.isFinite(n) && n > 0 ? n : null; };
+  const pusty = v => v == null || String(v).trim() === '' || v === 0;
+  const wstaw = (o, k, v, et) => { if (v == null || v === '' || !pusty(o[k])) return; o[k] = k === 'notes' ? `Użytek: ${v}` : v; if (!/EGiB/.test(et)) wpisane.push(`${et}: ${v}`); };
+  wstaw(p.egib, 'plotNo', String(f.dzialka || '').trim() || null, 'Działka');
+  wstaw(p.egib, 'district', String(f.obreb || '').trim() || null, 'Obręb');
+  wstaw(p.property, 'landArea', liczba(f.powierzchniaDzialki), 'Powierzchnia działki'); wstaw(p.egib, 'plotArea', liczba(f.powierzchniaDzialki), 'Pow. działki (EGiB)');
+  wstaw(p.property, 'usableArea', liczba(f.powierzchniaUzytkowa), 'Powierzchnia użytkowa');
+  wstaw(p.planning, 'zoneSymbol', String(f.symbolMpzp || '').trim() || null, 'Symbol planu');
+  wstaw(p.planning, 'designation', String(f.przeznaczenieMpzp || '').trim() || null, 'Przeznaczenie w planie');
+  wstaw(p.egib, 'notes', String(f.uzytek || '').trim() || null, 'Użytek');
+  const kw = /^[A-Z0-9]{4}\/\d{8}\/\d$/.test(String(f.numerKw || '').toUpperCase().replace(/\s/g, '')) ? String(f.numerKw).toUpperCase().replace(/\s/g, '') : null;
+  wstaw(p.legal, 'kwLocal', kw, 'Księga wieczysta');
+  if (wpisane.length){ p.autoWpisane = Array.isArray(p.autoWpisane) ? p.autoWpisane : []; p.autoWpisane.push({ zrodlo: `Claude z dokumentu „${zrodlo || ''}” — sprawdź z oryginałem`, pola: wpisane.slice() }); }
+  return wpisane;
+}
+
 const API_WIZJA = {
   RODZAJE: WZ_RODZAJE, SYSTEM: WZ_SYSTEM, polecenieKlasyfikacji: wzPolecenieKlasyfikacji, polecenieKsiegi: wzPolecenieKsiegi,
   polecenieDokumentu: wzPolecenieDokumentu, json: wzJson, klasyfikacja: wzKlasyfikacja, kategoria: wzKategoria, okladka: wzOkladka,
-  ksiega: wzKsiega, ksiegaDoProjektu: wzKsiegaDoProjektu,
+  ksiega: wzKsiega, ksiegaDoProjektu: wzKsiegaDoProjektu, faktyDoProjektu: wzFaktyDoProjektu,
 };
 if (typeof window !== 'undefined') window.OperoWizja = API_WIZJA;
 if (typeof module !== 'undefined' && module.exports) module.exports = API_WIZJA;

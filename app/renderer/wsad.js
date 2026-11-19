@@ -64,11 +64,13 @@ async function wsadPdf(p, kom){
   if (!r?.ok) return { rodzaj: 'blad', opis: r?.powod || 'nie udało się odczytać' };
   const strony = r.strony || [];
   const zObrazami = strony.filter(x => x.obraz);
-  if (zObrazami.length && studioAPI('chmuraWizja') && window.OperoWizja){
+  const calosc = strony.map(s => s.tekst).join('\n');
+  const W0 = window.OperoWiedza, toPodrecznik = !!(W0 && W0.czyPodrecznik(strony));
+  // 3.5: każdy PDF poza podręcznikiem (skan albo tekst) czyta Claude w całości — księgi, wypisy, decyzje, umowy.
+  if (!toPodrecznik && strony.length <= 100 && studioAPI('chmuraWizja') && window.OperoWizja){
     const w = await wsadWizjaDokument(p, zObrazami, kom);
     if (w) return w;
   }
-  const calosc = strony.map(s => s.tekst).join('\n');
   const W = window.OperoWiedza;
   if (W && W.czyPodrecznik(strony)){
     await window.operatAPI.podrecznikDodaj({ nazwa: p.nazwa.replace(/\.pdf$/i, ''), strony, zrodlo: r.zOcr ? 'ocr' : 'tekst' });
@@ -87,7 +89,7 @@ async function wsadPdf(p, kom){
 /** Wynik rozpoznania z procesu głównego → operat. */
 async function wsadPrzyjmij(pliki){
   const O = window.OperoOcr;
-  const kom = t => { const e = $('#wsadStan'); if (e) e.textContent = t; };
+  const kom = t => { const e = $('#wsadStan'); if (e) e.textContent = t; if (t && wsadProcesId) window.OperoProces?.krok(wsadProcesId, t); };
   const kw = [], obrazy = [];
   let zdjec = 0;
   for (const p of (pliki || [])){
@@ -145,14 +147,24 @@ async function wsadPrzyjmij(pliki){
 /* 3.4: Claude ogląda obrazy — rozpoznaje rodzaj, przepisuje księgę, wybiera okładkę. */
 async function wsadWizjaObrazy(lista, kom){
   const V = window.OperoWizja, zabud = typeof isPairModule === 'function' && isPairModule();
-  let klasy = [];
-  for (let i = 0; i < lista.length; i += 10){
-    const partia = lista.slice(i, i + 10);
-    kom(`Claude ogląda obrazy ${i + 1}–${i + partia.length} z ${lista.length}…`);
-    const r = await window.operatAPI.chmuraWizja({ obrazy: partia.map(p => p.zdjecie?.dataUrl || p.sciezka), system: V.SYSTEM, polecenie: V.polecenieKlasyfikacji(partia.map(p => p.nazwa)), krawedz: 1000, maks: 3000 }).catch(e => ({ ok: false, powod: cleanRemoteError(e) }));
-    if (!r?.ok) wsadDopisz('blad', `obrazy ${i + 1}–${i + partia.length}`, `Claude nie obejrzał obrazów: ${r?.powod || 'błąd'} — dodałem je jako zdjęcia`);
-    klasy = klasy.concat(V.klasyfikacja(r?.ok ? r.text : '', partia.length).map(k => (r?.ok ? k : { ...k, rodzaj: 'inne', zModelu: false })));
+  // 3.5: partie po 10 obrazów idą do Claude równolegle (po 3 naraz) — 40 zdjęć ≈ czas jednej partii.
+  const partie = [];
+  for (let i = 0; i < lista.length; i += 10) partie.push({ od: i, lista: lista.slice(i, i + 10) });
+  let gotowe = 0;
+  kom(`Claude ogląda ${lista.length} ${lista.length === 1 ? 'obraz' : 'obrazów'}…`);
+  const jedna = async (pt) => {
+    const r = await window.operatAPI.chmuraWizja({ obrazy: pt.lista.map(p => p.zdjecie?.dataUrl || p.sciezka), system: V.SYSTEM, polecenie: V.polecenieKlasyfikacji(pt.lista.map(p => p.nazwa)), krawedz: 1000, maks: 3000, tryb: 'szybki' }).catch(e => ({ ok: false, powod: cleanRemoteError(e) }));
+    gotowe += pt.lista.length; kom(`Claude obejrzał ${gotowe} z ${lista.length} obrazów…`);
+    if (window.OperoProces) window.OperoProces.postep(gotowe / lista.length * 0.8);
+    if (!r?.ok) wsadDopisz('blad', `obrazy ${pt.od + 1}–${pt.od + pt.lista.length}`, `Claude nie obejrzał obrazów: ${r?.powod || 'błąd'} — dodałem je jako zdjęcia`);
+    return V.klasyfikacja(r?.ok ? r.text : '', pt.lista.length).map(k => (r?.ok ? k : { ...k, rodzaj: 'inne', zModelu: false }));
+  };
+  const wyniki = new Array(partie.length);
+  for (let i = 0; i < partie.length; i += 3) {
+    const kawalek = partie.slice(i, i + 3);
+    (await Promise.all(kawalek.map(jedna))).forEach((w, j) => { wyniki[i + j] = w; });
   }
+  const klasy = [].concat(...wyniki);
   // Księga: wszystkie strony razem, w pełnej rozdzielczości.
   const kwy = lista.filter((_, i) => klasy[i]?.rodzaj === 'kw');
   if (kwy.length){
@@ -201,13 +213,17 @@ async function wsadWizjaObrazy(lista, kom){
 /** Krótki skan PDF (księga, wypis, akt) — Claude rozpoznaje i przepisuje. */
 async function wsadWizjaDokument(p, strony, kom){
   const V = window.OperoWizja;
-  kom(`Claude czyta „${p.nazwa}” (${strony.length} str.)…`);
-  const r = await window.operatAPI.chmuraWizja({ obrazy: strony.slice(0, 12).map(s => s.obraz), system: V.SYSTEM, polecenie: V.polecenieDokumentu(p.nazwa), krawedz: 1568, maks: 8000 }).catch(e => ({ ok: false, powod: cleanRemoteError(e) }));
+  // 3.5: cały PDF trafia do Claude natywnie (tekst + obrazy stron, do 100 stron) — bez rasteryzacji.
+  const natywnie = !!p.sciezka && (Number(p.rozmiar) || 0) <= 30 * 1024 * 1024;
+  const zrodlo = natywnie ? { dokumenty: [{ sciezka: p.sciezka }] } : { obrazy: strony.slice(0, 12).map(s => s.obraz), krawedz: 1568 };
+  kom(`Claude czyta „${p.nazwa}”${strony.length ? ` (${strony.length} str.)` : ''}…`);
+  const r = await window.operatAPI.chmuraWizja({ ...zrodlo, system: V.SYSTEM, polecenie: V.polecenieDokumentu(p.nazwa), maks: 12000 }).catch(e => ({ ok: false, powod: cleanRemoteError(e) }));
   if (!r?.ok) return null;
   const j = V.json(r.text) || {};
   const tekst = String(j.tekst || '').trim(), rodzaj = String(j.rodzaj || '');
   if (rodzaj === 'kw' || wsadCzyKsiega(tekst)){
-    const k = await window.operatAPI.chmuraWizja({ obrazy: strony.slice(0, 12).map(s => s.obraz), system: V.SYSTEM, polecenie: V.polecenieKsiegi(), krawedz: 1568, maks: 8000 }).catch(() => null);
+    kom(`Claude przepisuje księgę z „${p.nazwa}”…`);
+    const k = await window.operatAPI.chmuraWizja({ ...zrodlo, system: V.SYSTEM, polecenie: V.polecenieKsiegi(), maks: 16000 }).catch(() => null);
     const kk = k?.ok ? V.ksiega(k.text) : { ok: false };
     wsadDodajKsiege(kk.ok && kk.tekst ? kk.tekst : tekst, true);
     if (kk.ok) studioStan().kwZWizji = kk.pola;
@@ -216,26 +232,44 @@ async function wsadWizjaDokument(p, strony, kom){
   if (rodzaj === 'operat' && window.OperoPamiec){ await pamiecDodajTeksty([{ nazwa: p.nazwa, ok: true, tekst }]); return { rodzaj: 'wzor', opis: 'operat (skan) jako wzór stylu' }; }
   project.files = project.files || [];
   project.files.push({ id: newId(), name: p.nazwa, originalPath: p.sciezka, extension: 'pdf', mime: 'application/pdf', size: p.rozmiar, description: j.tytul || 'Dokument źródłowy', includeInPDF: false, tekst: tekst.slice(0, 30000), streszczenie: String(j.streszczenie || '').slice(0, 600), rodzajDokumentu: rodzaj });
+  const wpisane = V.faktyDoProjektu ? V.faktyDoProjektu(project, j.fakty, p.nazwa) : [];
+  if (wpisane.length) return { rodzaj: 'zalacznik', opis: `${j.tytul || 'dokument'} — przeczytany przez Claude; wpisane: ${wpisane.join(', ')}` };
   if (/wypis_mpzp/.test(rodzaj) && tekst){ project.planning = project.planning || {}; if (!String(project.planning.description || '').trim()) project.planning.description = String(j.streszczenie || '').slice(0, 1500); }
   return { rodzaj: 'zalacznik', opis: `${j.tytul || 'dokument'} — przeczytany przez Claude` };
 }
 
+let wsadProcesId = null;
+function wsadProcesStart(ile){
+  wsadProcesId = window.OperoProces?.start('Czytam Twoje dokumenty', { ikona: 'dok', opis: ile ? `${ile} ${ile === 1 ? 'plik' : 'plików'} — rozpoznaję formaty` : 'otwieram pliki…' }) || null;
+  if (!wsadProcesStart.sluch && window.operatAPI?.onWsadPostep){
+    wsadProcesStart.sluch = window.operatAPI.onWsadPostep(d => { if (!wsadProcesId || !d) return; if (d.krok && d.krok !== 'gotowe') window.OperoProces?.krok(wsadProcesId, d.krok); if (d.razem) window.OperoProces?.postep(wsadProcesId, d.zrobione / d.razem * 0.4); });
+  }
+}
+function wsadProcesKoniec(blad){
+  if (!wsadProcesId) return;
+  const ile = (project.photos || []).length, pl = (project.files || []).length;
+  window.OperoProces?.koniec(wsadProcesId, blad ? `Nie udało się: ${blad}` : `Gotowe — w operacie: ${ile} zdjęć, ${pl} dokumentów.`, !blad);
+  wsadProcesId = null;
+}
 async function wsadZSciezek(sciezki){
   if (wsadTrwa || !sciezki.length || !studioAPI('wsadSciezki')) return;
   if (typeof studioZgodaMozg === 'function') await studioZgodaMozg();
-  wsadTrwa = true; $('#wsadPole')?.classList.add('pracuje');
+  wsadTrwa = true; $('#wsadPole')?.classList.add('pracuje'); wsadProcesStart(sciezki.length);
+  let blad = '';
   try { const r = await window.operatAPI.wsadSciezki(sciezki); await wsadPrzyjmij(r?.pliki || []); }
-  catch (e){ const k = $('#wsadStan'); if (k) k.textContent = cleanRemoteError(e); }
-  finally { wsadTrwa = false; $('#wsadPole')?.classList.remove('pracuje'); }
+  catch (e){ blad = cleanRemoteError(e); const k = $('#wsadStan'); if (k) k.textContent = blad; }
+  finally { wsadTrwa = false; $('#wsadPole')?.classList.remove('pracuje'); wsadProcesKoniec(blad); }
 }
 
 async function wsadWybierz(){
   if (wsadTrwa || !studioAPI('wsadWybierz')) return;
   if (typeof studioZgodaMozg === 'function') await studioZgodaMozg();
   wsadTrwa = true; $('#wsadPole')?.classList.add('pracuje');
-  try { const r = await window.operatAPI.wsadWybierz(); if (!r?.canceled) await wsadPrzyjmij(r.pliki || []); }
-  catch (e){ const k = $('#wsadStan'); if (k) k.textContent = cleanRemoteError(e); }
-  finally { wsadTrwa = false; $('#wsadPole')?.classList.remove('pracuje'); }
+  let blad = '';
+  wsadProcesStart(0);
+  try { const r = await window.operatAPI.wsadWybierz(); if (r?.canceled){ window.OperoProces?.koniec(wsadProcesId, 'Nic nie wybrano.'); wsadProcesId = null; } else { window.OperoProces?.krok(wsadProcesId, `Wczytano ${(r.pliki || []).length} plików — analizuję treść`); await wsadPrzyjmij(r.pliki || []); } }
+  catch (e){ blad = cleanRemoteError(e); const k = $('#wsadStan'); if (k) k.textContent = blad; }
+  finally { wsadTrwa = false; $('#wsadPole')?.classList.remove('pracuje'); wsadProcesKoniec(blad); }
 }
 
 function wsadRysuj(){

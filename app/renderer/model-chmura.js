@@ -78,18 +78,22 @@ function chZadanie(u, klucz, wiadomosci, opcje){
         const m = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(String(x.dataUrl || ''));
         if (!m) continue;
         out.push(format === 'anthropic' ? { type: 'image', source: { type: 'base64', media_type: m[1], data: m[2] } } : { type: 'image_url', image_url: { url: x.dataUrl } });
+      } else if (x && x.type === 'document' && format === 'anthropic'){
+        const m = /^data:application\/pdf;base64,(.+)$/.exec(String(x.dataUrl || ''));
+        if (m) out.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: m[1] }, title: String(x.nazwa || 'dokument.pdf').slice(0, 200) });
       }
     }
     return out;
   };
   const lista = (wiadomosci || []).map(m => ({ role: m.role, content: m.role === 'system' ? String(m.content || '') : czesci(m.content, x.dostawca) })).filter(m => Array.isArray(m.content) ? m.content.length : m.content);
-  const maks = Math.min(8000, Math.max(200, Number(o.maks) || 2500));
+  const maks = Math.min(16000, Math.max(200, Number(o.maks) || 2500));
   if (x.dostawca === 'anthropic'){
     const system = lista.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
     const reszta = lista.filter(m => m.role !== 'system');
     if (!reszta.length) return null;
     const body = { model: x.model, max_tokens: maks, messages: reszta };
     if (system) body.system = system;
+    if (o.internet) body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: Math.min(10, Number(o.wyszukiwan) || 6) }];
     return { url: `${x.baza}/v1/messages`, metoda: 'POST', naglowki: chNaglowki('anthropic', klucz), body };
   }
   if (!lista.some(m => m.role !== 'system')) return null;
@@ -100,19 +104,24 @@ function chZadanie(u, klucz, wiadomosci, opcje){
 function chZadanieOpero(wiadomosci, o){
   const lista = Array.isArray(wiadomosci) ? wiadomosci : [];
   const system = lista.filter(m => m.role === 'system').map(m => String(m.content || '')).join('\n\n');
-  const teksty = [], obrazy = [];
+  const teksty = [], obrazy = [], dokumenty = [];
   for (const m of lista.filter(m => m.role !== 'system')){
     if (Array.isArray(m.content)){
       for (const c of m.content){
         if (c?.type === 'text' && c.text) teksty.push(String(c.text));
-        else if (c?.type === 'image' && /^data:image\/(jpeg|png|webp);base64,/.test(String(c.dataUrl || ''))) obrazy.push(c.dataUrl);
+        else if (c?.type === 'image' && /^data:image\/(jpeg|png|webp|gif);base64,/.test(String(c.dataUrl || ''))) obrazy.push(c.dataUrl);
+        else if (c?.type === 'document' && /^data:application\/pdf;base64,/.test(String(c.dataUrl || ''))) dokumenty.push({ dataUrl: c.dataUrl, nazwa: String(c.nazwa || 'dokument.pdf') });
       }
     } else if (m.content) teksty.push((m.role === 'assistant' ? 'Twoja wcześniejsza odpowiedź: ' : '') + String(m.content));
   }
   const polecenie = teksty.join('\n\n').trim();
   if (!polecenie) return null;
-  const maks = Math.min(8000, Math.max(200, Number(o.maks) || 2500));
-  return { url: CH_MOZG_OPERO, metoda: 'POST', naglowki: { 'content-type': 'application/json' }, body: { system, polecenie, obrazy: obrazy.slice(0, 20), maks }, wymagaLicencji: true };
+  const maks = Math.min(16000, Math.max(200, Number(o.maks) || 2500));
+  const body = { system, polecenie, obrazy: obrazy.slice(0, 40), maks };
+  if (dokumenty.length) body.dokumenty = dokumenty.slice(0, 5);
+  if (o.internet){ body.internet = true; body.wyszukiwan = Math.min(10, Number(o.wyszukiwan) || 6); }
+  if (['najlepszy', 'szybki', 'blyskawiczny'].includes(o.tryb)) body.tryb = o.tryb;
+  return { url: CH_MOZG_OPERO, metoda: 'POST', naglowki: { 'content-type': 'application/json' }, body, wymagaLicencji: true };
 }
 
 function chZadanieListy(u, klucz){
@@ -145,16 +154,22 @@ function chZOdpowiedzi(dostawca, status, tekst){
     if (status === 401 || (j && j.ok === false)) return { ok: false, powod: `Mózg OPERO: ${j?.powod || 'odmowa dostępu (licencja)'}` };
     if (!(status >= 200 && status < 300)) return { ok: false, powod: `Mózg OPERO nie odpowiedział poprawnie (kod ${status}). Spróbuj za chwilę.` };
     const t = String(j?.text || '').trim().replace(/^```[a-z]*\n?|\n?```$/g, '').trim();
-    return t ? { ok: true, text: t, uciety: false } : { ok: false, powod: 'Mózg OPERO nie zwrócił tekstu.' };
+    const zrodla = Array.isArray(j?.zrodla) ? j.zrodla.filter(z => /^https?:\/\//.test(String(z?.url || ''))).slice(0, 30) : [];
+    return t ? { ok: true, text: t, uciety: false, zrodla, wyszukiwan: Number(j?.wyszukiwan) || 0 } : { ok: false, powod: 'Mózg OPERO nie zwrócił tekstu.' };
   }
   if (!(status >= 200 && status < 300)) return { ok: false, powod: chKomunikatBledu(status, tekst) };
   let j = null; try { j = JSON.parse(String(tekst || '')); } catch { return { ok: false, powod: 'Dostawca modelu zwrócił odpowiedź, której nie da się odczytać.' }; }
   let wynik = '';
-  if (dostawca === 'anthropic') wynik = (Array.isArray(j?.content) ? j.content : []).filter(b => b?.type === 'text').map(b => String(b.text || '')).join('');
+  let zrodla = [];
+  if (dostawca === 'anthropic'){
+    const bloki = Array.isArray(j?.content) ? j.content : [];
+    wynik = bloki.filter(b => b?.type === 'text').map(b => String(b.text || '')).join('');
+    for (const b of bloki) for (const c of (b?.citations || [])) if (c?.url && !zrodla.some(z => z.url === c.url)) zrodla.push({ url: c.url, tytul: String(c.title || '') });
+  }
   else { const c = j?.choices?.[0]?.message?.content; wynik = Array.isArray(c) ? c.map(b => String(b?.text || '')).join('') : String(c || ''); }
   wynik = wynik.trim().replace(/^```[a-z]*\n?|\n?```$/g, '').trim();
   if (!wynik) return { ok: false, powod: 'Model w chmurze nie zwrócił tekstu.' };
-  return { ok: true, text: wynik, uciety: j?.stop_reason === 'max_tokens' || j?.choices?.[0]?.finish_reason === 'length' };
+  return { ok: true, text: wynik, uciety: j?.stop_reason === 'max_tokens' || j?.choices?.[0]?.finish_reason === 'length', zrodla };
 }
 
 const API_CHMURA = {

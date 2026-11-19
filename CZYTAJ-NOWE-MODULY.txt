@@ -1,3 +1,24 @@
+OPERO 3.5.0
+===========
+- Okno procesu: każdy dłuższy proces (czytanie dokumentów, zespół agentów, Claude,
+  RCN, rejestry i mapy, eksport PDF) pokazuje animowane okienko w prawym dolnym rogu:
+  co się teraz dzieje, postęp, historia kroków z ✓, czas. Zwijane; znika samo.
+- Super-agenci: zespół ma 18 agentów. Nowi: Agent Prawny (działy III/IV, ryzyka,
+  aktualne przepisy z ISAP/Dz.U. przez wyszukiwarkę) i Agent Planistyczny (szuka planu
+  miejscowego/studium/WZ w BIP gminy i dziennikach urzędowych; niepewne ustalenia nie
+  trafiają do operatu). Nazwiska i PESEL z księgi nie są wysyłane do Claude.
+- „Zapytaj zespół ekspertów” na ekranie Nowy operat: prawnik, planista, metodyk,
+  analityk rynku, technik, doradca podatkowy — odpowiedzi ze źródłami (linki).
+- Mózg OPERO (n8n) woła bezpośrednio Claude Messages API: PDF-y czyta w całości
+  (do 100 stron, tekst + skany), obrazy, wyszukiwarka dla agentów; trzy tryby modelu
+  (najlepszy = claude-opus-5-5, szybki = claude-sonnet-5-5 do sortowania zdjęć).
+- Czytnik formatów: PDF, JPG/JFIF, PNG, WEBP, GIF, AVIF, BMP, DOCX, ODT, RTF, XLSX,
+  ODS, CSV, TXT, MD, HTML, XML/GML, JSON, EML. HEIC i TIFF — czytelny komunikat, jak
+  je zapisać (Windows ich nie dekoduje). Pliki czytane równolegle (po 4), zdjęcia
+  oglądane przez Claude partiami równolegle.
+- Z wypisów, wyrysów, aktów i decyzji Claude wpisuje fakty (działka, obręb,
+  powierzchnia, symbol i przeznaczenie w planie, KW) — tylko w puste pola.
+
 OPERO 3.4.1
 ===========
 - Opis piszesz jak do czatu: Claude czyta go po chwili od ostatniego wpisanego słowa

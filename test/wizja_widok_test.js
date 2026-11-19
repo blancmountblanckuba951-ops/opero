@@ -38,12 +38,13 @@ const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJA
   T('lista wczytanych: księga 1, rzut 1, zdjęcia 3 — z opisem, co rozpoznał Claude', /Księga wieczysta1/.test(r.lista) && /Rzut1/.test(r.lista) && /Zdjęcia3/.test(r.lista) && /okładkę/.test(r.opisy) && /wnętrze — salon/.test(r.opisy) && /przepisana przez Claude/.test(r.opisy), [r.lista, r.opisy]);
   // Skan PDF: Claude rozpoznaje wypis z planu
   const d = await p.ocen(`
-    window.__wizjaOdp = (z) => /kolejne strony dokumentu/.test(z.polecenie) ? { ok: true, text: JSON.stringify({ rodzaj: 'wypis_mpzp', tytul: 'Wypis z planu miejscowego', tekst: 'Teren 12MN — zabudowa mieszkaniowa jednorodzinna', streszczenie: 'Działka w terenie 12MN.' }) } : { ok: false };
+    window.__wizjaZapytania = []; window.__wizjaOdp = (z) => /Załączony materiał to dokument/.test(z.polecenie) ? { ok: true, text: JSON.stringify({ rodzaj: 'wypis_mpzp', tytul: 'Wypis z planu miejscowego', tekst: 'Teren 12MN — zabudowa mieszkaniowa jednorodzinna', streszczenie: 'Działka w terenie 12MN.' }) } : { ok: false };
     window.__pdfOdp = { 'C:/x/wypis.pdf': { ok: true, stron: 1, strony: [{ nr: 1, tekst: '', zrodlo: 'obraz', obraz: '${PNG}' }] } };
     project.files = []; project.planning.description = '';
     const w = await wsadPdf({ nazwa: 'wypis.pdf', sciezka: 'C:/x/wypis.pdf', rozmiar: 10 }, () => {});
-    return { w, plik: project.files[0], plan: project.planning.description };`);
+    return { w, plik: project.files[0], plan: project.planning.description, zap: (window.__wizjaZapytania || []).map(q => ({ dok: (q.dokumenty || []).map(x => x.sciezka), obrazow: (q.obrazy || []).length })) };`);
   T('skan PDF: Claude rozpoznał wypis z planu, tekst w dokumentach, streszczenie w opisie planistycznym', d.w?.rodzaj === 'zalacznik' && /Wypis z planu/.test(d.plik?.description) && /12MN/.test(d.plik?.tekst) && /12MN/.test(d.plan), d);
+  T('PDF idzie do Claude w całości (natywnie), bez obrazów stron', d.zap?.[0]?.dok?.[0] === 'C:/x/wypis.pdf' && d.zap[0].obrazow === 0, d.zap);
   // Bez zgody — agenci pytają o zgodę na mózg AI
   const g = await p.ocen(`window.__chmura = { wlaczony: true, zgoda: false, dostawca: 'opero' }; studioMozg = null; window.confirm = () => false;
     const r = await agenciUruchom(); return { r, kom: document.querySelector('#agenciKomunikat').textContent };`);
