@@ -35,7 +35,7 @@ const crypto = require('node:crypto');
 const PREFIKS = 'OPERO1';
 
 /** Klucz publiczny OPERO (SPKI DER, base64). Prywatny nie istnieje w programie. */
-const KLUCZ_PUBLICZNY = 'MCowBQYDK2VwAyEAIRGsMuqgJQMAId6HA0+7QiPoJ3bIfD1u+OSAdnLrqwM=';
+const KLUCZ_PUBLICZNY = 'MCowBQYDK2VwAyEAdy3KCYRI6P4yorHBtiZdY2MB/yWMRfs6vKKFyywfGQE=';
 
 function b64url(buf) {
   return Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');

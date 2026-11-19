@@ -1,4 +1,4 @@
-OPERO 3.3.0 - jeden plik, jeden instalator
+OPERO 3.3.1 - jeden plik, jeden instalator
 ===========================================
 
   KLIKNIJ DWUKROTNIE:   ZBUDUJ OPERO.cmd
@@ -9,8 +9,8 @@ To jedyna rzecz, ktora trzeba tu uruchomic. Potrzebny jest Node.js 22
 
 CO POWSTAJE
 -----------
-  OPERO-Setup-3.3.0.exe          <- TO wysylasz klientowi (ok. 130 MB)
-  OPERO-Setup-3.3.0.exe.sha256      suma kontrolna do sprawdzenia
+  OPERO-Setup-3.3.1.exe          <- TO wysylasz klientowi (ok. 130 MB)
+  OPERO-Setup-3.3.1.exe.sha256      suma kontrolna do sprawdzenia
 
 I nic wiecej. Jeden plik, zadnych zalacznikow, zadnego wydania do skladania.
 
